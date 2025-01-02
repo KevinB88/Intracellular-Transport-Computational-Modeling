@@ -1,1 +1,1 @@
-Results from my code will be temporarily placed without a specified directory just for 12/20/24, I will update this repository over the weekend including adding my code and its documentation. 
+Source code will be placed in a separate container from results, and results will be organized relative to their date/month.
