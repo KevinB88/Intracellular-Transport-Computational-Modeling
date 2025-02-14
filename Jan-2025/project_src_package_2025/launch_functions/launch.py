@@ -44,7 +44,7 @@ def parallel_process_mfpt(N_list, rg_param, ry_param, dep_type, ind_type, ind_pa
     print(f"{dep_type} list: {dep_list}")
 
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    data_filepath = tb.create_directory(fp.general_output, current_time)
+    data_filepath = tb.create_directory(fp.mfpt_results_output, current_time)
 
     if cores is not None and cores > 0:
         core_count = min(cores, config.core_amount)
@@ -69,11 +69,13 @@ def solve_mfpt(rg_param, ry_param, N_param, v_param, w_param, return_duration=Fa
     else:
         return mfpt
 
+
 def output_time_until_mass_depletion(rg_param, ry_param, N_param, v_param, w_param, mass_threshold=0.01):
     diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
     duration = ant.comp_until_mass_depletion(rg_param, ry_param, w_param, w_param,
                                              v_param, N_param, diff_layer, adv_layer, mass_retention_threshold=mass_threshold)
     return duration
+
 
 # produces a csv containing Phi versus Theta data relative to the specified approach
 def collect_phi_v_theta(rg_param, ry_param, N_param, v_param, w_param, approach, m_segment=0.5,

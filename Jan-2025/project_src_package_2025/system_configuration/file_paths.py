@@ -3,6 +3,8 @@ from . import os, Path
 general_output = Path("data_output")
 # general_output.mkdir(exist_ok=True)
 
+mfpt_results_output = Path("data_output/mfpt-results")
+
 heatmap_output = Path("data_output/heatmaps")
 # heatmap_output.mkdir(exist_ok=True)
 

@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
     rg_param = 48
     ry_param = 48
-    N_param = [0, 4, 8, 12]
+    N_param = [0, 12, 24, 36]
     v_param = -100
     w_param = 10 ** 4
 

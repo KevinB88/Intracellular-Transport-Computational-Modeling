@@ -5,6 +5,28 @@ ENABLE_JIT = sys_config.ENABLE_NJIT
 
 @njit(nopython=ENABLE_JIT)
 def u_density(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, mt_pos, a, b, tube_placements):
+    """
+
+    Update particle density at a patch with positions (m,n) on the diffusive layer for a time-point k.
+
+    :param phi: (float) particle density
+    :param k: (int) time-point
+    :param m: (int) position of radial ring
+    :param n: (int) position of angular ray
+    :param d_radius: (float) delta_radius
+    :param d_theta: (float) delta_theta
+    :param d_time: (float) delta_time
+    :param central: (float) particle density at the center
+    :param rings: (int) # of radial rings in the cellular domain
+    :param rho: (int) # of angular rays in the cellular domain
+    :param mt_pos: (int) indexed position from the 'tube_placements' container
+    (to specify particle density on the advective layer relative to microtubule/filament)
+
+    :param a: (float) switch rate onto the diffusive layer (switch-on rate)
+    :param b: (float) switch rate onto the advective layer (switch-off rate)
+    :param tube_placements: (list(int)) discrete microtubule/filament positions between [0, rays-1]
+    :return:
+    """
 
     current_density = phi[k][m][n]
 

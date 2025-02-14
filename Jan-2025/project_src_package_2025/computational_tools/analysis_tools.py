@@ -2,24 +2,29 @@ from . import math, njit, numerical_tools as num, sys_config
 
 ENABLE_JIT = sys_config.ENABLE_NJIT
 
-'''
-    Computational tools for conducting further analysis on diffusion and advection properties.
-    
-    Including:
-        #1) A function for computing the time to reach the global max of J(t) (mass loss as a function of time using angular currents) 
-            comp_mass_loss_glb_pk()
-    
-        #2) A function to collect numerical snapshots across the whole diffusive layer at different pinpoints (relative to the approach2) 
-            comp_diffusive_snapshots()
-            
-        #3) The same as #2, except with the addition of returning an array of MFPT values at the different pinpoints as well
-            comp_diffusive_snapshots_with_mfpt()
-'''
-
 
 @njit(nopython=ENABLE_JIT)
-# Compute for the global peak time of mass as a function of time
 def comp_mass_loss_glb_pk(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer, r=1, d=1, mass_retention_threshold=0.01):
+    """
+
+    Prints biophysical metrics including MFPT and the dimensionless time taken to reach the global-maximum of the mass-loss-rate as a
+    function of time, J(t).
+
+    :param rings: (float) # of radial rings in the cellular domain
+    :param rays: (float) # of angular rays in the cellular domain
+    :param a: (float) the switch rate onto the diffusive layer
+    :param b: (float) the switch rate onto the advective layer
+    :param v: (float) particle velocity on microtubules/filaments
+    :param tube_placements: (list(int)) discrete microtubule/filament positions between [0, rays-1]
+
+    :param diffusive_layer: [np.zeros((2, rings, rays), dtype=np.float64)] a 2 * rings * ray container to collect density at the diffusive layer
+    :param advective_layer: [np.zeros((2, rings, rays), dtype=np.float64)] a 2 * rings * ray container to collect density at the advective layer
+
+    :param r: (float) cellular radius, by default r=1.
+    :param d: (float) diffusion constant, by default d=1
+    :param mass_retention_threshold: (float) the amount of mass remaining in the domain until termination
+    :return: void
+    """
 
     if ENABLE_JIT:
         print("Running optimized version.")
@@ -198,6 +203,7 @@ def comp_diffusive_snapshots(rings, rays, a, b, v, tube_placements, diffusive_la
         advective_layer[0] = advective_layer[1]
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+
 def comp_until_mass_depletion(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer, r=1, d=1, mass_retention_threshold=0.01):
     if ENABLE_JIT:
         print("Running optimized version.")
@@ -254,6 +260,7 @@ def comp_until_mass_depletion(rings, rays, a, b, v, tube_placements, diffusive_l
         advective_layer[0] = advective_layer[1]
     return k * d_time
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 
 @njit(nopython=ENABLE_JIT)
 # Collecting a snapshot of density across angles (labeled as discrete positions from 0 to N) on a ring (position specified via params)

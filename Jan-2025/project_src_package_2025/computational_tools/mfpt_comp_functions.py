@@ -22,10 +22,43 @@ ENABLE_JIT = sys_config.ENABLE_NJIT
 '''
 
 
-# computing Mean First Passage Time using the mass loss technique until a given mass retention threshold, 0.01 by default
 @njit(nopython=ENABLE_JIT)
 def comp_mfpt_by_mass_loss(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer,
                            mass_checkpoint=10**6, r=1, d=1, mass_retention_threshold=0.01):
+
+    """
+    Computation of Mean First Passage Time using a two-time step scheme such that particle density across the diffusive and advective
+    layers are updated iteratively between two time points, the current and the next. MFPT is integrated numerically by summing
+    radial segments of patches across the last ring before the absorbing boundary. The calculation will terminate after the
+    mass_retention_threshold has been reached. (Run until mass_retention_threshold amount of mass remains)
+
+    The center patch is considered separately from both diffusive and advective layers as variable, phi_center.
+
+    The absorbing boundary condition is set at the (m-1)th ring within the domain, where particle density is set to 0 at this position for all
+    angular rays 'n'.
+
+    Refer to project_src_package_2025/computational_tools/visual-discretization-demos for more details on the discretization scheme, absorbing boundary condition,
+    array representation of the diffusive/advective layers, and placement of microtubules/filaments across the domain.
+
+    :param rings: (float) # of radial rings in the cellular domain
+    :param rays: (float) # of angular rays in the cellular domain
+    :param a: (float) the switch rate onto the diffusive layer
+    :param b: (float) the switch rate onto the advective layer
+    :param v: (float) particle velocity on microtubules/filaments
+    :param tube_placements: (list(int)) discrete microtubule/filament positions between [0, rays-1]
+
+    :param diffusive_layer: [np.zeros((2, rings, rays), dtype=np.float64)] a 2 * rings * ray container to collect density at the diffusive layer
+    :param advective_layer: [np.zeros((2, rings, rays), dtype=np.float64)] a 2 * rings * ray container to collect density at the advective layer
+
+    :param mass_checkpoint: (float) used to print biophysical metrics onto screen after evey mass_checkpoint number of time-steps,
+    by default, mass_checkpoint=10**6
+
+    :param r: (float) cellular radius, by default r=1.
+    :param d: (float) diffusion constant, by default d=1
+    :param mass_retention_threshold: (float) the amount of mass remaining in the domain until termination
+    :return: a tuple, [(float), (float)]. The first being Mean First Passage Time (m_f_p_t), and the second being Simulation Time (duration)
+    """
+
     if ENABLE_JIT:
         print("Running optimized version.")
 
