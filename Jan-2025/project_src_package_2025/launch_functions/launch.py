@@ -60,15 +60,20 @@ def parallel_process_mfpt(N_list, rg_param, ry_param, dep_type, ind_type, ind_pa
                                f'MFPT_Results_N={len(N_list[n])}_{ind_type}={ind_param}_')
 
 
-def solve_mfpt(rg_param, ry_param, N_param, v_param, w_param, return_duration=False):
+def solve_mfpt(rg_param, ry_param, N_param, v_param, w_param, return_duration=False, mass_threshold=0.01):
     diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
     mfpt, duration = mfpt_comp.comp_mfpt_by_mass_loss(rg_param, ry_param, w_param, w_param,
-                                                      v_param, N_param, diff_layer, adv_layer)
+                                                      v_param, N_param, diff_layer, adv_layer, mass_threshold=mass_threshold)
     if return_duration:
         return mfpt, duration
     else:
         return mfpt
 
+def output_time_until_mass_depletion(rg_param, ry_param, N_param, v_param, w_param, mass_threshold=0.01):
+    diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
+    duration = ant.comp_until_mass_depletion(rg_param, ry_param, w_param, w_param,
+                                             v_param, N_param, diff_layer, adv_layer, mass_retention_threshold=mass_threshold)
+    return duration
 
 # produces a csv containing Phi versus Theta data relative to the specified approach
 def collect_phi_v_theta(rg_param, ry_param, N_param, v_param, w_param, approach, m_segment=0.5,
@@ -77,8 +82,13 @@ def collect_phi_v_theta(rg_param, ry_param, N_param, v_param, w_param, approach,
         rows = 2
     elif approach == 2:
         rows = 4
+    elif approach == 3:
+        rows = len(time_point_container)
+    elif approach == 4:
+        rows = int(rg_param / 2)
+    # approach 4 is temporary, and has been implemented to execute Task 2 from 2/11/25 6:02 PM
     else:
-        raise ValueError(f"{approach} undefined, please use either approach 1 or 2 (int).")
+        raise ValueError(f"{approach} undefined, please use either approach 1, 2, or 3 (int).")
 
     phi_v_theta_container = np.zeros((rows, ry_param), dtype=np.float64)
 
@@ -102,7 +112,7 @@ def collect_phi_v_theta(rg_param, ry_param, N_param, v_param, w_param, approach,
 
     clk.sleep(2)
 
-    plt.plot_phi_v_theta(output_location, v_param, w_param, N_param, approach, m_segment, data_filepath, save_png=save_png, show_plt=show_plt)
+    plt.plot_phi_v_theta(output_location, v_param, w_param, N_param, approach, m_segment, data_filepath, save_png=save_png, show_plt=show_plt, time_point_container=time_point_container)
 
 
 

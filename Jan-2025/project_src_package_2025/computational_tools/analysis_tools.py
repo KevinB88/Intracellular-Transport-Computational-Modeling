@@ -198,6 +198,62 @@ def comp_diffusive_snapshots(rings, rays, a, b, v, tube_placements, diffusive_la
         advective_layer[0] = advective_layer[1]
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+def comp_until_mass_depletion(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer, r=1, d=1, mass_retention_threshold=0.01):
+    if ENABLE_JIT:
+        print("Running optimized version.")
+
+    if len(tube_placements) > rays:
+        raise IndexError(
+            f'Too many microtubules requested: {len(tube_placements)}, within domain of {rays} angular rays.')
+
+    for i in range(len(tube_placements)):
+        if tube_placements[i] < 0 or tube_placements[i] > rays:
+            raise IndexError(f'Angle {tube_placements[i]} is out of bounds, your range should be [0, {rays - 1}]')
+
+    d_radius = r / rings
+    d_theta = ((2 * math.pi) / rays)
+    d_time = (0.1 * min(d_radius * d_radius, d_theta * d_theta * d_radius * d_radius)) / (2 * d)
+
+    phi_center = 1 / (math.pi * (d_radius * d_radius))
+
+    mass_retained = 0
+    # Mean first passage time
+
+    # **** - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    k = 0
+
+    while k == 0 or mass_retained > mass_retention_threshold:
+
+        m = 0
+
+        while m < rings:
+            angle_index = 0
+
+            n = 0
+            while n < rays:
+                if m == rings - 1:
+                    diffusive_layer[1][m][n] = 0
+                else:
+                    diffusive_layer[1][m][n] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta, d_time,
+                                                             phi_center, rings, advective_layer, angle_index, a,
+                                                             b, tube_placements)
+                    if n == tube_placements[angle_index]:
+                        advective_layer[1][m][n] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b, v,
+                                                              d_time, d_radius, d_theta)
+                        if angle_index < len(tube_placements) - 1:
+                            angle_index = angle_index + 1
+                n += 1
+            m += 1
+        k += 1
+
+        mass_retained = num.calc_mass(diffusive_layer, advective_layer, 0, d_radius, d_theta, phi_center, rings, rays,
+                                      tube_placements)
+        phi_center = num.u_center(diffusive_layer, 0, d_radius, d_theta, d_time, phi_center, advective_layer,
+                                  tube_placements, v)
+        diffusive_layer[0] = diffusive_layer[1]
+        advective_layer[0] = advective_layer[1]
+    return k * d_time
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 @njit(nopython=ENABLE_JIT)
 # Collecting a snapshot of density across angles (labeled as discrete positions from 0 to N) on a ring (position specified via params)
@@ -222,6 +278,8 @@ def comp_diffusive_angle_snapshots(rings, rays, a, b, v, tube_placements, diffus
 
     mass_retained = 0
     early_flag = True
+    # initialization of values in approach 3
+    i = 0
 
 # **** - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     k = 0
@@ -247,6 +305,7 @@ def comp_diffusive_angle_snapshots(rings, rays, a, b, v, tube_placements, diffus
         k += 1
 
         if approach == 1:
+            # approach 1 collects density profiles within an open interval, where every two points in the time-point container (up to 4) is either a lower or upper bound.
             if time_point_container is None:
                 raise ValueError("Provide time point container which should consist of 4 points: 2 bounds for the early bound, and 2 for the late bound.")
             if time_point_container[0] < k * d_time < time_point_container[1] and early_flag:
@@ -265,8 +324,27 @@ def comp_diffusive_angle_snapshots(rings, rays, a, b, v, tube_placements, diffus
             elif 0.015 < mass_retained < 0.02:
                 phi_v_theta_snapshot_container[3] = diffusive_layer[0][math.floor(m * m_segment)]
                 break
-        else:
-            raise ValueError(f'{approach} is not a valid argument, use either approach2 "1" or "2" (must be an int)')
+        elif approach == 3:
+            # approach 3, collects density profiles across angles at specified time points within the time_point_container.
+            # please note that this version of the approach may eventually replace approach 1
+
+            if i < len(time_point_container):
+                time_point = time_point_container[i]
+                epsilon = time_point * 0.05
+                # epsilon = time_point * 0.1
+            else:
+                return
+
+            if time_point - epsilon < k * d_time < time_point + epsilon:
+                phi_v_theta_snapshot_container[i] = diffusive_layer[0][math.floor(m * m_segment)]
+                i = i + 1
+            # labeling this as approach #3, collecting at each individual time point within the container.
+            # if the current time point is between an interval (T*k - epsilon, T*k + epsilon) then we collect.
+            # epsilon should be 5 - 10 % of the value.
+        # else :
+        elif approach != 4:
+            # temporary condition
+            raise ValueError(f'{approach} is not a valid argument, use either approach "1", "2", or "3" (must be an int)')
 
         mass_retained = num.calc_mass(diffusive_layer, advective_layer, 0, d_radius, d_theta, phi_center, rings, rays,
                                       tube_placements)
@@ -274,3 +352,10 @@ def comp_diffusive_angle_snapshots(rings, rays, a, b, v, tube_placements, diffus
                                   tube_placements, v)
         diffusive_layer[0] = diffusive_layer[1]
         advective_layer[0] = advective_layer[1]
+
+    # collect for every other ring for an even number of rings, after the mass depletion threshold has been reached
+    if approach == 4:
+        for i in range(rings/2):
+            phi_v_theta_snapshot_container[i] = diffusive_layer[0][i*2]
+    return mass_retained
+

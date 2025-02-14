@@ -53,7 +53,7 @@ def plot_general(file_list, N_labels, xlab, ylab, title, filepath, xlog=False, y
     plt.close()
 
 
-def plot_phi_v_theta(data_filepath, v, w, N, approach, position, file_path, save_png=False, show_plt=True):
+def plot_phi_v_theta(data_filepath, v, w, N, approach, position, file_path, save_png=False, show_plt=True, time_point_container=None):
 
     data = pd.read_csv(data_filepath, header=None)
 
@@ -65,6 +65,11 @@ def plot_phi_v_theta(data_filepath, v, w, N, approach, position, file_path, save
                            " 0.225 < mass_retained < 0.26", "0.015 < mass_retained < 0.02"]
     elif approach == 1:
         label_container = ["early time", "late time"]
+    elif approach == 3:
+        converted_container = [f"T={T:.3f}" for T in time_point_container]
+        label_container = converted_container
+    elif approach == 4:
+        label_container = [f"ring={i*2}" for i in range(24)]
     else:
         raise ValueError(f'{approach} is not a valid argument, use either approach2 "1" or "2" (must be an int)')
 
@@ -76,7 +81,12 @@ def plot_phi_v_theta(data_filepath, v, w, N, approach, position, file_path, save
     # Add labels, legend, and title
     plt.xlabel("Theta")
     plt.ylabel("Phi")
-    title = f'Phi_versus_Theta_V={v}_W={w}_N={N}_Approach{approach}_Position={position}'
+
+    if approach == 4:
+        title = f'Phi_versus_Theta_V={v}_W={w}_N={N}_Approach{approach}'
+    else:
+        title = f'Phi_versus_Theta_V={v}_W={w}_N={N}_Approach{approach}_Position={position}'
+
     plt.title(title)
     plt.legend()
     plt.grid(True)
