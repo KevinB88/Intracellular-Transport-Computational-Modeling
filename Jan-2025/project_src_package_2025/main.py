@@ -22,7 +22,6 @@ if __name__ == "__main__":
     end = clk.time()
     op_duration_1 = end - start
     print("Duration to reach 1% of mass: (real time)", uni.convert_seconds(op_duration_1))
-
     start = clk.time()
     # collecting at the following time-points
     time_points = [T*0.01, T*0.1, T*0.2, T*0.3, T*0.4, T*0.5, T*0.6, T*0.7, T*0.8, T*0.9, T]
@@ -50,8 +49,6 @@ if __name__ == "__main__":
 
     op_duration_4 = end - start
     print("Duration to collect phi-theta density profiles across every other ring: (real time)", uni.convert_seconds(op_duration_4))
-
-    # extract phi(theta) for every other r, in this case for every 2 rings, and then repeat the same for 0.01
 
     start = clk.time()
     T3 = launch.output_time_until_mass_depletion(rg_param, ry_param, N_param, v_param, w_param, mass_threshold=0.99005)
