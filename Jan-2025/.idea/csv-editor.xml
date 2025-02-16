@@ -80,6 +80,27 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/project_src_package_2025/data_output/phi-v-theta/2025-02-15-23-05-58/phi_v_theta_V=-100_W=10000_48x48_approach=3_.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/project_src_package_2025/data_output/phi-v-theta/2025-02-15-23-08-45/phi_v_theta_V=-100_W=10000_48x48_approach=4_.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/project_src_package_2025/data_output/phi-v-theta/2025-02-15-23-09-10/phi_v_theta_V=-100_W=10000_48x48_approach=4_.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
       </map>
     </option>
   </component>

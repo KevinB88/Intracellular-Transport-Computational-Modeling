@@ -1,0 +1,5 @@
+
+<**********> Time until approx. 50% of mass exited: (sim time) 0.37571725253226174
+
+<**********> Time until approx. 1% of mass exited: (sim time) 0.05461360481139364
+
