@@ -93,36 +93,43 @@ def comp_mfpt_by_mass_loss(rings, rays, a, b, v, tube_placements, diffusive_laye
             angle_index = 0
             n = 0
             while n < rays:
+                # absorbing boundary condition
                 if m == rings - 1:
                     diffusive_layer[1][m][n] = 0
                 else:
                     diffusive_layer[1][m][n] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta, d_time,
-                                                         phi_center, rings, advective_layer, angle_index, a, b,
-                                                         tube_placements)
+                                                             phi_center, rings, advective_layer, angle_index,
+                                                             a, b, tube_placements)
                     if n == tube_placements[angle_index]:
                         advective_layer[1][m][n] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b, v, d_time,
-                                                          d_radius, d_theta)
+                                                              d_radius, d_theta)
                         if angle_index < len(tube_placements) - 1:
                             angle_index = angle_index + 1
 
                 if m == rings - 2:
+                    # incrementally calculating the amount of mass exiting from the final ring at the current time-step
                     net_current_out += num.j_r_r(diffusive_layer, 0, m, n, d_radius, 0) * rings * d_radius * d_theta
                 n += 1
             m += 1
 
         m_f_p_t += net_current_out * k * d_time * d_time
+
         k += 1
+        # Implemented to provide occasional status checks/metrics during MFPT calculation
         if k > 0 and k % mass_checkpoint == 0:
             print("Velocity (V)= ", v, "Time step: ", k, "Simulation time: ", k * d_time, "Current mass: ", mass_retained,
                   "a=", a, "b=", b)
 
-        mass_retained = num.calc_mass(diffusive_layer, advective_layer, 0, d_radius, d_theta, phi_center, rings, rays,
-                                  tube_placements)
-        phi_center = num.u_center(diffusive_layer, 0, d_radius, d_theta, d_time, phi_center, advective_layer,
-                              tube_placements, v)
+        mass_retained = num.calc_mass(diffusive_layer, advective_layer, 0, d_radius, d_theta, phi_center,
+                                      rings, rays, tube_placements)
+        phi_center = num.u_center(diffusive_layer, 0, d_radius, d_theta, d_time, phi_center,
+                                  advective_layer, tube_placements, v)
+
+        # transfer updated density info from the next step to the current
         diffusive_layer[0] = diffusive_layer[1]
         advective_layer[0] = advective_layer[1]
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # calculate the sim-time
     duration = k * d_time
 
     return m_f_p_t, duration
