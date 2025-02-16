@@ -4,7 +4,7 @@ ENABLE_JIT = sys_config.ENABLE_NJIT
 
 
 @njit(nopython=ENABLE_JIT)
-def comp_mass_loss_glb_pk(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer, r=1, d=1, mass_retention_threshold=0.01):
+def comp_mass_loss_glb_pk(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer, r=1.0, d=1.0, mass_retention_threshold=0.01):
     """
 
     Prints biophysical metrics including MFPT and the dimensionless time taken to reach the global-maximum of the mass-loss-rate as a
@@ -98,7 +98,7 @@ def comp_mass_loss_glb_pk(rings, rays, a, b, v, tube_placements, diffusive_layer
 @njit(nopython=ENABLE_JIT)
 # Collecting a snapshot of the domain at a specified stamp, which can be used in heat map plots
 def comp_diffusive_snapshots(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer,
-                             domain_snapshot_container, domain_center_container, approach, r=1, d=1,
+                             domain_snapshot_container, domain_center_container, approach, r=1.0, d=1.0,
                              mass_retention_threshold=0.01, time_point_container=None, compute_mfpt=False):
 
     if ENABLE_JIT:
@@ -203,8 +203,8 @@ def comp_diffusive_snapshots(rings, rays, a, b, v, tube_placements, diffusive_la
         advective_layer[0] = advective_layer[1]
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-
-def comp_until_mass_depletion(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer, r=1, d=1, mass_retention_threshold=0.01):
+@njit(nopython=ENABLE_JIT)
+def comp_until_mass_depletion(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer, r=1.0, d=1.0, mass_retention_threshold=0.01):
     if ENABLE_JIT:
         print("Running optimized version.")
 
@@ -265,7 +265,7 @@ def comp_until_mass_depletion(rings, rays, a, b, v, tube_placements, diffusive_l
 @njit(nopython=ENABLE_JIT)
 # Collecting a snapshot of density across angles (labeled as discrete positions from 0 to N) on a ring (position specified via params)
 def comp_diffusive_angle_snapshots(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer,
-                                   phi_v_theta_snapshot_container, approach, m_segment=0.5, r=1, d=1, mass_retention_threshold=0.01, time_point_container=None):
+                                   phi_v_theta_snapshot_container, approach, m_segment=0.5, r=1.0, d=1.0, mass_retention_threshold=0.01, time_point_container=None):
 
     if ENABLE_JIT:
         print("Running optimized version.")

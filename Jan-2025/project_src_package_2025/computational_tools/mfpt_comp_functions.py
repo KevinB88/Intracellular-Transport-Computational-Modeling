@@ -24,7 +24,7 @@ ENABLE_JIT = sys_config.ENABLE_NJIT
 
 @njit(nopython=ENABLE_JIT)
 def comp_mfpt_by_mass_loss(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer,
-                           mass_checkpoint=10**6, r=1, d=1, mass_retention_threshold=0.01):
+                           mass_checkpoint=10**6, r=1.0, d=1.0, mass_retention_threshold=0.01):
 
     """
     Computation of Mean First Passage Time using a two-time step scheme such that particle density across the diffusive and advective

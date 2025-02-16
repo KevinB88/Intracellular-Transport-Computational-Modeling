@@ -34,14 +34,14 @@ def solve_mfpt_multi_process(N_param, rg_param, ry_param, dep_type, ind_param, d
         return {f'V: {w_param}', f'MFPT: {mfpt}'}
 
 
-def parallel_process_mfpt(N_list, rg_param, ry_param, dep_type, ind_type, ind_param, dep_list, cores=None):
+def parallel_process_mfpt(N_list, rg_param, ry_param, dep_type, ind_type, ind_param, ind_list, cores=None):
 
     dep_type = dep_type.upper()
     if dep_type != "W" and dep_type != "V":
         raise(f"{dep_type} is an undefined dependent parameter. The current available "
               f"dependent parameters are Switch Rate (W), and Velocity (V)")
 
-    print(f"{dep_type} list: {dep_list}")
+    print(f"{ind_type} list: {ind_list}")
 
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     data_filepath = tb.create_directory(fp.mfpt_results_output, current_time)
@@ -54,16 +54,18 @@ def parallel_process_mfpt(N_list, rg_param, ry_param, dep_type, ind_type, ind_pa
     for n in range(len(N_list)):
         with mp.Pool(processes=core_count) as pool:
             mfpt_results = pool.map(partial(solve_mfpt_multi_process, N_list[n],
-                                            rg_param, ry_param, dep_type, ind_param), dep_list)
+                                            rg_param, ry_param, dep_type, ind_param), ind_list)
         print(mfpt_results)
         tb.produce_csv_from_xy(mfpt_results, dep_type, "MFPT", data_filepath,
                                f'MFPT_Results_N={len(N_list[n])}_{ind_type}={ind_param}_')
 
 
-def solve_mfpt(rg_param, ry_param, N_param, v_param, w_param, return_duration=False, mass_threshold=0.01):
+def solve_mfpt(rg_param, ry_param, N_param, v_param, w_param, r=1.0, d=1.0, mass_checkpoint=10**6,
+               mass_threshold=0.01, return_duration=False):
     diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
-    mfpt, duration = mfpt_comp.comp_mfpt_by_mass_loss(rg_param, ry_param, w_param, w_param,
-                                                      v_param, N_param, diff_layer, adv_layer, mass_threshold=mass_threshold)
+    mfpt, duration = mfpt_comp.comp_mfpt_by_mass_loss(rg_param, ry_param, w_param, w_param, v_param,
+                                                      N_param, diff_layer, adv_layer, mass_checkpoint, r, d, mass_threshold)
+
     if return_duration:
         return mfpt, duration
     else:
