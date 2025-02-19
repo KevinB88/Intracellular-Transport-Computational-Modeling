@@ -8,71 +8,45 @@ import time as clk
 
 if __name__ == "__main__":
 
+    # Task no. 1 : Collecting results for phi-v-theta amplitude radial dependence when 10% of the mass has exited from the domain.
     rg_param = 48
     ry_param = 48
     N_param = [0, 12, 24, 36]
-    v_param = -100
+    v_param = -10
     w_param = 10 ** 4
 
-    ani.compute_heatmap(rg_param, ry_param, w_param, v_param, N_param, show_plot=True)
+    start = clk.time()
+    T = launch.output_time_until_mass_depletion(rg_param, ry_param, N_param, v_param, w_param, mass_threshold=0.90005)
+    print("<**********> Time until approx. 10% of mass exited: (sim time)", T)
+    end = clk.time()
+    print("Real time until approx. 10% of mass exited: ", uni.convert_seconds(end - start))
 
-    # # Task 1
-    #
-    # # find time to reach 1% of mass rate, T
-    # start = clk.time()
-    # T = launch.output_time_until_mass_depletion(rg_param, ry_param, N_param, v_param, w_param)
-    # end = clk.time()
-    # op_duration_1 = end - start
-    # print("Duration to reach 1% of mass: (real time)", uni.convert_seconds(op_duration_1))
-    # start = clk.time()
-    # # collecting at the following time-points
-    # time_points = [T*0.01, T*0.1, T*0.2, T*0.3, T*0.4, T*0.5, T*0.6, T*0.7, T*0.8, T*0.9, T]
-    # # for i in range(11): time_points.append(i/10)
-    # # configure the computation for phi-theta density profiles at points in time_points.
-    # launch.collect_phi_v_theta(rg_param, ry_param, N_param, v_param, w_param, 3, time_point_container=time_points, verbose=True, save_png=True)
-    # end = clk.time()
-    # op_duration_2 = end - start
-    # print("Duration to collect phi-theta density profiles at points in time_points: (real time)", uni.convert_seconds(op_duration_2))
-    #
-    # # Task 2
-    #
-    # start = clk.time()
-    # T2 = launch.output_time_until_mass_depletion(rg_param, ry_param, N_param, v_param, w_param, mass_threshold=0.5002)
-    # print("<**********> Time until approx. 50% of mass exited: (sim time)", T2)
-    # end = clk.time()
-    #
-    # op_duration_3 = end - start
-    # print("Duration until approx. 50% of mass exited: (real time)", uni.convert_seconds(op_duration_3))
-    #
-    # start = clk.time()
-    # launch.collect_phi_v_theta(rg_param, ry_param, N_param, v_param, w_param, 4, verbose=True, mass_retention_threshold=0.5002,
-    #                            time_point_container=[1])
-    # end = clk.time()
-    #
-    # op_duration_4 = end - start
-    # print("Duration to collect phi-theta density profiles across every other ring: (real time)", uni.convert_seconds(op_duration_4))
-    #
-    # start = clk.time()
-    # T3 = launch.output_time_until_mass_depletion(rg_param, ry_param, N_param, v_param, w_param, mass_threshold=0.99005)
-    # print("<**********> Time until approx. 1% of mass exited: (sim time)", T3)
-    # end = clk.time()
-    #
-    # op_duration_5 = end - start
-    # print("Duration until approx. 1% of mass exited: (real time)", uni.convert_seconds(op_duration_3))
-    #
-    # start = clk.time()
-    # launch.collect_phi_v_theta(rg_param, ry_param, N_param, v_param, w_param, 4, verbose=True,
-    #                            mass_retention_threshold=0.99005, time_point_container=[1])
-    # end = clk.time()
-    #
-    # op_duration_6 = end - start
-    # print("Duration to collect phi-theta density profiles across every other ring: (real time)",
-    #       uni.convert_seconds(op_duration_6))
-    #
-    #
+    start = clk.time()
+    launch.collect_phi_v_theta(rg_param, ry_param, N_param, v_param, w_param, 4, verbose=True,
+                               mass_retention_threshold=0.90005, time_point_container=[1])
+    end = clk.time()
+    print("Real time until phi-v-theta amplitude results have been successfully collected: ", uni.convert_seconds(end - start))
 
-# Task 2/18/25: Amplitude radial dependence for 10% gone, mass threshold of 0.9
+    # Task no. 2, Produce heatmap for 128x128, v=-10, w=10**4, N=4, using an adjusted approach 2.
+    '''
+        Approach 2 collection points:
+        
+          pane0 ->  0.985 < mass_retained < 0.99
+          pane1 ->  0.45 < mass_retained < 0.46
+          pane2 ->  0.225 < mass_retained < 0.26
+          pane3 ->  0.015 < mass_retained < 0.02
+    '''
 
+    rg_param = 128
+    ry_param = 128
+    N_param = [0, 32, 64, 96]
+    v_param = -10
+    w_param = 10 ** 4
+
+    start = clk.time()
+    ani.generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2, save_png=True, show_plot=False, compute_mfpt=True, verbose=True)
+    end = clk.time()
+    print("Real time until heatmap generation for 128x128 domain using slightly modified approach 2: ", uni.convert_seconds(end - start))
 
 
 

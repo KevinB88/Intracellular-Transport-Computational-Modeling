@@ -98,8 +98,9 @@ def comp_mass_loss_glb_pk(rings, rays, a, b, v, tube_placements, diffusive_layer
 @njit(nopython=ENABLE_JIT)
 # Collecting a snapshot of the domain at a specified stamp, which can be used in heat map plots
 def comp_diffusive_snapshots(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer,
-                             domain_snapshot_container, domain_center_container, approach, r=1.0, d=1.0,
-                             mass_retention_threshold=0.01, time_point_container=None, compute_mfpt=False):
+                             domain_snapshot_container, domain_center_container, sim_time_container, approach, r=1.0, d=1.0,
+                             mass_retention_threshold=0.01, time_point_container=None, compute_mfpt=False, mfpt_container=None,
+                             mass_checkpoint=10**6):
 
     if ENABLE_JIT:
         print("Running optimized version.")
@@ -173,35 +174,48 @@ def comp_diffusive_snapshots(rings, rays, a, b, v, tube_placements, diffusive_la
             elif time_point_container[2] < k * d_time < time_point_container[3]:
                 domain_snapshot_container[1] = diffusive_layer[0]
                 domain_center_container[1] = phi_center
-                if compute_mfpt:
-                    duration = k * d_time
-                    return m_f_p_t, duration
-                break
+                return
         elif approach == 2:
-            if 0.675 < mass_retained < 0.68:
+            # if 0.675 < mass_retained < 0.68:
+            if 0.985 < mass_retained < 0.99:
+                # Implemented for the 2/18/25 task no. 2  128x128 heatmap computation
                 domain_snapshot_container[0] = diffusive_layer[0]
                 domain_center_container[0] = phi_center
+                sim_time_container[0] = k * d_time
+                if compute_mfpt:
+                    mfpt_container[0] = m_f_p_t
             elif 0.45 < mass_retained < 0.46:
                 domain_snapshot_container[1] = diffusive_layer[0]
                 domain_center_container[1] = phi_center
+                sim_time_container[1] = k * d_time
+                if compute_mfpt:
+                    mfpt_container[1] = m_f_p_t
             elif 0.225 < mass_retained < 0.26:
                 domain_snapshot_container[2] = diffusive_layer[0]
                 domain_center_container[2] = phi_center
+                sim_time_container[2] = k * d_time
+                if compute_mfpt:
+                    mfpt_container[2] = m_f_p_t
             elif 0.015 < mass_retained < 0.02:
                 domain_snapshot_container[3] = diffusive_layer[0]
                 domain_center_container[3] = phi_center
+                sim_time_container[3] = k * d_time
                 if compute_mfpt:
-                    duration = k * d_time
-                    return m_f_p_t, duration
-                break
+                    mfpt_container[3] = m_f_p_t
+                return
         else:
             raise ValueError(f'{approach} is not a valid argument, use either approach2 "1" or "2" (must be an int)')
+
+        if k > 0 and k % mass_checkpoint == 0:
+            print("Velocity (V)= ", v, "Time step: ", k, "Simulation time: ", k * d_time, "Current mass: ", mass_retained,
+                  "a=", a, "b=", b)
 
         mass_retained = num.calc_mass(diffusive_layer, advective_layer, 0, d_radius, d_theta, phi_center, rings, rays, tube_placements)
         phi_center = num.u_center(diffusive_layer, 0, d_radius, d_theta, d_time, phi_center, advective_layer, tube_placements, v)
         diffusive_layer[0] = diffusive_layer[1]
         advective_layer[0] = advective_layer[1]
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 
 @njit(nopython=ENABLE_JIT)
 def comp_until_mass_depletion(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer, r=1.0, d=1.0, mass_retention_threshold=0.01):
@@ -322,6 +336,7 @@ def comp_diffusive_angle_snapshots(rings, rays, a, b, v, tube_placements, diffus
                 phi_v_theta_snapshot_container[1] = diffusive_layer[0][math.floor(m * m_segment)]
                 break
         elif approach == 2:
+
             if 0.675 < mass_retained < 0.68:
                 phi_v_theta_snapshot_container[0] = diffusive_layer[0][math.floor(m * m_segment)]
             elif 0.45 < mass_retained < 0.46:
@@ -364,5 +379,4 @@ def comp_diffusive_angle_snapshots(rings, rays, a, b, v, tube_placements, diffus
     if approach == 4:
         for i in range(rings/2):
             phi_v_theta_snapshot_container[i] = diffusive_layer[0][i*2]
-    return mass_retained
 

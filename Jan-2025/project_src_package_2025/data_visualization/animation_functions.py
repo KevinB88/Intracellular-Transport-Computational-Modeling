@@ -14,7 +14,7 @@ import time
 '''
 
 
-def compute_heatmap(rg_param, ry_param, w_param, v_param, N_param, approach=2,
+def generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2,
                     filepath=fp.heatmap_output, time_point_container=None, save_png=True, show_plot=False,
                     compute_mfpt=False, verbose=False):
     panes = 0
@@ -35,23 +35,16 @@ def compute_heatmap(rg_param, ry_param, w_param, v_param, N_param, approach=2,
 
     domain_snapshot_container = np.zeros((panes, rg_param, ry_param), dtype=np.float64)
     domain_center_snapshot_container = np.zeros([panes], dtype=np.float64)
+    sim_time_container = np.zeros([panes], dtype=np.float64)
+    mfpt_container = np.zeros([panes], dtype=np.float64)
     diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
 
-    if compute_mfpt:
-        mfpt, duration = ant.comp_diffusive_snapshots(rg_param, ry_param, w_param, w_param,
-                                                      v_param, N_param, diff_layer, adv_layer,
-                                                      domain_snapshot_container, domain_center_snapshot_container, approach,
-                                                      time_point_container=time_point_container, compute_mfpt=compute_mfpt)
-    else:
-        ant.comp_diffusive_snapshots(rg_param, ry_param, w_param, w_param,
-                                     v_param, N_param, diff_layer, adv_layer,
-                                     domain_snapshot_container, domain_center_snapshot_container, approach,
-                                     time_point_container=time_point_container, compute_mfpt=compute_mfpt)
+    ant.comp_diffusive_snapshots(rg_param, ry_param, w_param, w_param, v_param, N_param, diff_layer, adv_layer,
+                                 domain_snapshot_container, domain_center_snapshot_container, sim_time_container, approach,
+                                 time_point_container=time_point_container, compute_mfpt=compute_mfpt, mfpt_container=mfpt_container)
 
     if verbose:
         print(f"Values from within the center snapshot container: {domain_snapshot_container}")
-        if compute_mfpt:
-            print(f"MFPT: {mfpt}    Duration in sim-time: {duration}    Approach : {approach}")
 
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     data_filepath = tb.create_directory(filepath, current_time)
@@ -59,10 +52,16 @@ def compute_heatmap(rg_param, ry_param, w_param, v_param, N_param, approach=2,
     for i in range(panes):
         if verbose:
             print(f"Looking at pane {i}")
-            produce_heatmap(domain_snapshot_container[i], domain_center_snapshot_container[i],
-                            False, w_param, v_param, len(N_param), data_filepath,
-                            save_png=save_png, show_plot=show_plot, approach=int(approach),
-                            mfpt=mfpt, duration=duration)
+
+        if compute_mfpt:
+            mfpt = mfpt_container[i]
+        else:
+            mfpt = None
+
+        produce_heatmap(domain_snapshot_container[i], domain_center_snapshot_container[i],
+                        False, w_param, v_param, len(N_param), data_filepath,
+                        save_png=save_png, show_plot=show_plot, approach=int(approach), pane=i,
+                        mfpt=mfpt, duration=sim_time_container[i])
         if verbose:
             if save_png:
                 print(f"File saved at: {data_filepath}")
@@ -70,7 +69,7 @@ def compute_heatmap(rg_param, ry_param, w_param, v_param, N_param, approach=2,
 
 
 def produce_heatmap(diffusive_layer, diffusive_layer_center, toggle_border, w, v, MT_count, filepath, color_scheme='viridis',
-                    save_png=False, show_plot=True, transparent=False, approach=None, mfpt=None, duration=None):
+                    save_png=False, show_plot=True, transparent=False, approach=None, pane=None, mfpt=None, duration=None):
     # Include the center value as the first "ring" in the polar heatmap
     diffusive_layer_center = np.full((1, diffusive_layer.shape[1]), diffusive_layer_center)  # Expand the center value
     full_diffusive_layer = np.vstack([diffusive_layer_center, diffusive_layer])
@@ -110,12 +109,14 @@ def produce_heatmap(diffusive_layer, diffusive_layer_center, toggle_border, w, v
     cbar.set_ticklabels([f'0' if tick == 0 else f'$10^{{{int(np.log10(tick))}}}$' for tick in cbar_ticks])
     cbar.ax.tick_params(labelsize=12, labelcolor='black')
 
-    title = f'N={MT_count}, w={w}, v={v}'
+    title = f'N={MT_count}, w={w:.2e}, v={v}'
 
     if mfpt is not None:
-        title += f', MFPT={mfpt}'
+        title += f', MFPT={mfpt:.3f}'
     if duration is not None:
-        title += f', T={duration}'
+        title += f', T={duration:.3f}'
+    if pane is not None:
+        title += f', pane={pane}'
 
     if approach is not None:
         if approach != 1 and approach != 2:
@@ -135,6 +136,7 @@ def produce_heatmap(diffusive_layer, diffusive_layer_center, toggle_border, w, v
             filename = f"N={MT_count}_w={w}_MxN={rings}x{rays}_data{current_time}"
             if approach is not None:
                 filename += f"_app={approach}"
+            filename += f'_pane={pane}'
             file = os.path.join(filepath, filename+".png")
             plt.savefig(file, bbox_inches='tight', transparent=transparent)
     if show_plot:
