@@ -23,7 +23,7 @@ def solve_mfpt_multi_process(N_param, rg_param, ry_param, dep_type, ind_param, d
     else:
         raise f"{dep_type} not yet defined, must use either V or W"
 
-    mfpt, duration = solve_mfpt(rg_param, ry_param, N_param, v_param, w_param, True)
+    mfpt, duration = solve_mfpt(rg_param, ry_param, N_param, v_param, w_param, return_duration=True)
 
     print(f"MxN={M}x{N}    Duration (sim time) : {duration}    Microtubule configuration: {N_param}"
           f"    W: {w_param}    V: {v_param}")
@@ -34,7 +34,7 @@ def solve_mfpt_multi_process(N_param, rg_param, ry_param, dep_type, ind_param, d
         return {f'V: {w_param}', f'MFPT: {mfpt}'}
 
 
-def parallel_process_mfpt(N_list, rg_param, ry_param, dep_type, ind_type, ind_param, ind_list, cores=None):
+def parallel_process_mfpt(N_list, rg_param, ry_param, dep_type, ind_type, dep_param, ind_list, cores=None):
 
     dep_type = dep_type.upper()
     if dep_type != "W" and dep_type != "V":
@@ -54,10 +54,10 @@ def parallel_process_mfpt(N_list, rg_param, ry_param, dep_type, ind_type, ind_pa
     for n in range(len(N_list)):
         with mp.Pool(processes=core_count) as pool:
             mfpt_results = pool.map(partial(solve_mfpt_multi_process, N_list[n],
-                                            rg_param, ry_param, dep_type, ind_param), ind_list)
+                                            rg_param, ry_param, dep_type, dep_param), ind_list)
         print(mfpt_results)
         tb.produce_csv_from_xy(mfpt_results, dep_type, "MFPT", data_filepath,
-                               f'MFPT_Results_N={len(N_list[n])}_{ind_type}={ind_param}_')
+                               f'MFPT_Results_N={len(N_list[n])}_{ind_type}={dep_param}_')
 
 
 def solve_mfpt(rg_param, ry_param, N_param, v_param, w_param, r=1.0, d=1.0, mass_checkpoint=10**6,

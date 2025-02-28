@@ -8,46 +8,20 @@ import time as clk
 
 if __name__ == "__main__":
 
+    # Computational configuration for 2/18/25
+
     # Task no. 1 : Collecting results for phi-v-theta amplitude radial dependence when 10% of the mass has exited from the domain.
     rg_param = 48
     ry_param = 48
     N_param = [0, 12, 24, 36]
-    v_param = -10
-    w_param = 10 ** 4
+    v_param = -1
+    # w_param = 10 ** 4
+    w_list = [10**-7, 10**-6, 10**-5, 10**-4, 10**-3, 10**-2, 10**-1, 10**0, 10, 10**2, 10**3, 10**4]
+    launch.parallel_process_mfpt([N_param], rg_param, ry_param, "W", "V", v_param, w_list, cores=3)
 
-    start = clk.time()
-    T = launch.output_time_until_mass_depletion(rg_param, ry_param, N_param, v_param, w_param, mass_threshold=0.90005)
-    print("<**********> Time until approx. 10% of mass exited: (sim time)", T)
-    end = clk.time()
-    print("Real time until approx. 10% of mass exited: ", uni.convert_seconds(end - start))
+'''
 
-    start = clk.time()
-    launch.collect_phi_v_theta(rg_param, ry_param, N_param, v_param, w_param, 4, verbose=True,
-                               mass_retention_threshold=0.90005, time_point_container=[1])
-    end = clk.time()
-    print("Real time until phi-v-theta amplitude results have been successfully collected: ", uni.convert_seconds(end - start))
-
-    # Task no. 2, Produce heatmap for 128x128, v=-10, w=10**4, N=4, using an adjusted approach 2.
-    '''
-        Approach 2 collection points:
-        
-          pane0 ->  0.985 < mass_retained < 0.99
-          pane1 ->  0.45 < mass_retained < 0.46
-          pane2 ->  0.225 < mass_retained < 0.26
-          pane3 ->  0.015 < mass_retained < 0.02
-    '''
-
-    rg_param = 128
-    ry_param = 128
-    N_param = [0, 32, 64, 96]
-    v_param = -10
-    w_param = 10 ** 4
-
-    start = clk.time()
-    ani.generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2, save_png=True, show_plot=False, compute_mfpt=True, verbose=True)
-    end = clk.time()
-    print("Real time until heatmap generation for 128x128 domain using slightly modified approach 2: ", uni.convert_seconds(end - start))
-
-
+Just in case, can you also make some runs that start at smaller w?  Say, starting from w=10^(-7).  Try this for v=1 and v=10 for N=4.  I don't think there will be a transition at a lower w, but let's check.
+'''
 
 

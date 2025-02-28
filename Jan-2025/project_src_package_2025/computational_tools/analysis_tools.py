@@ -206,7 +206,7 @@ def comp_diffusive_snapshots(rings, rays, a, b, v, tube_placements, diffusive_la
         else:
             raise ValueError(f'{approach} is not a valid argument, use either approach2 "1" or "2" (must be an int)')
 
-        if k > 0 and k % mass_checkpoint == 0:
+        if k > 0 and k % int(mass_checkpoint) == 0:
             print("Velocity (V)= ", v, "Time step: ", k, "Simulation time: ", k * d_time, "Current mass: ", mass_retained,
                   "a=", a, "b=", b)
 
@@ -279,7 +279,8 @@ def comp_until_mass_depletion(rings, rays, a, b, v, tube_placements, diffusive_l
 @njit(nopython=ENABLE_JIT)
 # Collecting a snapshot of density across angles (labeled as discrete positions from 0 to N) on a ring (position specified via params)
 def comp_diffusive_angle_snapshots(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer,
-                                   phi_v_theta_snapshot_container, approach, m_segment=0.5, r=1.0, d=1.0, mass_retention_threshold=0.01, time_point_container=None):
+                                   phi_v_theta_snapshot_container, approach, m_segment=0.5, r=1.0, d=1.0, mass_retention_threshold=0.01,
+                                   time_point_container=None, mass_checkpoint=10**6):
 
     if ENABLE_JIT:
         print("Running optimized version.")
@@ -367,6 +368,10 @@ def comp_diffusive_angle_snapshots(rings, rays, a, b, v, tube_placements, diffus
         elif approach != 4:
             # temporary condition
             raise ValueError(f'{approach} is not a valid argument, use either approach "1", "2", or "3" (must be an int)')
+
+        if k > 0 and k % mass_checkpoint == 0:
+            print("Velocity (V)= ", v, "Time step: ", k, "Simulation time: ", k * d_time, "Current mass: ", mass_retained,
+                  "a=", a, "b=", b)
 
         mass_retained = num.calc_mass(diffusive_layer, advective_layer, 0, d_radius, d_theta, phi_center, rings, rays,
                                       tube_placements)
