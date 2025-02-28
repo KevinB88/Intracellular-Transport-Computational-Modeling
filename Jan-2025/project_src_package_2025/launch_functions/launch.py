@@ -80,7 +80,7 @@ def output_time_until_mass_depletion(rg_param, ry_param, N_param, v_param, w_par
 
 
 # produces a csv containing Phi versus Theta data relative to the specified approach
-def collect_phi_v_theta(rg_param, ry_param, N_param, v_param, w_param, approach, m_segment=0.5,
+def collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach, m_segment=0.5,
                         r=1, d=1, mass_retention_threshold=0.01, time_point_container=None, verbose=False, save_png=True, show_plt=False):
     if approach == 1:
         rows = 2
@@ -117,6 +117,43 @@ def collect_phi_v_theta(rg_param, ry_param, N_param, v_param, w_param, approach,
     clk.sleep(2)
 
     plt.plot_phi_v_theta(output_location, v_param, w_param, N_param, approach, m_segment, data_filepath, save_png=save_png, show_plt=show_plt, time_point_container=time_point_container)
+
+
+def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fixed_angle, time_point_container, r=1.0, d=1.0,
+                               mass_retention_threshold=0.01, mass_checkpoint=10**6, save_png=True, show_plt=False):
+    phi_rad_container = np.zeros((3, rg_param), dtype=np.float64)
+    rho_rad_container = np.zeros((3, rg_param), dtype=np.float64)
+    diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
+
+    ant.comp_diffusive_rad_snapshots(rg_param, ry_param, w_param, w_param, v_param, N_param, diff_layer, adv_layer,
+                                     fixed_angle, phi_rad_container, rho_rad_container, time_point_container, r=r, d=d,
+                                     mass_retention_threshold=mass_retention_threshold, mass_checkpoint=mass_checkpoint)
+
+    # collecting raw results for phi-v-rad
+    current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    data_filepath = os.path.abspath(tb.create_directory(fp.radial_dependence_phi, current_time))
+    print(data_filepath)
+    filename = f"phi_v_rad_V={v_param}_W={w_param}_Domain={rg_param}x{ry_param}.csv"
+    output_location = os.path.join(data_filepath, filename)
+    df = pd.DataFrame(phi_rad_container)
+    df.to_csv(output_location, header=False, index=False)
+
+    plt.plot_dense_v_rad("Phi", output_location, v_param, w_param, N_param, rg_param, ry_param, fixed_angle,
+                         time_point_container, data_filepath, save_png=save_png, show_plt=show_plt)
+
+    # collecting raw results for rho-v-rad
+    current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    data_filepath = os.path.abspath(tb.create_directory(fp.radial_dependence_rho, current_time))
+    print(data_filepath)
+    filename = f"rho_v_rad_V={v_param}_W={w_param}_Domain={rg_param}x{ry_param}.csv"
+    output_location = os.path.join(data_filepath, filename)
+    df = pd.DataFrame(rho_rad_container)
+    df.to_csv(output_location, header=False, index=False)
+
+    plt.plot_dense_v_rad("Rho", output_location, v_param, w_param, N_param, rg_param, ry_param, fixed_angle,
+                         time_point_container, data_filepath, save_png=save_png, show_plt=show_plt)
+
+
 
 
 

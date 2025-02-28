@@ -1,4 +1,4 @@
-from . import plt, os, pd, datetime
+from . import plt, os, pd, datetime, Fraction, math, np
 
 
 def plot_general(file_list, N_labels, xlab, ylab, title, filepath, xlog=False, ylog=False, ylims=None,
@@ -6,7 +6,7 @@ def plot_general(file_list, N_labels, xlab, ylab, title, filepath, xlog=False, y
                  figsize=(12, 8), lab_fontsize=30, title_fontsize=40, legend_fontsize=22,
                  fontname='Times New Roman'):
 
-    plt.figure(figsize)
+    plt.figure(figsize=figsize)
 
     for i in range(len(file_list)):
         df = pd.read_csv(file_list[i])
@@ -98,6 +98,47 @@ def plot_phi_v_theta(data_filepath, v, w, N, approach, position, file_path, save
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
             file = os.path.join(file_path, f'phi_v_theta_v={v}_w={w}_app={approach}_pos={position}_{current_time}.png')
+            plt.savefig(file, bbox_inches='tight')
+            print(f'Plot saved to {file_path}')
+
+    if show_plt:
+        plt.show()
+    plt.close()
+
+
+def plot_dense_v_rad(y_lab, data_filepath, v, w, N, rings, rays, fixed_angle, time_point_container, file_path, save_png=False, show_plt=True):
+
+    data = pd.read_csv(data_filepath, header=None)
+
+    microtubule_count = len(N)
+
+    x = np.linspace(0, 1, rings)
+
+    converted_container = [f"T={T:.3f}" for T in time_point_container]
+    label_container = converted_container
+
+    # Plot each row of data
+    plt.figure(figsize=(10, 6))
+    for i, row in data.iterrows():
+        plt.plot(x, row, label=label_container[i])
+
+    # Add labels, legend, and title
+    plt.xlabel("(R) Radius")
+    plt.ylabel(y_lab)
+
+    title = f"{y_lab}_versus_R_V={v}_W={w:.2e}_N={N}_fixed_angle={fixed_angle}_Domain={rings}x{rays}"
+
+    plt.title(title)
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+
+    if save_png:
+        current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        if file_path:
+            if not os.path.exists(file_path):
+                os.makedirs(file_path)
+            file = os.path.join(file_path, f'{y_lab}_v_theta_V={v}_W={w}_N={microtubule_count}_Angle={fixed_angle}_{current_time}.png')
             plt.savefig(file, bbox_inches='tight')
             print(f'Plot saved to {file_path}')
 
