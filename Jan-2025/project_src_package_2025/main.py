@@ -11,27 +11,29 @@ if __name__ == "__main__":
     #
     # plt.plot_dense_v_rad("rho", rho_data, -10, 10**-4, 4, 48, 48, 12, [0.1, 0.5, 0.9], fp.radial_dependence_rho)
 
-    T_fixed = [0.1, 0.5, 0.9]
+    ani.generate_heatmaps(16, 16, 10, -50, [0, 4, 8, 12], log_scale=False, show_plot=True, save_png=False)
 
-    rg_param = 48
-    ry_param = 48
-    N_param = [0, 12, 24, 36]
-    V_param = -10
-
-    launch.collect_density_rad_depend(rg_param, ry_param, N_param, V_param, 10 ** -4, 12, T_fixed)
-    launch.collect_density_rad_depend(rg_param, ry_param, N_param, V_param, 0, 12, T_fixed)
-    launch.collect_density_rad_depend(rg_param, ry_param, N_param, V_param, 10 ** 0, 12, T_fixed)
-    launch.collect_density_rad_depend(rg_param, ry_param, N_param, V_param, 10 ** 4, 12, T_fixed)
-
-    clk.sleep(10)
-
-    # Task 2.
-    rg_param = 128
-    ry_param = 128
-    N_param = [0, 32, 64, 96]
-    V_param = -10
-    W_param = 10 ** 4
-    ani.generate_heatmaps(rg_param, ry_param, W_param, V_param, N_param, log_scale=False, output_csv=True)
+    # T_fixed = [0.1, 0.5, 0.9]
+    #
+    # rg_param = 48
+    # ry_param = 48
+    # N_param = [0, 12, 24, 36]
+    # V_param = -10
+    #
+    # launch.collect_density_rad_depend(rg_param, ry_param, N_param, V_param, 10 ** -4, 12, T_fixed)
+    # launch.collect_density_rad_depend(rg_param, ry_param, N_param, V_param, 0, 12, T_fixed)
+    # launch.collect_density_rad_depend(rg_param, ry_param, N_param, V_param, 10 ** 0, 12, T_fixed)
+    # launch.collect_density_rad_depend(rg_param, ry_param, N_param, V_param, 10 ** 4, 12, T_fixed)
+    #
+    # clk.sleep(10)
+    #
+    # # Task 2.
+    # rg_param = 128
+    # ry_param = 128
+    # N_param = [0, 32, 64, 96]
+    # V_param = -10
+    # W_param = 10 ** 4
+    # ani.generate_heatmaps(rg_param, ry_param, W_param, V_param, N_param, log_scale=False, output_csv=True)
 
     # Task 1.
 
