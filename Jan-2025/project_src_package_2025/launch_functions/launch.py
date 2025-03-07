@@ -121,7 +121,8 @@ def collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach,
 
 def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fixed_angle, time_point_container, r=1.0, d=1.0,
                                mass_retention_threshold=0.01, mass_checkpoint=10**6, save_png=True, show_plt=False):
-    phi_rad_container = np.zeros((3, rg_param), dtype=np.float64)
+
+    phi_rad_container = np.zeros((3, rg_param+1), dtype=np.float64)
     rho_rad_container = np.zeros((3, rg_param), dtype=np.float64)
     diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
 
@@ -138,7 +139,7 @@ def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fi
     df = pd.DataFrame(phi_rad_container)
     df.to_csv(output_location, header=False, index=False)
 
-    plt.plot_dense_v_rad("Phi", output_location, v_param, w_param, N_param, rg_param, ry_param, fixed_angle,
+    plt.plot_dense_v_rad("Phi", output_location, v_param, w_param, len(N_param), rg_param, ry_param, fixed_angle,
                          time_point_container, data_filepath, save_png=save_png, show_plt=show_plt)
 
     # collecting raw results for rho-v-rad
@@ -150,7 +151,7 @@ def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fi
     df = pd.DataFrame(rho_rad_container)
     df.to_csv(output_location, header=False, index=False)
 
-    plt.plot_dense_v_rad("Rho", output_location, v_param, w_param, N_param, rg_param, ry_param, fixed_angle,
+    plt.plot_dense_v_rad("Rho", output_location, v_param, w_param, len(N_param), rg_param, ry_param, fixed_angle,
                          time_point_container, data_filepath, save_png=save_png, show_plt=show_plt)
 
 

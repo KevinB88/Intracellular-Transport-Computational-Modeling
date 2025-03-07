@@ -483,8 +483,10 @@ def comp_diffusive_rad_snapshots(rings, rays, a, b, v, tube_placements, diffusiv
 
         if time_point - epsilon < k * d_time < time_point + epsilon:
 
+            phi_rad_container[i][0] = phi_center
+
             for m in range(rings):
-                phi_rad_container[i][m] = diffusive_layer[0][m][fixed_angle]
+                phi_rad_container[i][m+1] = diffusive_layer[0][m][fixed_angle]
                 rho_rad_container[i][m] = advective_layer[0][m][fixed_angle]
 
             i = i + 1

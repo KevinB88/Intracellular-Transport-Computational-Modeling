@@ -110,9 +110,10 @@ def plot_dense_v_rad(y_lab, data_filepath, v, w, N, rings, rays, fixed_angle, ti
 
     data = pd.read_csv(data_filepath, header=None)
 
-    microtubule_count = len(N)
-
-    x = np.linspace(0, 1, rings)
+    if y_lab.lower() == "phi":
+        x = np.linspace(0, 1, rings+1)
+    elif y_lab.lower() == "rho":
+        x = np.linspace(1/rings, 1, rings)
 
     converted_container = [f"T={T:.3f}" for T in time_point_container]
     label_container = converted_container
@@ -138,7 +139,7 @@ def plot_dense_v_rad(y_lab, data_filepath, v, w, N, rings, rays, fixed_angle, ti
         if file_path:
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
-            file = os.path.join(file_path, f'{y_lab}_v_theta_V={v}_W={w}_N={microtubule_count}_Angle={fixed_angle}_{current_time}.png')
+            file = os.path.join(file_path, f'{y_lab}_v_theta_V={v}_W={w}_N={N}_Angle={fixed_angle}_{current_time}.png')
             plt.savefig(file, bbox_inches='tight')
             print(f'Plot saved to {file_path}')
 

@@ -44,7 +44,7 @@ def generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2,
                                  domain_snapshot_container, domain_center_snapshot_container, sim_time_container,
                                  approach,
                                  time_point_container=time_point_container, compute_mfpt=compute_mfpt,
-                                 mfpt_container=mfpt_container, log_scale=log_scale)
+                                 mfpt_container=mfpt_container)
 
     if verbose:
         print(f"Values from within the center snapshot container: {domain_snapshot_container}")
@@ -72,7 +72,7 @@ def generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2,
         produce_heatmap_tool(domain_snapshot_container[i], domain_center_snapshot_container[i],
                              False, w_param, v_param, len(N_param), data_filepath,
                              save_png=save_png, show_plot=show_plot, approach=int(approach), pane=i,
-                             mfpt=mfpt, duration=sim_time_container[i])
+                             mfpt=mfpt, duration=sim_time_container[i], log_scale=log_scale)
         if verbose:
             if save_png:
                 print(f"File saved at: {data_filepath}")
@@ -82,7 +82,9 @@ def generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2,
 def produce_heatmap_tool(diffusive_layer, diffusive_layer_center, toggle_border, w, v, MT_count, filepath,
                          color_scheme='viridis',
                          save_png=False, show_plot=True, transparent=False, approach=None, pane=None, mfpt=None,
-                         duration=None, log_scale=False):
+                         duration=None,
+                         log_scale=True):  # Add log_scale toggle
+
     # Include the center value as the first "ring" in the polar heatmap
     diffusive_layer_center = np.full((1, diffusive_layer.shape[1]), diffusive_layer_center)  # Expand the center value
     full_diffusive_layer = np.vstack([diffusive_layer_center, diffusive_layer])
@@ -102,15 +104,15 @@ def produce_heatmap_tool(diffusive_layer, diffusive_layer_center, toggle_border,
     if log_scale:
         log_min, log_max = 10 ** -7, 10 ** 0
         boundaries = [0] + list(np.logspace(np.log10(log_min), np.log10(log_max), num=512))
-        norm_zero = BoundaryNorm(boundaries, ncolors=cmap.N, clip=True)
+        norm = BoundaryNorm(boundaries, ncolors=cmap.N, clip=True)
     else:
-        norm_zero = Normalize
+        norm = Normalize(vmin=full_diffusive_layer.min(), vmax=full_diffusive_layer.max())
 
     if toggle_border:
-        heatmap = plt.pcolormesh(X, Y, full_diffusive_layer.T, shading='flat', cmap=cmap, norm=norm_zero,
-                                 edgecolors='k', linewidth=0.01)
+        heatmap = plt.pcolormesh(X, Y, full_diffusive_layer.T, shading='flat', cmap=cmap, norm=norm, edgecolors='k',
+                                 linewidth=0.01)
     else:
-        heatmap = plt.pcolormesh(X, Y, full_diffusive_layer.T, shading='flat', cmap=cmap, norm=norm_zero)
+        heatmap = plt.pcolormesh(X, Y, full_diffusive_layer.T, shading='flat', cmap=cmap, norm=norm)
 
     cbar = plt.colorbar(heatmap, location='bottom', pad=0.08)
 
@@ -120,7 +122,8 @@ def produce_heatmap_tool(diffusive_layer, diffusive_layer_center, toggle_border,
         cbar.set_ticklabels([f'0' if tick == 0 else f'$10^{{{int(np.log10(tick))}}}$' for tick in cbar_ticks])
     else:
         cbar.set_ticks(np.linspace(full_diffusive_layer.min(), full_diffusive_layer.max(), num=8))
-        cbar.set_ticklabels([f'{tick:.3f}' for tick in np.linspace(full_diffusive_layer.min(), full_diffusive_layer. max(), num=8)])
+        cbar.set_ticklabels(
+            [f'{tick:.3f}' for tick in np.linspace(full_diffusive_layer.min(), full_diffusive_layer.max(), num=8)])
 
     cbar.ax.tick_params(labelsize=12, labelcolor='black')
 
