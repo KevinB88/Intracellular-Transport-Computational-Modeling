@@ -1,4 +1,4 @@
-from . import math, njit, numerical_tools as num, sys_config
+from . import math, njit, numerical_tools as num, sys_config, np
 
 ENABLE_JIT = sys_config.ENABLE_NJIT
 
@@ -174,8 +174,8 @@ def comp_diffusive_snapshots(rings, rays, a, b, v, tube_placements, diffusive_la
         k += 1
 
         '''
-        Plotting theta versus phi at velocity peak values:
-        choose several rings within the domain (at positions M*1/4, M*1/2, M*3/4), and then collect phi across every angle across that ring.
+        Plotting theta versus diffusive at velocity peak values:
+        choose several rings within the domain (at positions M*1/4, M*1/2, M*3/4), and then collect diffusive across every angle across that ring.
         (At varying mass amounts within the domain) [0.1 + epsilon, 0.225, 0.45, 0.675]
         '''
 
@@ -422,7 +422,7 @@ def comp_diffusive_angle_snapshots(rings, rays, a, b, v, tube_placements, diffus
 # The 'fixed_angle' parameter must be provided as an integer denoting the angle/positioning on the discretized domain
 def comp_diffusive_rad_snapshots(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer,
                                  fixed_angle, phi_rad_container, rho_rad_container, time_point_container, r=1.0, d=1.0,
-                                 mass_retention_threshold=0.01, mass_checkpoint=10**6):
+                                 mass_retention_threshold=0.01, mass_checkpoint=10 ** 6):
     if ENABLE_JIT:
         print("Running optimized version.")
 
@@ -486,7 +486,7 @@ def comp_diffusive_rad_snapshots(rings, rays, a, b, v, tube_placements, diffusiv
             phi_rad_container[i][0] = phi_center
 
             for m in range(rings):
-                phi_rad_container[i][m+1] = diffusive_layer[0][m][fixed_angle]
+                phi_rad_container[i][m + 1] = diffusive_layer[0][m][fixed_angle]
                 rho_rad_container[i][m] = advective_layer[0][m][fixed_angle]
 
             i = i + 1
@@ -498,3 +498,85 @@ def comp_diffusive_rad_snapshots(rings, rays, a, b, v, tube_placements, diffusiv
                                   tube_placements, v)
         diffusive_layer[0] = diffusive_layer[1]
         advective_layer[0] = advective_layer[1]
+
+
+@njit(nopython=ENABLE_JIT)
+def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements, diffusive_layer, advective_layer,
+                                       diff_mass_container, adv_mass_container, adv_over_total_container,
+                                       collection_width, mass_checkpoint=10 ** 6, r=1.0, d=1.0):
+    if ENABLE_JIT:
+        print("Running optimized version.")
+
+    if len(tube_placements) > rays:
+        raise IndexError(
+            f'Too many microtubules requested: {len(tube_placements)}, within domain of {rays} angular rays.')
+
+    for i in range(len(tube_placements)):
+        if tube_placements[i] < 0 or tube_placements[i] > rays:
+            raise IndexError(f'Angle {tube_placements[i]} is out of bounds, your range should be [0, {rays - 1}]')
+
+    d_radius = r / rings
+    d_theta = ((2 * math.pi) / rays)
+    d_time = (0.1 * min(d_radius * d_radius, d_theta * d_theta * d_radius * d_radius)) / (2 * d)
+    K = math.floor(T / d_time)
+
+    phi_center = 1 / (math.pi * (d_radius * d_radius))
+
+    total_domain_mass = 1
+    diffusive_mass = total_domain_mass
+    advective_mass = 0
+
+    relative_k = math.floor(K / collection_width)
+    k_prime = 0
+
+    # **** - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    k = 0
+
+    while k < K:
+
+        m = 0
+
+        while m < rings:
+            angle_index = 0
+            n = 0
+            while n < rays:
+                # absorbing boundary condition
+                if m == rings - 1:
+                    diffusive_layer[1][m][n] = 0
+                else:
+                    diffusive_layer[1][m][n] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta, d_time,
+                                                             phi_center, rings, advective_layer, angle_index,
+                                                             a, b, tube_placements)
+                    if n == tube_placements[angle_index]:
+                        advective_layer[1][m][n] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b, v,
+                                                              d_time,
+                                                              d_radius, d_theta)
+                        if angle_index < len(tube_placements) - 1:
+                            angle_index = angle_index + 1
+                n += 1
+            m += 1
+
+        if k_prime < relative_k and k % collection_width == 0:
+            diff_mass_container[k_prime] = diffusive_mass
+            adv_mass_container[k_prime] = advective_mass
+            adv_over_total_container[k_prime] = advective_mass / total_domain_mass
+            k_prime += 1
+
+        k += 1
+        # Implemented to provide occasional status checks/metrics during MFPT calculation
+        if k > 0 and k % mass_checkpoint == 0:
+            print("Velocity (V)= ", v, "Time step: ", k, "Simulation time: ", k * d_time, "Current mass: ",
+                  diffusive_mass,
+                  "a=", a, "b=", b)
+
+        diffusive_mass = num.calc_mass_diff(diffusive_layer, 0, d_radius, d_theta, phi_center, rings, rays)
+        advective_mass = num.calc_mass_adv(advective_layer, 0, d_radius, d_theta, rings, tube_placements)
+        total_domain_mass = diffusive_mass + advective_mass
+
+        phi_center = num.u_center(diffusive_layer, 0, d_radius, d_theta, d_time, phi_center,
+                                  advective_layer, tube_placements, v)
+
+        # transfer updated density info from the next step to the current
+        diffusive_layer[0] = diffusive_layer[1]
+        advective_layer[0] = advective_layer[1]
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

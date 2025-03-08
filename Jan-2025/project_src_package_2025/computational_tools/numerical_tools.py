@@ -127,20 +127,41 @@ def calc_mass(phi, rho, k, d_radius, d_theta, curr_central, rings, rays, tube_pl
     :return: domain mass
     """
 
-    mass = 0
+    diffusive_mass = 0
     for m in range(rings):
         for n in range(rays):
-            mass += phi[k][m][n] * (m+1)
-    mass *= (d_radius * d_radius) * d_theta
+            diffusive_mass += phi[k][m][n] * (m+1)
+    diffusive_mass *= (d_radius * d_radius) * d_theta
 
-    microtubule_mass = 0
+    advective_mass = 0
 
     for i in range(len(tube_placements)):
         angle = tube_placements[i]
         for m in range(rings):
-            microtubule_mass += rho[k][m][angle] * d_radius
+            advective_mass += rho[k][m][angle] * d_radius
 
-    return (curr_central * math.pi * d_radius * d_radius) + mass + microtubule_mass
+    return (curr_central * math.pi * d_radius * d_radius) + diffusive_mass + advective_mass
+
+
+@njit(nopython=ENABLE_JIT)
+def calc_mass_diff(phi, k, d_radius, d_theta, curr_central, rings, rays):
+    diffusive_mass = 0
+    for m in range(rings):
+        for n in range(rays):
+            diffusive_mass += phi[k][m][n] * (m + 1)
+    diffusive_mass *= (d_radius * d_radius) * d_theta
+    return (curr_central * math.pi * d_radius * d_radius) + diffusive_mass
+
+
+@njit(nopython=ENABLE_JIT)
+def calc_mass_adv(rho, k, d_radius, d_theta, rings, tube_placements):
+    advective_mass = 0
+    for i in range(len(tube_placements)):
+        angle = tube_placements[i]
+        for m in range(rings):
+            advective_mass += rho[k][m][angle] * d_radius
+
+    return advective_mass
 
 
 @njit(nopython=ENABLE_JIT)

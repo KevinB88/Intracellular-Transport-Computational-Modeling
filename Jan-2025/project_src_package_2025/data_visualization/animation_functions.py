@@ -5,8 +5,8 @@ import time
 
 '''
     The diffusive_layer and diffusive_layer_center refer to specific snapshots of the MxN 
-    domain. diffusive_layer consists of all phi values for each M,N value within the domain 
-    excluding the center phi value, and the diffusive_layer_center obviously refers to the center.
+    domain. diffusive_layer consists of all diffusive values for each M,N value within the domain 
+    excluding the center diffusive value, and the diffusive_layer_center obviously refers to the center.
 '''
 
 '''

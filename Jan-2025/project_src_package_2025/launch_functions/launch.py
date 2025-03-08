@@ -2,6 +2,7 @@ import pandas as pd
 
 from . import mfpt_comp, sup, datetime, tb, fp, mp, config, partial, ant, np, os, plt
 import time as clk
+import math
 
 
 '''
@@ -130,7 +131,7 @@ def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fi
                                      fixed_angle, phi_rad_container, rho_rad_container, time_point_container, r=r, d=d,
                                      mass_retention_threshold=mass_retention_threshold, mass_checkpoint=mass_checkpoint)
 
-    # collecting raw results for phi-v-rad
+    # collecting raw results for diffusive-v-rad
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     data_filepath = os.path.abspath(tb.create_directory(fp.radial_dependence_phi, current_time))
     print(data_filepath)
@@ -153,6 +154,59 @@ def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fi
 
     plt.plot_dense_v_rad("Rho", output_location, v_param, w_param, len(N_param), rg_param, ry_param, fixed_angle,
                          time_point_container, data_filepath, save_png=save_png, show_plt=show_plt)
+
+
+def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param, collection_width, r=1.0, d=1.0,
+                          mass_checkpoint=10**6, save_png=False, show_plt=True):
+
+    d_radius = r / rg_param
+    d_theta = ((2 * math.pi) / ry_param)
+    d_time = (0.1 * min(d_radius * d_radius, d_theta * d_theta * d_radius * d_radius)) / (2 * d)
+    K = math.floor(T_param / d_time)
+    relative_k = math.floor(K / collection_width)
+
+    print("Number of time-steps: ", K)
+    print("Number of data-points to collect: ", relative_k)
+
+    diffusive_mass_container = np.zeros([relative_k], dtype=np.float64)
+    advective_mass_container = np.zeros([relative_k], dtype=np.float64)
+    advective_over_total_container = np.zeros([relative_k], dtype=np.float64)
+
+    diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
+
+    ant.comp_mass_analysis_respect_to_time(rg_param, ry_param, w_param, w_param, v_param, T_param,
+                                           N_param, diff_layer, adv_layer, diffusive_mass_container,
+                                           advective_mass_container, advective_over_total_container, collection_width,
+                                           mass_checkpoint, r, d)
+
+    current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_diffusive, current_time))
+    print(data_filepath)
+    filename = f"diffusive_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
+    output_location = os.path.join(data_filepath, filename)
+    df = pd.DataFrame(diffusive_mass_container)
+    df.to_csv(output_location, header=False, index=False)
+    plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "diffusive_mass", data_filepath, save_png, show_plt)
+
+    current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective, current_time))
+    print(data_filepath)
+    filename = f"advective_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
+    output_location = os.path.join(data_filepath, filename)
+    df = pd.DataFrame(advective_mass_container)
+    df.to_csv(output_location, header=False, index=False)
+    plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "advective_mass",
+                           data_filepath, save_png, show_plt)
+
+    current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective_over_total, current_time))
+    print(data_filepath)
+    filename = f"advective_over_total_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
+    output_location = os.path.join(data_filepath, filename)
+    df = pd.DataFrame(advective_over_total_container)
+    df.to_csv(output_location, header=False, index=False)
+    plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "advective_over_total_mass",
+                           data_filepath, save_png, show_plt)
 
 
 
