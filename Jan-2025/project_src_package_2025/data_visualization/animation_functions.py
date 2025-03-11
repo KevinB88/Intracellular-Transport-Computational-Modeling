@@ -1,6 +1,6 @@
 import pandas as pd
 
-from . import plt, os, np, datetime, cm, BoundaryNorm, Normalize, fp, ant, sup, tb
+from . import plt, os, np, datetime, cm, BoundaryNorm, Normalize, fp, ant, sup, tb, Axes3D, LogNorm
 import time
 
 '''
@@ -17,7 +17,8 @@ import time
 
 def generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2,
                       filepath=fp.heatmap_output, time_point_container=None, save_png=True, show_plot=False,
-                      compute_mfpt=False, verbose=False, output_csv=False, log_scale=False):
+                      compute_mfpt=False, verbose=False, output_csv=False, log_scale=False, toggleBorder=False,
+                      colorScheme='viridis', topological=False):
     panes = 0
     mfpt = None
     # duration refers to the dimensionless time from the mfpt computation
@@ -69,10 +70,15 @@ def generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2,
             df = pd.DataFrame(domain_snapshot_container[i])
             df.to_csv(output_csv_location, header=False, index=False)
 
-        produce_heatmap_tool(domain_snapshot_container[i], domain_center_snapshot_container[i],
-                             False, w_param, v_param, len(N_param), data_filepath,
-                             save_png=save_png, show_plot=show_plot, approach=int(approach), pane=i,
-                             mfpt=mfpt, duration=sim_time_container[i], log_scale=log_scale)
+        if topological:
+            produce_3D_heatmap_tool(domain_snapshot_container[i], domain_center_snapshot_container[i],
+                                    toggleBorder, w_param, v_param, len(N_param), data_filepath, colorScheme, save_png,
+                                    approach=int(approach), pane=i, mfpt=mfpt, duration=sim_time_container[i])
+        else:
+            produce_heatmap_tool(domain_snapshot_container[i], domain_center_snapshot_container[i],
+                                 toggleBorder, w_param, v_param, len(N_param), data_filepath,
+                                 save_png=save_png, show_plot=show_plot, approach=int(approach), pane=i,
+                                 mfpt=mfpt, duration=sim_time_container[i], log_scale=log_scale)
         if verbose:
             if save_png:
                 print(f"File saved at: {data_filepath}")
@@ -160,3 +166,99 @@ def produce_heatmap_tool(diffusive_layer, diffusive_layer_center, toggle_border,
     if show_plot:
         plt.show()
     plt.close()
+
+
+def produce_3D_heatmap_tool(diffusive_layer, diffusive_layer_center, toggle_border, w, v, MT_count, filepath,
+                            color_scheme='viridis', save_png=False, show_plot=True, transparent=False,
+                            approach=None, pane=None, mfpt=None, duration=None, log_scale=True):
+    """
+    Produces a 3D topological density plot with angular and radial positions as the first two dimensions
+    and density as the third (Z-axis).
+
+    Parameters:
+    - diffusive_layer (numpy array): The density values in a radial grid.
+    - diffusive_layer_center (float): The central density value.
+    - toggle_border (bool): Toggle borders on the plot.
+    - w, v, MT_count: Parameters for title annotations.
+    - filepath (str): Directory to save the image.
+    - color_scheme (str): Colormap for visualization.
+    - save_png (bool): Whether to save the plot as a PNG.
+    - show_plot (bool): Whether to display the plot.
+    - transparent (bool): Save PNG with transparency.
+    - approach, pane, mfpt, duration: Additional metadata for the title.
+    - log_scale (bool): Whether to use a logarithmic scale.
+    """
+
+    # Include the center value as the first "ring" in the polar heatmap
+    diffusive_layer_center = np.full((1, diffusive_layer.shape[1]), diffusive_layer_center)
+    full_diffusive_layer = np.vstack([diffusive_layer_center, diffusive_layer])
+
+    rings = full_diffusive_layer.shape[0]
+    rays = full_diffusive_layer.shape[1]
+
+    # Generate radial and angular grid
+    r = np.linspace(0, 1, rings)
+    theta = np.linspace(0, 2 * np.pi, rays)
+
+    R, Theta = np.meshgrid(r, theta)
+    X, Y = R * np.cos(Theta), R * np.sin(Theta)
+    Z = full_diffusive_layer.T  # Density values
+
+    # Apply log scale or normalization
+    if log_scale:
+        norm = LogNorm(vmin=np.max([1e-7, Z.min()]), vmax=Z.max())  # Avoid log(0)
+    else:
+        norm = Normalize(vmin=Z.min(), vmax=Z.max())
+
+    # Set up figure and 3D axis
+    fig = plt.figure(figsize=(10, 8))
+    ax = fig.add_subplot(111, projection='3d')
+
+    # Plot the surface
+    cmap = cm.get_cmap(color_scheme, 512)
+    surf = ax.plot_surface(X, Y, Z, cmap=cmap, norm=norm, edgecolor='k' if toggle_border else 'none')
+
+    # Add color bar
+    cbar = fig.colorbar(surf, shrink=0.5, aspect=10)
+    cbar.ax.tick_params(labelsize=12, labelcolor='black')
+
+    # Title
+    title = f'N={MT_count}, w={w:.2e}, v={v}'
+    if mfpt is not None:
+        title += f', MFPT={mfpt:.3f}'
+    if duration is not None:
+        title += f', T={duration:.3f}'
+    if pane is not None:
+        title += f', pane={pane}'
+    if approach is not None:
+        if approach not in [1, 2]:
+            raise ValueError(f"Approach {approach} doesn't exist, must use either 1 or 2")
+        title += f', approach={approach}'
+
+    ax.set_title(title, fontdict={'weight': 'bold', 'fontsize': 16}, pad=20)
+
+    # Axis labels
+    ax.set_xlabel('X-axis (Cosine Projection)', fontsize=12)
+    ax.set_ylabel('Y-axis (Sine Projection)', fontsize=12)
+    ax.set_zlabel('Density', fontsize=12)
+
+    # Hide axes for a cleaner visualization
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_zticks([])
+
+    # Save plot if required
+    if save_png and filepath:
+        if not os.path.exists(filepath):
+            os.makedirs(filepath)
+        current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"N={MT_count}_w={w}_MxN={rings}x{rays}_data{current_time}"
+        if approach is not None:
+            filename += f"_app={approach}"
+        filename += f'_pane={pane}.png'
+        plt.savefig(os.path.join(filepath, filename), bbox_inches='tight', transparent=transparent)
+
+    if show_plot:
+        plt.show()
+    else:
+        plt.close()
