@@ -48,6 +48,50 @@ def u_density(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, mt_p
 
 
 @njit(nopython=ENABLE_JIT)
+def u_density_rec(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, mt_pos, a, b, tube_placements, j_max):
+    """
+
+    Calculate particle density at a position (m,n) on the diffusive layer at a time-point k.
+    (Positions are relative to patches across our domain for the diffusive layer)
+
+    :param phi: (3-D float array) With 2 time points, m rings (rows), and n rays (columns)
+    :param k: (int) time-point
+    :param m: (int) position of radial ring
+    :param n: (int) position of angular ray
+    :param d_radius: (float) delta_radius
+    :param d_theta: (float) delta_theta
+    :param d_time: (float) delta_time
+    :param central: (float) particle density at the center
+    :param rings: (int) # of radial rings in the domain
+    :param rho: (3-D float array) With 2 time points, m rings (rows), and n rays (columns)
+    :param mt_pos: (int) indexed position from the 'tube_placements' container
+    (to specify particle density on the advective layer relative to microtubule/filament)
+
+    :param a: (float) switch rate onto the diffusive layer (switch-on rate)
+    :param b: (float) switch rate onto the advective layer (switch-off rate)
+    :param tube_placements: (list(int)) discrete microtubule/filament positions between [0, rays-1]
+    :return: particle density at a position (m,n) on the diffusive layer
+    """
+
+    current_density = phi[k][m][n]
+
+    component_a = ((m+2) * j_r_r(phi, k, m, n, d_radius, rings)) - ((m+1) * j_l_r(phi, k, m, n, d_radius, central))
+
+    component_a *= d_time / ((m+1) * d_radius)
+
+    component_b = (j_r_t(phi, k, m, n, d_radius, d_theta)) - (j_l_t(phi, k, m, n, d_radius, d_theta))
+
+    component_b *= d_time / ((m+1) * d_radius * d_theta)
+
+    if n == tube_placements[mt_pos]:
+        component_c = (a * phi[k][m][n]) * d_time - (((b * rho[k][m][n]) * d_time) / ((m+1) * d_radius * d_theta * (1+2*j_max)))
+    else:
+        component_c = 0
+
+    return current_density - component_a - component_b - component_c
+
+
+@njit(nopython=ENABLE_JIT)
 def u_tube(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta):
     """
 
@@ -74,6 +118,44 @@ def u_tube(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta):
         j_r = v * rho[k][m+1][n]
 
     return rho[k][m][n] - ((j_r - j_l) / d_radius) * d_time + (a * phi[k][m][n] * (m+1) * d_radius * d_theta) * d_time - b * rho[k][m][n] * d_time
+
+
+@njit(nopython=ENABLE_JIT)
+def u_tube_rec(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, j_max, N):
+    """
+
+    Calculate particle density at a position (m,n) on the advective layer at a time-point k.
+
+    :param rho: (3-D float array) With 2 time points, m rings (rows), and n rays (columns)
+    :param phi: (3-D float array) With 2 time points, m rings (rows), and n rays (columns)
+    :param k: (int) current time step
+    :param m: (int) position of the radial ring
+    :param n: (int) position of the angular ray
+    :param a: (float) switch-on rate
+    :param b: (float) switch-off rate
+    :param v: (float) velocity across the advective layer
+    :param d_time: (float) delta-time
+    :param d_radius: (float) delta-radius
+    :param d_theta: (float) delta-theta
+    :return: particle density at position (m,n) on the advective layer.
+    """
+
+    j_l = v * rho[k][m][n]
+    if m == len(phi[k][m]) - 1:
+        j_r = 0
+    else:
+        j_r = v * rho[k][m+1][n]
+
+    comp_a = rho[k][m][n] - ((j_r - j_l) / d_radius) * d_time
+    comp_b = b * rho[k][m][n] * d_time
+
+    sum = 0
+    for j in range(-j_max, j_max+1):
+        sum += phi[k][m][(n+j_max) % N]
+
+    comp_c = (a * (m+1) * d_radius * d_theta * d_time) * sum
+
+    return comp_a - comp_b + comp_c
 
 
 @njit(nopython=ENABLE_JIT)
