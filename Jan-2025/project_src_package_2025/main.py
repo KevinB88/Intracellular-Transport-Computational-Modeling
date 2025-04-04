@@ -27,4 +27,3 @@ if __name__ == "__main__":
     launch.collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, 12, [0.1, 0.5, 0.9])
     launch.collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach=3, time_point_container=[0.1, 0.5, 0.9], rect_config=True)
     ani.generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=3, time_point_container=[0.1, 0.5, 0.9], verbose=True, rect_config=True)
-

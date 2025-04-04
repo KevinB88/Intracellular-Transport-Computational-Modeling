@@ -148,38 +148,27 @@ def plot_dense_v_rad(y_lab, data_filepath, v, w, N, rings, rays, fixed_angle, ti
     plt.close()
 
 
-def plot_mass_analysis(data_filepath, v, w, N, T, rings, rays, mass_type, file_path, save_png=False, show_plt=True,
-                       multiple_plots=False, labels=None, x_logscale=False, y_logscale=False):
+def plot_mass_analysis(data_filepath, v, w, N, T, rings, rays, mass_type, file_path, save_png=False, show_plt=True):
+
+    data = pd.read_csv(data_filepath, header=None)
+
+    # Plot each row of data
     plt.figure(figsize=(10, 6))
 
-    if multiple_plots:
-        for i in range(len(data_filepath)):
-            curr_data = pd.read_csv(data_filepath[i])
-            discretization = len(curr_data)
-            y = curr_data
-            x = np.linspace(0, T, discretization)
-            plt.plot(x, y, label=labels[i])
+    y = data
+    discretization = len(data)
+    x = np.linspace(0, T, discretization)
 
-    else:
-        data = pd.read_csv(data_filepath, header=None)
-        discretization = len(data)
-        y = data
-        x = np.linspace(0, T, discretization)
-        plt.plot(x, y)
-
-    title = f"{mass_type}_versus_T__W={w:.2e}_V={v}_N={len(N)}_{rings}x{rays}_"
-
-    if x_logscale:
-        plt.xscale('log')
-    if y_logscale:
-        plt.yscale('log')
+    plt.plot(x, y)
 
     # Add labels, legend, and title
     plt.xlabel("(T) Time")
     plt.ylabel("(m) Mass")
 
+    title = f"{mass_type}_versus_T__W={w:.2e}_V={v}_N={len(N)}_{rings}x{rays}"
+
     plt.title(title)
-    plt.legend()
+    # plt.legend()
     plt.grid(True)
     plt.tight_layout()
 
@@ -188,13 +177,7 @@ def plot_mass_analysis(data_filepath, v, w, N, T, rings, rays, mass_type, file_p
         if file_path:
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
-            file = os.path.join(file_path, f'{mass_type}_versus_T_V={v}_N={len(N)}_{rings}x{rays}_{current_time}')
-            if x_logscale:
-                file += "_log"
-            if y_logscale:
-                file += "_log"
-            file += ".png"
-
+            file = os.path.join(file_path, f'{mass_type}_versus_T_W={w}_V={v}_N={len(N)}_{rings}x{rays}_{current_time}.png')
             plt.savefig(file, bbox_inches='tight')
             print(f'Plot saved to {file_path}')
     if show_plt:
