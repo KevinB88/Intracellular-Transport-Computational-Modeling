@@ -65,6 +65,7 @@ def u_density_rec(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, 
     :param rings: (int) # of radial rings in the domain
     :param rho: (3-D float array) With 2 time points, m rings (rows), and n rays (columns)
     :param mt_pos: (int) indexed position from the 'tube_placements' container
+    :param j_max (float)
     (to specify particle density on the advective layer relative to microtubule/filament)
 
     :param a: (float) switch rate onto the diffusive layer (switch-on rate)
