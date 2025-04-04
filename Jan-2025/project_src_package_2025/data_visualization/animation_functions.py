@@ -17,7 +17,7 @@ import time
 
 def generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2,
                       filepath=fp.heatmap_output, time_point_container=None, save_png=True, show_plot=False,
-                      compute_mfpt=False, verbose=False, output_csv=False, log_scale=False):
+                      compute_mfpt=False, verbose=False, output_csv=False, log_scale=False, rect_config=False, rect_dist=2):
     panes = 0
     mfpt = None
     # duration refers to the dimensionless time from the mfpt computation
@@ -25,6 +25,8 @@ def generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2,
 
     if approach == 2:
         panes = 4
+    elif approach == 3:
+        panes = len(time_point_container)
     elif approach == 1:
         if time_point_container is None:
             raise ("The time_point_container cannot be empty for approach #1, "
@@ -44,7 +46,7 @@ def generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2,
                                  domain_snapshot_container, domain_center_snapshot_container, sim_time_container,
                                  approach,
                                  time_point_container=time_point_container, compute_mfpt=compute_mfpt,
-                                 mfpt_container=mfpt_container)
+                                 mfpt_container=mfpt_container, rect_config=rect_config, rect_dist=rect_dist)
 
     if verbose:
         print(f"Values from within the center snapshot container: {domain_snapshot_container}")
@@ -69,10 +71,12 @@ def generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2,
             df = pd.DataFrame(domain_snapshot_container[i])
             df.to_csv(output_csv_location, header=False, index=False)
 
+        time_point = time_point_container[i]
+
         produce_heatmap_tool(domain_snapshot_container[i], domain_center_snapshot_container[i],
                              False, w_param, v_param, len(N_param), data_filepath,
                              save_png=save_png, show_plot=show_plot, approach=int(approach), pane=i,
-                             mfpt=mfpt, duration=sim_time_container[i], log_scale=log_scale)
+                             mfpt=mfpt, duration=True, time_point=time_point, log_scale=log_scale)
         if verbose:
             if save_png:
                 print(f"File saved at: {data_filepath}")
@@ -82,7 +86,7 @@ def generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2,
 def produce_heatmap_tool(diffusive_layer, diffusive_layer_center, toggle_border, w, v, MT_count, filepath,
                          color_scheme='viridis',
                          save_png=False, show_plot=True, transparent=False, approach=None, pane=None, mfpt=None,
-                         duration=None,
+                         duration=False, time_point=0.0,
                          log_scale=True):  # Add log_scale toggle
 
     # Include the center value as the first "ring" in the polar heatmap
@@ -131,16 +135,17 @@ def produce_heatmap_tool(diffusive_layer, diffusive_layer_center, toggle_border,
 
     if mfpt is not None:
         title += f', MFPT={mfpt:.3f}'
-    if duration is not None:
-        title += f', T={duration:.3f}'
-    if pane is not None:
-        title += f', pane={pane}'
+    if duration:
+        print(time_point)
+        title += f', T={time_point:.3f}'
+    # if pane is not None:
+    #     title += f', pane={pane}'
 
-    if approach is not None:
-        if approach != 1 and approach != 2:
-            raise ValueError(f"Approach {approach} doesn't exist, must use either approach 1 or 2 (int value)")
-        else:
-            title += f', approach={approach}'
+    # if approach is not None:
+    #     if approach != 1 and approach != 2 and approach != 3:
+    #         raise ValueError(f"Approach {approach} doesn't exist, must use either approach 1 or 2 (int value)")
+    #     else:
+    #         title += f', approach={approach}'
 
     plt.title(title, fontdict={'weight': 'bold', 'font': 'Times New Roman', 'size': 20}, pad=20)
 

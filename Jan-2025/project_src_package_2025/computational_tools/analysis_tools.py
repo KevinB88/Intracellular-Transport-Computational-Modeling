@@ -112,7 +112,7 @@ def comp_diffusive_snapshots(rings, rays, a, b, v, tube_placements, diffusive_la
                              d=1.0,
                              mass_retention_threshold=0.01, time_point_container=None, compute_mfpt=False,
                              mfpt_container=None,
-                             mass_checkpoint=10 ** 6):
+                             mass_checkpoint=10 ** 6, rect_config=False, rect_dist=2):
     if ENABLE_JIT:
         print("Running optimized version.")
 
@@ -140,6 +140,7 @@ def comp_diffusive_snapshots(rings, rays, a, b, v, tube_placements, diffusive_la
 
     # **** - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     k = 0
+    i = 0
 
     while k == 0 or mass_retained > mass_retention_threshold:
 
@@ -155,13 +156,28 @@ def comp_diffusive_snapshots(rings, rays, a, b, v, tube_placements, diffusive_la
                 if m == rings - 1:
                     diffusive_layer[1][m][n] = 0
                 else:
-                    diffusive_layer[1][m][n] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta, d_time,
-                                                             phi_center, rings, advective_layer, angle_index, a, b,
-                                                             tube_placements)
+
+                    if rect_config:
+                        j_max = math.ceil(rect_dist / ((m + 1) * d_radius * d_theta) - 0.5)
+                        diffusive_layer[1][m][n] = num.u_density_rec(diffusive_layer, 0, m, n, d_radius, d_theta,
+                                                                     d_time,
+                                                                     phi_center, rings, advective_layer, angle_index, a,
+                                                                     b,
+                                                                     tube_placements, j_max)
+                    else:
+                        diffusive_layer[1][m][n] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta, d_time,
+                                                                 phi_center, rings, advective_layer, angle_index, a, b,
+                                                                 tube_placements)
                     if n == tube_placements[angle_index]:
                         # Update the associated tube within the dictionary
-                        advective_layer[1][m][n] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b, v,
-                                                              d_time, d_radius, d_theta)
+
+                        if rect_config:
+                            advective_layer[1][m][n] = num.u_tube_rec(advective_layer, diffusive_layer, 0, m, n, a, b,
+                                                                      v,
+                                                                      d_time, d_radius, d_theta, j_max, rays)
+                        else:
+                            advective_layer[1][m][n] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b, v,
+                                                                  d_time, d_radius, d_theta)
                         if angle_index < len(tube_placements) - 1:
                             angle_index = angle_index + 1
                 if compute_mfpt and m == rings - 2:
@@ -219,6 +235,18 @@ def comp_diffusive_snapshots(rings, rays, a, b, v, tube_placements, diffusive_la
                 if compute_mfpt:
                     mfpt_container[3] = m_f_p_t
                 return
+        elif approach == 3:
+            if i < len(time_point_container):
+                time_point = time_point_container[i]
+                epsilon = time_point * 0.05
+                # epsilon = time_point * 0.1
+            else:
+                return
+
+            if time_point - epsilon < k * d_time < time_point + epsilon:
+                domain_center_container[i] = phi_center
+                domain_snapshot_container[i] = diffusive_layer[0]
+                i = i + 1
         else:
             raise ValueError(f'{approach} is not a valid argument, use either approach2 "1" or "2" (must be an int)')
 
@@ -305,7 +333,7 @@ def comp_until_mass_depletion(rings, rays, a, b, v, tube_placements, diffusive_l
 def comp_diffusive_angle_snapshots(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer,
                                    phi_v_theta_snapshot_container, approach, m_segment=0.5, r=1.0, d=1.0,
                                    mass_retention_threshold=0.01,
-                                   time_point_container=None, mass_checkpoint=10 ** 6):
+                                   time_point_container=None, mass_checkpoint=10 ** 16, rect_config=False, rect_dist=2):
     if ENABLE_JIT:
         print("Running optimized version.")
 
@@ -342,12 +370,28 @@ def comp_diffusive_angle_snapshots(rings, rays, a, b, v, tube_placements, diffus
                 if m == rings - 1:
                     diffusive_layer[1][m][n] = 0
                 else:
-                    diffusive_layer[1][m][n] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta, d_time,
-                                                             phi_center, rings, advective_layer, angle_index, a, b,
-                                                             tube_placements)
+
+                    if rect_config:
+                        j_max = math.ceil(rect_dist / ((m + 1) * d_radius * d_theta) - 0.5)
+
+                        diffusive_layer[1][m][n] = num.u_density_rec(diffusive_layer, 0, m, n, d_radius, d_theta,
+                                                                     d_time,
+                                                                     phi_center, rings, advective_layer, angle_index, a,
+                                                                     b,
+                                                                     tube_placements, j_max)
+                    else:
+                        diffusive_layer[1][m][n] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta, d_time,
+                                                                 phi_center, rings, advective_layer, angle_index, a, b,
+                                                                 tube_placements)
                     if n == tube_placements[angle_index]:
-                        advective_layer[1][m][n] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b, v,
-                                                              d_time, d_radius, d_theta)
+
+                        if rect_config:
+                            advective_layer[1][m][n] = num.u_tube_rec(advective_layer, diffusive_layer, 0, m, n, a, b,
+                                                                      v, d_time, d_radius, d_theta, j_max, rays)
+                        else:
+                            advective_layer[1][m][n] = num.u_tube_rec(advective_layer, diffusive_layer, 0, m, n, a, b,
+                                                                      v,
+                                                                      d_time, d_radius, d_theta)
                         if angle_index < len(tube_placements) - 1:
                             angle_index = angle_index + 1
                 n += 1
@@ -422,7 +466,8 @@ def comp_diffusive_angle_snapshots(rings, rays, a, b, v, tube_placements, diffus
 # The 'fixed_angle' parameter must be provided as an integer denoting the angle/positioning on the discretized domain
 def comp_diffusive_rad_snapshots(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer,
                                  fixed_angle, phi_rad_container, rho_rad_container, time_point_container, r=1.0, d=1.0,
-                                 mass_retention_threshold=0.01, mass_checkpoint=10 ** 6):
+                                 mass_retention_threshold=0.01, mass_checkpoint=10 ** 6, rect_config=False,
+                                 rect_dist=2):
     if ENABLE_JIT:
         print("Running optimized version.")
 
@@ -456,12 +501,30 @@ def comp_diffusive_rad_snapshots(rings, rays, a, b, v, tube_placements, diffusiv
                 if m == rings - 1:
                     diffusive_layer[1][m][n] = 0
                 else:
-                    diffusive_layer[1][m][n] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta, d_time,
-                                                             phi_center, rings, advective_layer, angle_index, a, b,
-                                                             tube_placements)
+
+                    if rect_config:
+
+                        j_max = math.ceil(rect_dist / ((m + 1) * d_radius * d_theta) - 0.5)
+
+                        diffusive_layer[1][m][n] = num.u_density_rec(diffusive_layer, 0, m, n, d_radius, d_theta,
+                                                                     d_time,
+                                                                     phi_center, rings, advective_layer, angle_index, a,
+                                                                     b,
+                                                                     tube_placements, j_max)
+                    else:
+                        diffusive_layer[1][m][n] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta, d_time,
+                                                                 phi_center, rings, advective_layer, angle_index, a, b,
+                                                                 tube_placements)
                     if n == tube_placements[angle_index]:
-                        advective_layer[1][m][n] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b, v,
-                                                              d_time, d_radius, d_theta)
+
+                        if rect_config:
+                            advective_layer[1][m][n] = num.u_tube_rec(advective_layer, diffusive_layer, 0, m, n, a, b,
+                                                                      v,
+                                                                      d_time, d_radius, d_theta, j_max, rays)
+                        else:
+                            advective_layer[1][m][n] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b, v,
+                                                                  d_time, d_radius, d_theta)
+
                         if angle_index < len(tube_placements) - 1:
                             angle_index = angle_index + 1
                 n += 1
@@ -503,7 +566,8 @@ def comp_diffusive_rad_snapshots(rings, rays, a, b, v, tube_placements, diffusiv
 @njit(nopython=ENABLE_JIT)
 def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements, diffusive_layer, advective_layer,
                                        diff_mass_container, adv_mass_container, adv_over_total_container,
-                                       collection_width, mass_checkpoint=10 ** 6, r=1.0, d=1.0):
+                                       collection_width, mass_checkpoint=10 ** 6, r=1.0, d=1.0, rect_config=False,
+                                       rect_dist=2):
     if ENABLE_JIT:
         print("Running optimized version.")
 
@@ -544,13 +608,28 @@ def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements,
                 if m == rings - 1:
                     diffusive_layer[1][m][n] = 0
                 else:
-                    diffusive_layer[1][m][n] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta, d_time,
-                                                             phi_center, rings, advective_layer, angle_index,
-                                                             a, b, tube_placements)
+
+                    if rect_config:
+                        j_max = math.ceil(rect_dist / ((m + 1) * d_radius * d_theta) - 0.5)
+                        diffusive_layer[1][m][n] = num.u_density_rec(diffusive_layer, 0, m, n, d_radius, d_theta,
+                                                                     d_time,
+                                                                     phi_center, rings, advective_layer, angle_index,
+                                                                     a, b, tube_placements, j_max)
+                    else:
+                        diffusive_layer[1][m][n] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta, d_time,
+                                                                 phi_center, rings, advective_layer, angle_index,
+                                                                 a, b, tube_placements)
                     if n == tube_placements[angle_index]:
-                        advective_layer[1][m][n] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b, v,
-                                                              d_time,
-                                                              d_radius, d_theta)
+
+                        if rect_config:
+                            advective_layer[1][m][n] = num.u_tube_rec(advective_layer, diffusive_layer, 0, m, n, a, b,
+                                                                      v,
+                                                                      d_time,
+                                                                      d_radius, d_theta, j_max, rays)
+                        else:
+                            advective_layer[1][m][n] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b, v,
+                                                                  d_time,
+                                                                  d_radius, d_theta)
                         if angle_index < len(tube_placements) - 1:
                             angle_index = angle_index + 1
                 n += 1

@@ -82,7 +82,8 @@ def output_time_until_mass_depletion(rg_param, ry_param, N_param, v_param, w_par
 
 # produces a csv containing Phi versus Theta data relative to the specified approach
 def collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach, m_segment=0.5,
-                        r=1, d=1, mass_retention_threshold=0.01, time_point_container=None, verbose=False, save_png=True, show_plt=False):
+                        r=1, d=1, mass_retention_threshold=0.01, time_point_container=None, verbose=False, save_png=True, show_plt=False,
+                        rect_config=False, rect_dist=2):
     if approach == 1:
         rows = 2
     elif approach == 2:
@@ -101,7 +102,7 @@ def collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach,
 
     ant.comp_diffusive_angle_snapshots(rg_param, ry_param, w_param, w_param, v_param, N_param,
                                        diff_layer, adv_layer, phi_v_theta_container, approach, m_segment=m_segment, r=r, d=d,
-                                       mass_retention_threshold=mass_retention_threshold, time_point_container=time_point_container)
+                                       mass_retention_threshold=mass_retention_threshold, time_point_container=time_point_container, rect_config=rect_config, rect_dist=rect_dist)
 
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     data_filepath = os.path.abspath(tb.create_directory(fp.phi_v_theta_output, current_time))
@@ -121,7 +122,7 @@ def collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach,
 
 
 def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fixed_angle, time_point_container, r=1.0, d=1.0,
-                               mass_retention_threshold=0.01, mass_checkpoint=10**6, save_png=True, show_plt=False):
+                               mass_retention_threshold=0.01, mass_checkpoint=10**6, save_png=True, show_plt=False, rect_config=False, rect_dist=2):
 
     phi_rad_container = np.zeros((3, rg_param+1), dtype=np.float64)
     rho_rad_container = np.zeros((3, rg_param), dtype=np.float64)
@@ -129,7 +130,8 @@ def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fi
 
     ant.comp_diffusive_rad_snapshots(rg_param, ry_param, w_param, w_param, v_param, N_param, diff_layer, adv_layer,
                                      fixed_angle, phi_rad_container, rho_rad_container, time_point_container, r=r, d=d,
-                                     mass_retention_threshold=mass_retention_threshold, mass_checkpoint=mass_checkpoint)
+                                     mass_retention_threshold=mass_retention_threshold, mass_checkpoint=mass_checkpoint,
+                                     rect_config=rect_config, rect_dist=rect_dist)
 
     # collecting raw results for diffusive-v-rad
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
@@ -157,7 +159,7 @@ def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fi
 
 
 def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param, collection_width, r=1.0, d=1.0,
-                          mass_checkpoint=10**6, save_png=False, show_plt=True):
+                          mass_checkpoint=10**6, save_png=False, show_plt=True, rect_config=False, rect_dist=2):
 
     d_radius = r / rg_param
     d_theta = ((2 * math.pi) / ry_param)
@@ -177,7 +179,7 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
     ant.comp_mass_analysis_respect_to_time(rg_param, ry_param, w_param, w_param, v_param, T_param,
                                            N_param, diff_layer, adv_layer, diffusive_mass_container,
                                            advective_mass_container, advective_over_total_container, collection_width,
-                                           mass_checkpoint, r, d)
+                                           mass_checkpoint, r, d, rect_config=rect_config, rect_dist=rect_dist)
 
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_diffusive, current_time))

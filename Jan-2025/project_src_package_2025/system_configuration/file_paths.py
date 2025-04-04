@@ -21,6 +21,7 @@ radial_dependence_rho = Path("data_output/density-results/radial-dependence/rho"
 
 # Mass analysis results
 
+mass_analysis_general = Path("data_output/mass_analysis_results")
 mass_analysis_advective = Path("data_output/mass_analysis_results/advective")
 mass_analysis_diffusive = Path("data_output/mass_analysis_results/diffusive")
 mass_analysis_advective_over_total = Path("data_output/mass_analysis_results/advective_over_total")
