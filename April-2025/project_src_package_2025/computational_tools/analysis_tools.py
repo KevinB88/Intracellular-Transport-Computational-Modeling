@@ -386,6 +386,7 @@ def comp_diffusive_angle_snapshots(rings, rays, a, b, v, tube_placements, diffus
                     if n == tube_placements[angle_index]:
 
                         if rect_config:
+                            j_max = math.ceil(rect_dist / ((m + 1) * d_radius * d_theta) - 0.5)
                             advective_layer[1][m][n] = num.u_tube_rec(advective_layer, diffusive_layer, 0, m, n, a, b,
                                                                       v, d_time, d_radius, d_theta, j_max, rays)
                         else:
@@ -518,6 +519,7 @@ def comp_diffusive_rad_snapshots(rings, rays, a, b, v, tube_placements, diffusiv
                     if n == tube_placements[angle_index]:
 
                         if rect_config:
+                            j_max = math.ceil(rect_dist / ((m + 1) * d_radius * d_theta) - 0.5)
                             advective_layer[1][m][n] = num.u_tube_rec(advective_layer, diffusive_layer, 0, m, n, a, b,
                                                                       v,
                                                                       d_time, d_radius, d_theta, j_max, rays)
@@ -622,6 +624,7 @@ def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements,
                     if n == tube_placements[angle_index]:
 
                         if rect_config:
+                            j_max = math.ceil(rect_dist / ((m + 1) * d_radius * d_theta) - 0.5)
                             advective_layer[1][m][n] = num.u_tube_rec(advective_layer, diffusive_layer, 0, m, n, a, b,
                                                                       v,
                                                                       d_time,
