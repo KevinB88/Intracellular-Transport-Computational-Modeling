@@ -48,7 +48,7 @@ def u_density(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, mt_p
 
 
 @njit(nopython=ENABLE_JIT)
-def u_density_rec(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, mt_pos, a, b, tube_placements, j_max):
+def u_density_rec(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, a, b, tube_placements, N, j_max):
     """
 
     Calculate particle density at a position (m,n) on the diffusive layer at a time-point k.
@@ -64,8 +64,8 @@ def u_density_rec(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, 
     :param central: (float) particle density at the center
     :param rings: (int) # of radial rings in the domain
     :param rho: (3-D float array) With 2 time points, m rings (rows), and n rays (columns)
-    :param mt_pos: (int) indexed position from the 'tube_placements' container
-    :param j_max (float)
+    :param N (int)
+    :param j_max (int)
     (to specify particle density on the advective layer relative to microtubule/filament)
 
     :param a: (float) switch rate onto the diffusive layer (switch-on rate)
@@ -84,10 +84,17 @@ def u_density_rec(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, 
 
     component_b *= d_time / ((m+1) * d_radius * d_theta)
 
-    if n == tube_placements[mt_pos]:
-        component_c = (a * phi[k][m][n]) * d_time - (((b * rho[k][m][n]) * d_time) / ((m+1) * d_radius * d_theta * (1+2*j_max)))
-    else:
-        component_c = 0
+    component_c = 0
+
+    # check if there is any microtubule within range of the current rectangular interval
+
+    for t in range(len(tube_placements)):
+        mt_pos = tube_placements[t]
+        if (n-j_max) % N <= mt_pos <= (n+j_max) % N:
+            component_c += ((b * rho[k][m][mt_pos]) * d_time) / ((m+1) * d_radius * d_theta * (1+2*j_max))
+
+    if component_c > 0:
+        component_c = (a * phi[k][m][n]) * d_time - component_c
 
     return current_density - component_a - component_b - component_c
 
