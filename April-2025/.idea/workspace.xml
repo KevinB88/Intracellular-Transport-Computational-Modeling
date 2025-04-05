@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="9eb94d26-764b-44ed-8268-d01913ba97d2" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/auxiliary_tools/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/auxiliary_tools/tabulate_functions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/auxiliary_tools/unit_conversion_functions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/auxiliary_tools/validity_checks.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/computational_tools/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/computational_tools/analysis_tools.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/computational_tools/mfpt_comp_functions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/computational_tools/numerical_tools.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/computational_tools/supplements.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/phi/set1/2025-02-28-14-36-37_W=10^-4/Phi_v_theta_V=-10_W=0.0001_N=4_Angle=12_2025-02-28_14-36-37.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/phi/set1/2025-02-28-14-36-37_W=10^-4/phi_v_rad_V=-10_W=0.0001_Domain=48x48.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/phi/set1/2025-02-28-14-41-09_W=10^0/Phi_v_theta_V=-10_W=1_N=4_Angle=12_2025-02-28_14-41-09.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/phi/set1/2025-02-28-14-41-09_W=10^0/phi_v_rad_V=-10_W=1_Domain=48x48.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/phi/set1/2025-02-28-14-47-00_W=10^4/Phi_v_theta_V=-10_W=10000_N=4_Angle=12_2025-02-28_14-47-00.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/phi/set1/2025-02-28-14-47-00_W=10^4/phi_v_rad_V=-10_W=10000_Domain=48x48.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/phi/set2/2025-02-28-14-57-22_W=10^-4/Phi_v_theta_V=-10_W=0.0001_N=4_Angle=12_2025-02-28_14-57-22.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/phi/set2/2025-02-28-14-57-22_W=10^-4/phi_v_rad_V=-10_W=0.0001_Domain=48x48.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/phi/set2/2025-02-28-15-01-54_W=10^0/Phi_v_theta_V=-10_W=1_N=4_Angle=12_2025-02-28_15-01-54.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/phi/set2/2025-02-28-15-01-54_W=10^0/phi_v_rad_V=-10_W=1_Domain=48x48.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/phi/set2/2025-02-28-15-07-47_W=10^4/Phi_v_theta_V=-10_W=10000_N=4_Angle=12_2025-02-28_15-07-47.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/phi/set2/2025-02-28-15-07-47_W=10^4/phi_v_rad_V=-10_W=10000_Domain=48x48.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/rho/2025-04-04-14-22-58/Rho_v_theta_V=-10_W=10000_N=4_Angle=8_2025-04-04_14-22-58.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/rho/2025-04-04-14-22-58/rho_v_rad_V=-10_W=10000_Domain=32x32.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/rho/2025-04-04-14-35-57/Rho_v_theta_V=-10_W=10000_N=4_Angle=8_2025-04-04_14-35-57.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/rho/2025-04-04-14-35-57/rho_v_rad_V=-10_W=10000_Domain=32x32.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/rho/2025-04-04-14-36-04/Rho_v_theta_V=-10_W=10000_N=4_Angle=8_2025-04-04_14-36-04.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/rho/2025-04-04-14-36-04/rho_v_rad_V=-10_W=10000_Domain=32x32.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/rho/set1/2025-02-28-14-36-37_W=10^-4/Rho_v_theta_V=-10_W=0.0001_N=4_Angle=12_2025-02-28_14-36-37.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/rho/set1/2025-02-28-14-36-37_W=10^-4/rho_v_rad_V=-10_W=0.0001_Domain=48x48.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/rho/set1/2025-02-28-14-41-09_W=10^0/Rho_v_theta_V=-10_W=1_N=4_Angle=12_2025-02-28_14-41-09.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/rho/set1/2025-02-28-14-41-09_W=10^0/rho_v_rad_V=-10_W=1_Domain=48x48.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/rho/set1/2025-02-28-14-47-00_W=10^4/Rho_v_theta_V=-10_W=10000_N=4_Angle=12_2025-02-28_14-47-00.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/rho/set1/2025-02-28-14-47-00_W=10^4/rho_v_rad_V=-10_W=10000_Domain=48x48.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/rho/set2/2025-02-28-14-57-22_W=10^-4/Rho_v_theta_V=-10_W=0.0001_N=4_Angle=12_2025-02-28_14-57-22.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/rho/set2/2025-02-28-14-57-22_W=10^-4/rho_v_rad_V=-10_W=0.0001_Domain=48x48.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/rho/set2/2025-02-28-15-01-54_W=10^0/Rho_v_theta_V=-10_W=1_N=4_Angle=12_2025-02-28_15-01-54.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/rho/set2/2025-02-28-15-01-54_W=10^0/rho_v_rad_V=-10_W=1_Domain=48x48.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/rho/set2/2025-02-28-15-07-47_W=10^4/Rho_v_theta_V=-10_W=10000_N=4_Angle=12_2025-02-28_15-07-47.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/density-results/radial-dependence/rho/set2/2025-02-28-15-07-47_W=10^4/rho_v_rad_V=-10_W=10000_Domain=48x48.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-13-14-26/N=4_w=-10_MxN=17x16_data20250129_131427_app=2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-13-14-26/N=4_w=-10_MxN=17x16_data20250129_131453_app=2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-13-14-26/N=4_w=-10_MxN=17x16_data20250129_131459_app=2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-13-14-26/N=4_w=-10_MxN=17x16_data20250129_131505_app=2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-13-19-42/N=4_w=10000_MxN=17x16_data20250129_131942_app=2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-13-19-42/N=4_w=10000_MxN=17x16_data20250129_132155_app=2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-13-19-42/N=4_w=10000_MxN=17x16_data20250129_132201_app=2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-13-19-42/N=4_w=10000_MxN=17x16_data20250129_132207_app=2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-15-20-45_v=-50_48x48/N=4_w=10000_MxN=49x48_data20250129_152046_app=2_0.75_remaining.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-15-20-45_v=-50_48x48/N=4_w=10000_MxN=49x48_data20250129_152050_app=2_0.5_remaining.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-15-20-45_v=-50_48x48/N=4_w=10000_MxN=49x48_data20250129_152055_app=2_0.25_remaining.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-15-20-45_v=-50_48x48/N=4_w=10000_MxN=49x48_data20250129_152059_app=2_0.01_remaining.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-15-37-45_v=-100_48x48/N=4_w=10000_MxN=49x48_data20250129_153745_app=2_0.75_remaining.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-15-37-45_v=-100_48x48/N=4_w=10000_MxN=49x48_data20250129_153749_app=2_0.5_remaining.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-15-37-45_v=-100_48x48/N=4_w=10000_MxN=49x48_data20250129_153754_app=2_0.25_remaining.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-15-37-45_v=-100_48x48/N=4_w=10000_MxN=49x48_data20250129_153758_app=2_0.01_remaining.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-16-00-52_v=-950_48x48/N=4_w=10000_MxN=49x48_data20250129_160052_app=2_0.75_remaining.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-16-00-52_v=-950_48x48/N=4_w=10000_MxN=49x48_data20250129_160057_app=2_0.5_remaining.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-16-00-52_v=-950_48x48/N=4_w=10000_MxN=49x48_data20250129_160102_app=2_0.25_remaining.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-16-00-52_v=-950_48x48/N=4_w=10000_MxN=49x48_data20250129_160106_app=2_0.01_remaining.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-16-28-35_v=-1000_48x48/N=4_w=10000_MxN=49x48_data20250129_162835_app=2_0.75_remaining.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-16-28-35_v=-1000_48x48/N=4_w=10000_MxN=49x48_data20250129_162840_app=2_0.5_remaining.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-16-28-35_v=-1000_48x48/N=4_w=10000_MxN=49x48_data20250129_162844_app=2_0.25_remaining.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-01-29-16-28-35_v=-1000_48x48/N=4_w=10000_MxN=49x48_data20250129_162849_app=2_0.01_remaining.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-02-18-20-54-23_heatmap_test/N=4_w=10000_MxN=17x16_data20250218_205424_app=2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-02-18-20-54-23_heatmap_test/N=4_w=10000_MxN=17x16_data20250218_205434_app=2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-02-18-20-54-23_heatmap_test/N=4_w=10000_MxN=17x16_data20250218_205440_app=2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-02-18-20-54-23_heatmap_test/N=4_w=10000_MxN=17x16_data20250218_205447_app=2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-02-18-21-41-58/N=4_w=10000_MxN=17x16_data20250218_214159_app=2_pane=0.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-02-18-21-41-58/N=4_w=10000_MxN=17x16_data20250218_214203_app=2_pane=1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-02-18-21-41-58/N=4_w=10000_MxN=17x16_data20250218_214208_app=2_pane=2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-02-18-21-41-58/N=4_w=10000_MxN=17x16_data20250218_214212_app=2_pane=3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-02-20-15-36-56_128x128_N=4/N=4_w=10000_MxN=129x128_data20250220_153656_app=2_pane=0.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-02-20-15-36-56_128x128_N=4/N=4_w=10000_MxN=129x128_data20250220_153701_app=2_pane=1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-02-20-15-36-56_128x128_N=4/N=4_w=10000_MxN=129x128_data20250220_153705_app=2_pane=2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-02-20-15-36-56_128x128_N=4/N=4_w=10000_MxN=129x128_data20250220_153710_app=2_pane=3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-03-01-17-11-25_128x128/density_snapshot_V=-10_W=10000_N=4_Domain=128x128.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-03-01-17-57-48/N=4_w=10000_MxN=17x16_data20250301_175749_app=2_pane=0.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-03-01-17-57-48/N=4_w=10000_MxN=17x16_data20250301_175752_app=2_pane=1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-03-01-17-57-48/N=4_w=10000_MxN=17x16_data20250301_175756_app=2_pane=2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-03-01-17-57-48/N=4_w=10000_MxN=17x16_data20250301_175759_app=2_pane=3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-03-01-17-57-48/density_snapshot_V=-10_W=10000_N=4_Domain=16x16.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-03-04-00-24-24_128x128/N=4_w=10000_MxN=129x128_data20250304_002424_app=2_pane=0.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-03-04-00-24-24_128x128/N=4_w=10000_MxN=129x128_data20250304_002427_app=2_pane=1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-03-04-00-24-24_128x128/N=4_w=10000_MxN=129x128_data20250304_002430_app=2_pane=2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-03-04-00-24-24_128x128/N=4_w=10000_MxN=129x128_data20250304_002433_app=2_pane=3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/heatmaps/2025-03-04-00-24-24_128x128/density_snapshot_V=-10_W=10000_N=4_Domain=128x128.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/advective/2025-04-04-14-22-30/advective_mass_analysis_V=-10_W=10000_32x32_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/advective/2025-04-04-14-35-30/advective_mass_analysis_V=-10_W=10000_32x32_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/advective/48x48_v=-10/2025-03-08-10-21-47_w=0/advective_mass_analysis_V=-10_W=0_48x48_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/advective/48x48_v=-10/2025-03-08-10-21-47_w=0/advective_mass_versus_T_W=0_V=-10_N=4_48x48_2025-03-08_10-21-47.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/advective/48x48_v=-10/2025-03-08-17-58-23_w=10^-4/advective_mass_analysis_V=-10_W=0.0001_48x48_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/advective/48x48_v=-10/2025-03-08-17-58-23_w=10^-4/advective_mass_versus_T_V=-10_N=4_48x48_2025-03-08_17-58-23.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/advective/48x48_v=-10/2025-03-08-18-24-03_w=1/advective_mass_analysis_V=-10_W=1_48x48_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/advective/48x48_v=-10/2025-03-08-18-24-03_w=1/advective_mass_versus_T_V=-10_N=4_48x48_2025-03-08_18-24-03.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/advective/48x48_v=-10/2025-03-08-18-49-39_w=10^4/advective_mass_analysis_V=-10_W=10000_48x48_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/advective/48x48_v=-10/2025-03-08-18-49-39_w=10^4/advective_mass_versus_T_V=-10_N=4_48x48_2025-03-08_18-49-39.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/advective_over_total/2025-04-04-14-22-31/advective_over_total_mass_analysis_V=-10_W=10000_32x32_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/advective_over_total/2025-04-04-14-35-31/advective_over_total_mass_analysis_V=-10_W=10000_32x32_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/advective_over_total/48x48_v=-10/2025-03-08-10-21-49_w=0/advective_over_total_mass_analysis_V=-10_W=0_48x48_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/advective_over_total/48x48_v=-10/2025-03-08-17-58-23_w=10^-4/advective_over_total_mass_analysis_V=-10_W=0.0001_48x48_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/advective_over_total/48x48_v=-10/2025-03-08-18-24-03_w=1/advective_over_total_mass_analysis_V=-10_W=1_48x48_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/advective_over_total/48x48_v=-10/2025-03-08-18-49-39_w=10^4/advective_over_total_mass_analysis_V=-10_W=10000_48x48_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/diffusive/2025-04-04-14-06-28/diffusive_mass_analysis_V=-10_W=10000_32x32_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/diffusive/2025-04-04-14-35-12/diffusive_mass_analysis_V=-10_W=10000_32x32_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/diffusive/48x48_v=-10/2025-03-08-10-21-28_w=0/diffusive_mass_analysis_V=-10_W=0_48x48_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/diffusive/48x48_v=-10/2025-03-08-10-21-28_w=0/diffusive_mass_versus_T_W=0_V=-10_N=4_48x48_2025-03-08_10-21-29.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/diffusive/48x48_v=-10/2025-03-08-17-58-22_w=10^-4/diffusive_mass_analysis_V=-10_W=0.0001_48x48_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/diffusive/48x48_v=-10/2025-03-08-17-58-22_w=10^-4/diffusive_mass_versus_T_V=-10_N=4_48x48_2025-03-08_17-58-23.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/diffusive/48x48_v=-10/2025-03-08-18-24-03_w=1/diffusive_mass_analysis_V=-10_W=1_48x48_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/diffusive/48x48_v=-10/2025-03-08-18-24-03_w=1/diffusive_mass_versus_T_V=-10_N=4_48x48_2025-03-08_18-24-03.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/diffusive/48x48_v=-10/2025-03-08-18-49-38_w=10^4/diffusive_mass_analysis_V=-10_W=10000_48x48_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mass_analysis_results/diffusive/48x48_v=-10/2025-03-08-18-49-38_w=10^4/diffusive_mass_versus_T_V=-10_N=4_48x48_2025-03-08_18-49-38.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mfpt-results/2025-02-21-19-58-34_48x48_v=-10/MFPT_Results_N=4_V=-10__2025-02-21_20-18-51.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/mfpt-results/2025-02-22-10-31-50/MFPT_Results_N=4_V=-1__2025-02-22_10-51-27.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/phi-v-theta/2025-01-29-15-28-37_v=-50_48x48/phi_v_theta_V=-50_W=10000_48x48_approach=2_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/phi-v-theta/2025-01-29-15-28-37_v=-50_48x48/phi_v_theta_v=-50_w=10000_app=2_pos=0.5_2025-01-29_15-28-40.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/phi-v-theta/2025-01-29-15-47-10_v=-100_48x48/phi_v_theta_V=-100_W=10000_48x48_approach=2_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/phi-v-theta/2025-01-29-15-47-10_v=-100_48x48/phi_v_theta_v=-100_w=10000_app=2_pos=0.5_2025-01-29_15-47-12.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/phi-v-theta/2025-01-29-16-14-54_v=-950_48x48/phi_v_theta_V=-950_W=10000_48x48_approach=2_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/phi-v-theta/2025-01-29-16-14-54_v=-950_48x48/phi_v_theta_v=-950_w=10000_app=2_pos=0.5_2025-01-29_16-14-56.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/phi-v-theta/2025-01-29-16-42-39_v=-1000_48x48/phi_v_theta_V=-1000_W=10000_48x48_approach=2_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/phi-v-theta/2025-01-29-16-42-39_v=-1000_48x48/phi_v_theta_v=-1000_w=10000_app=2_pos=0.5_2025-01-29_16-42-42.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/phi-v-theta/2025-02-14-00-16-45_v=-10_16x16_task1_test/phi_v_theta_V=-10_W=10000_16x16_approach=3_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/phi-v-theta/2025-02-14-00-16-45_v=-10_16x16_task1_test/phi_v_theta_v=-10_w=10000_app=3_pos=0.5_2025-02-14_00-16-47.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/phi-v-theta/2025-02-14-00-17-02_v=-10_16x16_task2_test/phi_v_theta_V=-10_W=10000_16x16_approach=4_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/phi-v-theta/2025-02-14-00-17-02_v=-10_16x16_task2_test/phi_v_theta_v=-10_w=10000_app=4_pos=0.5_2025-02-14_00-17-04.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/phi-v-theta/2025-02-15-15-07-34/phi_v_theta_V=-100_W=10000_48x48_approach=3_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/phi-v-theta/2025-02-15-15-07-34/phi_v_theta_v=-100_w=10000_app=3_pos=0.5_2025-02-15_15-07-37.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/phi-v-theta/2025-02-15-21-56-57/phi_v_theta_V=-100_W=10000_48x48_approach=4_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/phi-v-theta/2025-02-15-21-56-57/phi_v_theta_v=-100_w=10000_app=4_pos=0.5_2025-02-15_21-56-59.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/phi-v-theta/2025-02-15-22-56-09/phi_v_theta_V=-100_W=10000_48x48_approach=4_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/phi-v-theta/2025-02-15-22-56-09/phi_v_theta_v=-100_w=10000_app=4_pos=0.5_2025-02-15_22-56-11.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/phi-v-theta/2025-02-18-23-01-12_48x48_v=100_w=10^4_until_10_percent/phi_v_theta_V=-100_W=10000_48x48_approach=4_.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_output/phi-v-theta/2025-02-18-23-01-12_48x48_v=100_w=10^4_until_10_percent/phi_v_theta_v=-100_w=10000_app=4_pos=0.5_2025-02-18_23-01-15.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_visualization/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_visualization/animation_functions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_visualization/plot_functions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/data_visualization/supported-color-schemes.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/docs/project_structure.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/docs/requirements.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/launch_functions/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/launch_functions/launch.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/main.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/system_configuration/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/system_configuration/file_paths.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project_src_package_2025/system_configuration/sys_config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/data_output/density-results/radial-dependence/diffusive/2025-03-11-18-05-50/Phi_v_theta_V=-10_W=10000_N=4_Angle=4_2025-03-11_18-05-50.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/data_output/density-results/radial-dependence/diffusive/2025-03-11-18-05-50/phi_v_rad_V=-10_W=10000_Domain=16x16.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/data_output/density-results/radial-dependence/diffusive/2025-03-11-18-08-48/Phi_v_theta_V=-10_W=10000_N=4_Angle=12_2025-03-11_18-08-48.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/data_output/density-results/radial-dependence/diffusive/2025-03-11-18-08-48/phi_v_rad_V=-10_W=10000_Domain=48x48.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/data_output/density-results/radial-dependence/rho/2025-03-11-18-05-50/Rho_v_theta_V=-10_W=10000_N=4_Angle=4_2025-03-11_18-05-50.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/data_output/density-results/radial-dependence/rho/2025-03-11-18-05-50/rho_v_rad_V=-10_W=10000_Domain=16x16.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/data_output/density-results/radial-dependence/rho/2025-03-11-18-08-48/Rho_v_theta_V=-10_W=10000_N=4_Angle=12_2025-03-11_18-08-48.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/data_output/density-results/radial-dependence/rho/2025-03-11-18-08-48/rho_v_rad_V=-10_W=10000_Domain=48x48.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/data_output/heatmaps/2025-03-11-17-50-51/N=4_w=10000_MxN=17x16_data20250311_175051_app=2_pane=0.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/data_output/heatmaps/2025-03-11-17-50-51/N=4_w=10000_MxN=17x16_data20250311_175340_app=2_pane=1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/data_output/heatmaps/2025-03-11-17-50-51/N=4_w=10000_MxN=17x16_data20250311_175435_app=2_pane=2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/data_output/heatmaps/2025-03-11-18-14-46/N=4_w=10000_MxN=49x48_data20250311_181447_app=2_pane=0.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/data_output/heatmaps/2025-03-11-18-14-46/N=4_w=10000_MxN=49x48_data20250311_181609_app=2_pane=1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/data_output/heatmaps/2025-03-11-18-14-46/N=4_w=10000_MxN=49x48_data20250311_181623_app=2_pane=2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/data_output/heatmaps/2025-03-11-18-14-46/N=4_w=10000_MxN=49x48_data20250311_181630_app=2_pane=3.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/computational_tools/numerical_tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/computational_tools/numerical_tools.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/data_visualization/animation_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/data_visualization/animation_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/data_visualization/plot_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/data_visualization/plot_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/launch_functions/launch.py" beforeDir="false" afterPath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/launch_functions/launch.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/../Jan-2025/project_src_package_2025/main.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="2vHG2czN1QHLlVnLcBvf5ah9M1x" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/kbedoya88/Desktop/QC25-Spring-Semester/Research/Computational-Biophysics/PyCharm-Project/computational-biophysics/remote_clone/April-2025&quot;
+  }
+}</component>
+  <component name="RunManager">
+    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
+      <module name="April-2025" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="April-2025" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/project_src_package_2025" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/project_src_package_2025/main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="Tox" factoryName="Tox">
+      <module name="April-2025" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="docs" factoryName="Docutils task">
+      <module name="April-2025" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="docutils_input_file" value="" />
+      <option name="docutils_output_file" value="" />
+      <option name="docutils_params" value="" />
+      <option name="docutils_task" value="" />
+      <option name="docutils_open_in_browser" value="false" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="docs" factoryName="Sphinx task">
+      <module name="April-2025" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="docutils_input_file" value="" />
+      <option name="docutils_output_file" value="" />
+      <option name="docutils_params" value="" />
+      <option name="docutils_task" value="" />
+      <option name="docutils_open_in_browser" value="false" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Autodetect">
+      <module name="April-2025" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Doctests">
+      <module name="April-2025" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.main" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-5a2391486177-d3b881c8e49f-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-233.13763.11" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="9eb94d26-764b-44ed-8268-d01913ba97d2" name="Changes" comment="" />
+      <created>1743794379523</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1743794379523</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="CUSTOM_BOOLEAN_PROPERTIES">
+                <map>
+                  <entry key="Show.Git.Branches" value="false" />
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
