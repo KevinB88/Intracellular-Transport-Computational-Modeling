@@ -17,7 +17,12 @@ import time
 
 def generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2,
                       filepath=fp.heatmap_output, time_point_container=None, save_png=True, show_plot=False,
+<<<<<<< Updated upstream
                       compute_mfpt=False, verbose=False, output_csv=False, log_scale=False, rect_config=False, rect_dist=2):
+=======
+                      compute_mfpt=False, verbose=False, output_csv=False, log_scale=False, toggleBorder=False,
+                      colorScheme='viridis', topographic=False):
+>>>>>>> Stashed changes
     panes = 0
     mfpt = None
     # duration refers to the dimensionless time from the mfpt computation
@@ -71,12 +76,24 @@ def generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2,
             df = pd.DataFrame(domain_snapshot_container[i])
             df.to_csv(output_csv_location, header=False, index=False)
 
+<<<<<<< Updated upstream
         time_point = time_point_container[i]
 
         produce_heatmap_tool(domain_snapshot_container[i], domain_center_snapshot_container[i],
                              False, w_param, v_param, len(N_param), data_filepath,
                              save_png=save_png, show_plot=show_plot, approach=int(approach), pane=i,
                              mfpt=mfpt, duration=True, time_point=time_point, log_scale=log_scale)
+=======
+        if topographic:
+            produce_3D_heatmap_tool(domain_snapshot_container[i], domain_center_snapshot_container[i],
+                                    toggleBorder, w_param, v_param, len(N_param), data_filepath, colorScheme, save_png,
+                                    approach=int(approach), pane=i, mfpt=mfpt, duration=sim_time_container[i])
+        else:
+            produce_heatmap_tool(domain_snapshot_container[i], domain_center_snapshot_container[i],
+                                 toggleBorder, w_param, v_param, len(N_param), data_filepath,
+                                 save_png=save_png, show_plot=show_plot, approach=int(approach), pane=i,
+                                 mfpt=mfpt, duration=sim_time_container[i], log_scale=log_scale)
+>>>>>>> Stashed changes
         if verbose:
             if save_png:
                 print(f"File saved at: {data_filepath}")

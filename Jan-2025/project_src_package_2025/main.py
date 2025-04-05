@@ -15,6 +15,7 @@ if __name__ == "__main__":
     N_param = [0, 12, 24, 36]
     w_param = 10**4
 
+<<<<<<< Updated upstream
     diff, adv = sup.initialize_layers(rg_param, ry_param)
 
     mfpt_base = mf.comp_mfpt_by_mass_loss(rg_param, ry_param, w_param, w_param, v_param, N_param, diff, adv)
@@ -27,3 +28,13 @@ if __name__ == "__main__":
     launch.collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, 12, [0.1, 0.5, 0.9])
     launch.collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach=3, time_point_container=[0.1, 0.5, 0.9], rect_config=True)
     ani.generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=3, time_point_container=[0.1, 0.5, 0.9], verbose=True, rect_config=True)
+=======
+    # launch.collect_density_rad_depend(48, 48, [0, 12, 24, 36], -10, 10**4, 12, [0.1, 0.591])
+
+    ani.generate_heatmaps(48, 48, 10**4, -10, [0, 12, 24, 36], approach=1, time_point_container=[0.105, 1.10, 0.59110, 0.59120],
+                          topographic=True, show_plot=True)
+    # launch.collect_mass_analysis(rg_param, ry_param, N_param, v_param, 0, T_param, collection_width=100, save_png=True)
+    # launch.collect_mass_analysis(rg_param, ry_param, N_param, v_param, 10 ** -4, T_param, collection_width=100, save_png=True)
+    # launch.collect_mass_analysis(rg_param, ry_param, N_param, v_param, 10 ** 0, T_param, collection_width=100, save_png=True)
+    # launch.collect_mass_analysis(rg_param, ry_param, N_param, v_param, 10**4, T_param, collection_width=100, save_png=True)
+>>>>>>> Stashed changes
