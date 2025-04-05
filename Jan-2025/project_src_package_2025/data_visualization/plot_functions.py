@@ -116,12 +116,14 @@ def plot_dense_v_rad(y_lab, data_filepath, v, w, N, rings, rays, fixed_angle, ti
         x = np.linspace(1/rings, 1, rings)
 
     converted_container = [f"T={T:.3f}" for T in time_point_container]
+    print(converted_container)
     label_container = converted_container
 
     # Plot each row of data
     plt.figure(figsize=(10, 6))
     for i, row in data.iterrows():
         plt.plot(x, row, label=label_container[i])
+        # plt.plot(x, row)
 
     # Add labels, legend, and title
     plt.xlabel("(R) Radius")

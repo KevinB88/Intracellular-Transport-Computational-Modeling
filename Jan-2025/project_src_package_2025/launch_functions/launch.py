@@ -124,8 +124,10 @@ def collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach,
 def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fixed_angle, time_point_container, r=1.0, d=1.0,
                                mass_retention_threshold=0.01, mass_checkpoint=10**6, save_png=True, show_plt=False, rect_config=False, rect_dist=2):
 
-    phi_rad_container = np.zeros((3, rg_param+1), dtype=np.float64)
-    rho_rad_container = np.zeros((3, rg_param), dtype=np.float64)
+    panes = len(time_point_container)
+
+    phi_rad_container = np.zeros((panes, rg_param+1), dtype=np.float64)
+    rho_rad_container = np.zeros((panes, rg_param), dtype=np.float64)
     diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
 
     ant.comp_diffusive_rad_snapshots(rg_param, ry_param, w_param, w_param, v_param, N_param, diff_layer, adv_layer,

@@ -137,6 +137,8 @@ def u_tube_rec(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, j_max, N):
     :param d_time: (float) delta-time
     :param d_radius: (float) delta-radius
     :param d_theta: (float) delta-theta
+    :param j_max (int)
+    :param N (int)
     :return: particle density at position (m,n) on the advective layer.
     """
 
