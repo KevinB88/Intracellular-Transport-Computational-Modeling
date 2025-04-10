@@ -105,6 +105,12 @@ def collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach,
                                        mass_retention_threshold=mass_retention_threshold, time_point_container=time_point_container, rect_config=rect_config, rect_dist=rect_dist)
 
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+
+    if rect_config:
+        current_time += "-rect-config"
+    else:
+        current_time += "-original-config"
+
     data_filepath = os.path.abspath(tb.create_directory(fp.phi_v_theta_output, current_time))
     print(data_filepath)
     filename = f"phi_v_theta_V={v_param}_W={w_param}_{rg_param}x{ry_param}_approach={approach}_.csv"
@@ -135,6 +141,10 @@ def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fi
 
     # collecting raw results for diffusive-v-rad
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    if rect_config:
+        current_time += "-rect-config"
+    else:
+        current_time += "-original-config"
     data_filepath = os.path.abspath(tb.create_directory(fp.radial_dependence_phi, current_time))
     print(data_filepath)
     filename = f"phi_v_rad_V={v_param}_W={w_param}_Domain={rg_param}x{ry_param}.csv"
@@ -147,6 +157,10 @@ def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fi
 
     # collecting raw results for rho-v-rad
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    if rect_config:
+        current_time += "-rect-config"
+    else:
+        current_time += "-original-config"
     data_filepath = os.path.abspath(tb.create_directory(fp.radial_dependence_rho, current_time))
     print(data_filepath)
     filename = f"rho_v_rad_V={v_param}_W={w_param}_Domain={rg_param}x{ry_param}.csv"
@@ -182,6 +196,10 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
                                            mass_checkpoint, r, d, rect_config=rect_config, rect_dist=rect_dist)
 
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    if rect_config:
+        current_time += "-rect-config"
+    else:
+        current_time += "-original-config"
     data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_diffusive, current_time))
     print(data_filepath)
     filename = f"diffusive_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
@@ -191,6 +209,10 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
     plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "diffusive_mass", data_filepath, save_png, show_plt)
 
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    if rect_config:
+        current_time += "-rect-config"
+    else:
+        current_time += "-original-config"
     data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective, current_time))
     print(data_filepath)
     filename = f"advective_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
@@ -201,16 +223,26 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
                            data_filepath, save_png, show_plt)
 
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    # if rect_config:
+    #     current_time += "-rect-config"
+    # else:
+    #     current_time += "-original-config"
     data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective_over_total, current_time))
     print(data_filepath)
+
     filename = f"advective_over_total_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
     output_location = os.path.join(data_filepath, filename)
     df = pd.DataFrame(advective_over_total_container)
     df.to_csv(output_location, header=False, index=False)
-    plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "advective_over_total_mass",
+
+    plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "adv_over_tot_mass",
                            data_filepath, save_png, show_plt)
 
-
+    '''
+        The following line above resulted in the following error: 
+        
+        FileNotFoundError: [Errno 2] No such file or directory: 'N:\\QueensCollege2025\\research\\computational_biophysics\\remote-clone\\April-2025\\project_src_package_2025\\data_output\\mass_analysis_results\\advective_over_total\\2025-04-10-07-52-46-rect-config\\adv_over_tot_mass_versus_T_W=1000_V=-10_N=4_16x16_2025-04-10_07-52-46.png'
+    '''
 
 
 
