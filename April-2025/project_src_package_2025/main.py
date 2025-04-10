@@ -101,8 +101,3 @@ if __name__ == "__main__":
         tee = Tee(sys.stdout, f)
         with redirect_stdout(tee):
             run_main()
-'''
-Monday plan: 
-Generate comparison graphs for the provided trajectories, and outline the MSE between the
-density profiles produced from the polar coordinates versus the rectangular.
-'''
