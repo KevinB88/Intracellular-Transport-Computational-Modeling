@@ -159,6 +159,7 @@ def comp_diffusive_snapshots(rings, rays, a, b, v, tube_placements, diffusive_la
 
                     if rect_config:
                         j_max = math.ceil(rect_dist / ((m + 1) * d_radius * d_theta) - 0.5)
+
                         diffusive_layer[1][m][n] = num.u_density_rec(diffusive_layer, 0, m, n, d_radius, d_theta,
                                                                      d_time,
                                                                      phi_center, rings, advective_layer, a,
@@ -568,7 +569,7 @@ def comp_diffusive_rad_snapshots(rings, rays, a, b, v, tube_placements, diffusiv
 
 @njit(nopython=ENABLE_JIT)
 def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements, diffusive_layer, advective_layer,
-                                       diff_mass_container, adv_mass_container, adv_over_total_container,
+                                       diff_mass_container, adv_mass_container, adv_over_total_container, total_container,
                                        collection_width, mass_checkpoint=10 ** 6, r=1.0, d=1.0, rect_config=False,
                                        rect_dist=2):
     if ENABLE_JIT:
@@ -643,6 +644,7 @@ def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements,
             diff_mass_container[k_prime] = diffusive_mass
             adv_mass_container[k_prime] = advective_mass
             adv_over_total_container[k_prime] = advective_mass / total_domain_mass
+            total_container[k_prime] = total_domain_mass
             k_prime += 1
 
         k += 1
