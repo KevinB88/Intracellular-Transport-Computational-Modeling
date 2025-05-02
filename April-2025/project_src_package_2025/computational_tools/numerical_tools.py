@@ -88,16 +88,18 @@ def u_density_rec(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, 
 
     # check if there is any microtubule within range of the current rectangular interval
 
+    flag = False
+
     for t in range(len(tube_placements)):
         mt_pos = tube_placements[t]
         if (n-j_max) % N <= mt_pos <= (n+j_max) % N:
             component_c += ((b * rho[k][m][mt_pos]) * d_time) / ((m+1) * d_radius * d_theta * (1+2*j_max))
+            flag = True
 
-    if component_c > 0:
+    if flag:
         component_c = (a * phi[k][m][n]) * d_time - component_c
 
     return current_density - component_a - component_b - component_c
-
 
 @njit(nopython=ENABLE_JIT)
 def u_tube(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta):
@@ -158,8 +160,12 @@ def u_tube_rec(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, j_max, N):
     comp_b = b * rho[k][m][n] * d_time
 
     sum = 0
+    # line = ""
+    # line += f'm={m} '
     for j in range(-j_max, j_max+1):
-        sum += phi[k][m][(n+j_max) % N]
+        sum += phi[k][m][(n+j) % N]
+    #     line += f'{(n+j) % N} '
+    # print(line)
 
     comp_c = (a * (m+1) * d_radius * d_theta * d_time) * sum
 
