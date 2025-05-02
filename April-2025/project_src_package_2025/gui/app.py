@@ -1,10 +1,28 @@
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QComboBox, QPushButton, QLineEdit, QTabWidget, QLabel, QTextEdit, QMessageBox
+    QComboBox, QPushButton, QLineEdit, QTabWidget, QLabel, QTextEdit, QMessageBox,
+    QTableWidgetItem, QTableWidget
 )
+from PyQt6.QtCore import QThread
+from worker import Worker
 import importlib
+
 from project_src_package_2025 import launch_functions
 import inspect
+
+import os
+import sys
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+
+
+def main():
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())
 
 
 class MainWindow(QMainWindow):
@@ -89,9 +107,73 @@ class MainWindow(QMainWindow):
                 elif param.annotation == float:
                     kwargs[param.name] = float(input_text)
                 else:
-                    kwargs[param.name] = input_text  # fallback as string
+                    kwargs[param.name] = input_text
 
-            result = fn(**kwargs)
-            self.output_tabs.addTab(QLabel(f"Function `{fn_name}` executed successfully."), fn_name)
+            self.statusBar().showMessage(f"Running `{fn_name}`...")
+
+            # Set up thread and worker
+            self.thread = QThread()
+            self.worker = Worker(fn, fn_name, kwargs)
+            self.worker.moveToThread(self.thread)
+
+            self.thread.started.connect(self.worker.run)
+            self.worker.finished.connect(self.on_function_finished)
+            self.worker.error.connect(self.on_function_error)
+            self.worker.finished.connect(self.thread.quit)
+            self.worker.finished.connect(self.worker.deleteLater)
+            self.thread.finished.connect(self.thread.deleteLater)
+
+            self.thread.start()
+
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to run `{fn_name}`:\n{e}")
+            QMessageBox.critical(self, "Error", f"Parameter error:\n{e}")
+
+    def on_function_finished(self, result, fn_name):
+        self.statusBar().showMessage(f"{fn_name} finished successfully.")
+
+        if isinstance(result, str):
+            # If the function returns a status string
+            self.output_tabs.addTab(QLabel(result), f"{fn_name} Output")
+        elif isinstance(result, list):
+            for i, path in enumerate(result):
+                tab_name = f"{fn_name} [{i + 1}]"
+                ext = os.path.splitext(path)[1].lower()
+
+                if ext == ".csv":
+                    table_widget = self.create_table_from_csv(path)
+                    self.output_tabs.addTab(table_widget, tab_name)
+                elif ext in [".png", ".jpg", ".jpeg"]:
+                    canvas = self.create_canvas_from_image(path)
+                    self.output_tabs.addTab(canvas, tab_name)
+                elif ext == ".pdf":
+                    self.output_tabs.addTab(QLabel(f"PDF saved: {path}"), tab_name)
+                else:
+                    self.output_tabs.addTab(QLabel(f"Output saved: {path}"), tab_name)
+        else:
+            self.output_tabs.addTab(QLabel("Unknown output format"), f"{fn_name} Output")
+
+    def on_function_error(self, error_msg, fn_name):
+        QMessageBox.critical(self, f"Error in `{fn_name}`", error_msg)
+        self.statusBar().showMessage(f"{fn_name} failed.")
+
+    def create_table_from_csv(self, file_path):
+        df = pd.read_csv(file_path)
+        table = QTableWidget(df.shape[0], df.shape[1])
+        table.setHorizontalHeaderLabels(df.columns)
+
+        for i in range(df.shape[0]):
+            for j in range(df.shape[1]):
+                table.setItem(i, j, QTableWidgetItem(str(df.iat[i, j])))
+
+        table.setMinimumSize(800, 400)
+        return table
+
+    def create_canvas_from_image(self, file_path):
+        fig = Figure(figsize=(6, 4))
+        ax = fig.add_subplot(111)
+        img = plt.imread(file_path)
+        ax.imshow(img)
+        ax.axis('off')
+        canvas = FigureCanvas(fig)
+        return canvas
+
