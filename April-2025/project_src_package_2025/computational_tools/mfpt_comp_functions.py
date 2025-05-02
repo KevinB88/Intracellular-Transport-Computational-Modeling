@@ -163,7 +163,6 @@ def comp_mfpt_by_mass_loss_rect(rings, rays, a, b, v, tube_placements, diffusive
 
     :param diffusive_layer: [np.zeros((2, rings, rays), dtype=np.float64)] a 2 * rings * ray container to collect density at the diffusive layer
     :param advective_layer: [np.zeros((2, rings, rays), dtype=np.float64)] a 2 * rings * ray container to collect density at the advective layer
-
     :param rect_dist (int)
 
     :param mass_checkpoint: (float) used to print biophysical metrics onto screen after evey mass_checkpoint number of time-steps,
@@ -215,8 +214,8 @@ def comp_mfpt_by_mass_loss_rect(rings, rays, a, b, v, tube_placements, diffusive
                 else:
                     j_max = math.ceil(rect_dist / ((m+1) * d_radius * d_theta) - 0.5)
                     diffusive_layer[1][m][n] = num.u_density_rec(diffusive_layer, 0, m, n, d_radius, d_theta, d_time,
-                                                                 phi_center, rings, advective_layer, angle_index,
-                                                                 a, b, tube_placements, j_max)
+                                                                 phi_center, rings, advective_layer,
+                                                                 a, b, tube_placements, rays, j_max)
                     if n == tube_placements[angle_index]:
                         advective_layer[1][m][n] = num.u_tube_rec(advective_layer, diffusive_layer, 0, m,
                                                                   n, a, b, v, d_time, d_radius, d_theta, j_max, rays)

@@ -52,6 +52,12 @@ def generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2,
         print(f"Values from within the center snapshot container: {domain_snapshot_container}")
 
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+
+    if rect_config:
+        current_time += "-rect-config"
+    else:
+        current_time += "-original-config"
+
     data_filepath = tb.create_directory(filepath, current_time)
 
     microtubule_count = len(N_param)

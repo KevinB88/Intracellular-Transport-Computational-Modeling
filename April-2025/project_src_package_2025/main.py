@@ -14,12 +14,12 @@ import numpy as np
 
 
 def run_main():
-    rg_param = 64
-    ry_param = 64
+    rg_param = 32
+    ry_param = 32
     v_param = -10
-    N_param = [0, 16, 32, 48]
+    N_param = [0, 8, 16, 24]
     w_param = 1000
-    rect_dist = 0.05
+    rect_dist = 2
 
     # testing params
     # rg_param = 16
@@ -49,25 +49,31 @@ def run_main():
         
     '''
 
+    start = clk.time()
+
     diff, adv = sup.initialize_layers(rg_param, ry_param)
 
-    mfpt_p = mf.comp_mfpt_by_mass_loss(rg_param, ry_param, w_param, w_param, v_param, N_param, diff, adv)
+    # mfpt_p = mf.comp_mfpt_by_mass_loss(rg_param, ry_param, w_param, w_param, v_param, N_param, diff, adv)
     mfpt = mf.comp_mfpt_by_mass_loss_rect(rg_param, ry_param, w_param, w_param, v_param, N_param, diff, adv, rect_dist)
 
-    print("MFPT from polar collection region config:", mfpt_p)
+    # print("MFPT from polar collection region config:", mfpt_p)
     print("MFPT from rectified collection region config:", mfpt)
 
     launch.collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, 3, time_point_container=[0.1, 0.5, 0.9], rect_config=True, rect_dist=rect_dist, show_plt=False)
-    launch.collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, 3, time_point_container=[0.1, 0.5, 0.9], rect_config=False, rect_dist=rect_dist, show_plt=False)
+    # launch.collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, 3, time_point_container=[0.1, 0.5, 0.9], rect_config=False, rect_dist=rect_dist, show_plt=False)
 
     launch.collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, 4, time_point_container=[0.1, 0.5, 0.9], rect_config=True, rect_dist=rect_dist, show_plt=False)
-    launch.collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, 4, time_point_container=[0.1, 0.5, 0.9], rect_config=False, rect_dist=rect_dist, show_plt=False)
+    # launch.collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, 4, time_point_container=[0.1, 0.5, 0.9], rect_config=False, rect_dist=rect_dist, show_plt=False)
 
     ani.generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=3, time_point_container=[0.1, 0.5, 0.9], rect_config=True, rect_dist=rect_dist, show_plot=False)
     ani.generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=3, time_point_container=[0.1, 0.5, 0.9], rect_config=False, rect_dist=rect_dist, show_plot=False)
 
     launch.collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, 0.5, 100, rect_config=True, rect_dist=rect_dist, show_plt=False, save_png=True)
     launch.collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, 0.5, 100, rect_config=False, rect_dist=rect_dist, show_plt=False, save_png=True)
+
+    end = clk.time()
+
+    f'Full analysis duration: {end - start:.3f}'
 
 
 if __name__ == "__main__":
