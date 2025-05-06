@@ -21,6 +21,14 @@ def run_main():
     N_param = [0, 9, 18, 27]
     w_param = 10 ** 3
 
+    # container = sup.mod_range_flat_sorted(N_param, 1, ry_param)
+
+    # print(container)
+
+    # [ 35 0 1    8 9 10      17 18 19    26 27 28   ]
+
+    launch.collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param=1, collection_width=100, mixed_config=True, save_png=True, show_plt=True)
+
 
 if __name__ == "__main__":
 
@@ -47,3 +55,4 @@ if __name__ == "__main__":
         tee = Tee(sys.stdout, f)
         with redirect_stdout(tee):
             run_main()
+

@@ -1,5 +1,4 @@
 from . import math, njit, sys_config
-import supplements as sup
 
 ENABLE_JIT = sys_config.ENABLE_NJIT
 
@@ -87,9 +86,11 @@ def u_density_mixed(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho
     component_b *= d_time / ((m+1) * d_radius * d_theta)
 
     if first_ring_flag:
-        component_c = (a * phi[k][m][n]) * d_time - ((b / 3 * rho[k][m][n]) * d_time) / ((m + 1) * d_radius * d_theta)
-    elif m > 0 and n == tube_placements[mt_pos]:
-        component_c = (a * phi[k][m][n]) * d_time - ((b * rho[k][m][n]) * d_time) / ((m+1) * d_radius * d_theta)
+        # component_c = (a * phi[k][m][n]) * d_time - (3*(b / 3 * rho[k][m][n]) * d_time) / ((m + 1) * d_radius * d_theta)
+        component_c = (a * phi[ k ][ m ][ n ]) * d_time - ((b / 3 * rho[ k ][ m ][ n ]) * d_time) / (
+                    (m + 1) * d_radius * d_theta)
+    elif n == tube_placements[mt_pos]:
+        component_c = (a * phi[k][m][n]) * d_time - (((b * rho[k][m][n]) * d_time) / ((m+1) * d_radius * d_theta))
     else:
         component_c = 0
 
@@ -157,9 +158,11 @@ def u_tube_mixed(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, N):
     component_b = phi[k][m][n]
 
     if m == 0:
-        component_b += phi[k][m][(n-1) % N] + phi[k][m][(n+1) % N]
+        component_b += (m+1) * (phi[k][m][(n-1) % N] + phi[k][m][(n+1) % N])
+        # component_b += (phi[ k ][ m ][ (n - 1) % N ] + phi[ k ][ m ][ (n + 1) % N ]) * 0
 
-    component_b *= (m+1) * a * d_radius * d_theta * d_time
+    component_b *= a * d_radius * d_theta * d_time
+
     component_c = b * rho[k][m][n] * d_time
 
     return curr_rho - component_a + component_b - component_c

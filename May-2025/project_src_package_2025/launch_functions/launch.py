@@ -83,7 +83,7 @@ def output_time_until_mass_depletion(rg_param, ry_param, N_param, v_param, w_par
 # produces a csv containing Phi versus Theta data relative to the specified approach
 def collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach, m_segment=0.5,
                         r=1, d=1, mass_retention_threshold=0.01, time_point_container=None, verbose=False, save_png=True, show_plt=False,
-                        rect_config=False, rect_dist=2):
+                        mixed_config=False):
     if approach == 1:
         rows = 2
     elif approach == 2:
@@ -102,12 +102,12 @@ def collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach,
 
     ant.comp_diffusive_angle_snapshots(rg_param, ry_param, w_param, w_param, v_param, N_param,
                                        diff_layer, adv_layer, phi_v_theta_container, approach, m_segment=m_segment, r=r, d=d,
-                                       mass_retention_threshold=mass_retention_threshold, time_point_container=time_point_container, rect_config=rect_config, rect_dist=rect_dist)
+                                       mass_retention_threshold=mass_retention_threshold, time_point_container=time_point_container, mixed_config=rect_config)
 
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 
-    if rect_config:
-        current_time += "-rect-config"
+    if mixed_config:
+        current_time += "-mixed-config"
     else:
         current_time += "-original-config"
 
@@ -128,7 +128,7 @@ def collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach,
 
 
 def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fixed_angle, time_point_container, r=1.0, d=1.0,
-                               mass_retention_threshold=0.01, mass_checkpoint=10**6, save_png=True, show_plt=False, rect_config=False, rect_dist=2):
+                               mass_retention_threshold=0.01, mass_checkpoint=10**6, save_png=True, show_plt=False, mixed_config=False):
 
     phi_rad_container = np.zeros((3, rg_param+1), dtype=np.float64)
     rho_rad_container = np.zeros((3, rg_param), dtype=np.float64)
@@ -137,12 +137,12 @@ def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fi
     ant.comp_diffusive_rad_snapshots(rg_param, ry_param, w_param, w_param, v_param, N_param, diff_layer, adv_layer,
                                      fixed_angle, phi_rad_container, rho_rad_container, time_point_container, r=r, d=d,
                                      mass_retention_threshold=mass_retention_threshold, mass_checkpoint=mass_checkpoint,
-                                     rect_config=rect_config, rect_dist=rect_dist)
+                                     mixed_config=mixed_config)
 
     # collecting raw results for diffusive-v-rad
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    if rect_config:
-        current_time += "-rect-config"
+    if mixed_config:
+        current_time += "-mixed-config"
     else:
         current_time += "-original-config"
     data_filepath = os.path.abspath(tb.create_directory(fp.radial_dependence_phi, current_time))
@@ -173,7 +173,7 @@ def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fi
 
 
 def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param, collection_width, r=1.0, d=1.0,
-                          mass_checkpoint=10**6, save_png=False, show_plt=True, rect_config=False, rect_dist=2):
+                          mass_checkpoint=10**6, save_png=False, show_plt=True, mixed_config=False):
 
     d_radius = r / rg_param
     d_theta = ((2 * math.pi) / ry_param)
@@ -187,17 +187,19 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
     diffusive_mass_container = np.zeros([relative_k], dtype=np.float64)
     advective_mass_container = np.zeros([relative_k], dtype=np.float64)
     advective_over_total_container = np.zeros([relative_k], dtype=np.float64)
+    total_mass_container = np.zeros([relative_k], dtype=np.float64)
 
     diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
 
     ant.comp_mass_analysis_respect_to_time(rg_param, ry_param, w_param, w_param, v_param, T_param,
                                            N_param, diff_layer, adv_layer, diffusive_mass_container,
-                                           advective_mass_container, advective_over_total_container, collection_width,
-                                           mass_checkpoint, r, d, rect_config=rect_config, rect_dist=rect_dist)
+                                           advective_mass_container, advective_over_total_container, total_mass_container,
+                                           collection_width,
+                                           mass_checkpoint, r, d, mixed_config=mixed_config)
 
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    if rect_config:
-        current_time += "-rect-config"
+    if mixed_config:
+        current_time += "-mixed-config"
     else:
         current_time += "-original-config"
     data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_diffusive, current_time))
@@ -209,10 +211,11 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
     plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "diffusive_mass", data_filepath, save_png, show_plt)
 
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    if rect_config:
-        current_time += "-rect-config"
+    if mixed_config:
+        current_time += "-mixed-config"
     else:
         current_time += "-original-config"
+
     data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective, current_time))
     print(data_filepath)
     filename = f"advective_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
@@ -223,13 +226,13 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
                            data_filepath, save_png, show_plt)
 
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    # if rect_config:
-    #     current_time += "-rect-config"
-    # else:
-    #     current_time += "-original-config"
     data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective_over_total, current_time))
     print(data_filepath)
 
+    if mixed_config:
+        current_time += "-mixed-config"
+    else:
+        current_time += "-original-config"
     filename = f"advective_over_total_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
     output_location = os.path.join(data_filepath, filename)
     df = pd.DataFrame(advective_over_total_container)
@@ -238,11 +241,22 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
     plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "adv_over_tot_mass",
                            data_filepath, save_png, show_plt)
 
-    '''
-        The following line above resulted in the following error: 
-        
-        FileNotFoundError: [Errno 2] No such file or directory: 'N:\\QueensCollege2025\\research\\computational_biophysics\\remote-clone\\April-2025\\project_src_package_2025\\data_output\\mass_analysis_results\\advective_over_total\\2025-04-10-07-52-46-rect-config\\adv_over_tot_mass_versus_T_W=1000_V=-10_N=4_16x16_2025-04-10_07-52-46.png'
-    '''
+    current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_total, current_time))
+    print(data_filepath)
+
+    if mixed_config:
+        current_time += "-mixed-config"
+    else:
+        current_time += "-original-config"
+
+    filename = f"total_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
+    output_location = os.path.join(data_filepath, filename)
+    df = pd.DataFrame(total_mass_container)
+    df.to_csv(output_location, header=False, index=False)
+
+    plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "total_mass",
+                           data_filepath, save_png, show_plt)
 
 
 

@@ -26,5 +26,5 @@ mass_analysis_diffusive = Path("data_output/mass_analysis_results/diffusive")
 mass_analysis_advective_over_total = Path("data_output/mass_analysis_results/advective_over_total")
 mass_analysis_total = Path("data_output/mass_analysis_results/total")
 
-rect_logs = Path("data_output/rect-compare/logs")
+rect_logs = Path("data_output/output_logs")
 
