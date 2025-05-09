@@ -144,11 +144,17 @@ def comp_diffusive_snapshots(rings, rays, a, b, v, tube_placements, diffusive_la
     m_f_p_t = 0
     net_current_out = 0
 
-    diff_special_angles = np.empty(rays, dtype=np.int64)
-
+    # *** Mixed configuration block 5/9/25
+    d = Dict.empty(key_type=int64, value_type=int64)
     if mixed_config:
-        diff_special_angles = sup.mod_range_flat_sorted(tube_placements, 1, rays)
-    # To be used in assessing the mass loss rate peak (computing using radial currents)
+        keys = sup.mod_range_flat(tube_placements, 1, rays, False)
+        values = tube_placements
+        d = sup.dict_gen(keys, values)
+        keys = np.sort(keys)
+    # *** Mixed configuration block 5/9/25
+
+    # temporary toggle
+    toggle = False
 
     # **** - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     k = 0
@@ -165,53 +171,49 @@ def comp_diffusive_snapshots(rings, rays, a, b, v, tube_placements, diffusive_la
         m = 0
 
         while m < rings:
-            adv_angle_index = 0
-            diff_angle_index = 0
+
+            # The advective angle index 'aIdx'
+            aIdx = 0
+            # The diffusive angle index 'dIdx'
+            dIdx = 0
             n = 0
-            first_ring_flag = False
 
             while n < rays:
                 if m == rings - 1:
                     diffusive_layer[ 1 ][ m ][ n ] = 0
                 else:
 
-                    # Mixed configuration block 5/2/25
+                    # Mixed configuration block 5/9/25
                     # **********************************************************************************************************************************************
-                    if mixed_config:
-
-                        if m == 0 and n == diff_special_angles[ diff_angle_index ]:
-                            first_ring_flag = True
-                            # print('diff-special-angle', diff_special_angles[diff_angle_index])
+                    if not toggle and mixed_config and m == 0 and n == keys[ dIdx ]:
 
                         diffusive_layer[ 1 ][ m ][ n ] = num.u_density_mixed(diffusive_layer, 0, m, n, d_radius,
-                                                                             d_theta,
-                                                                             d_time,
+                                                                             d_theta, d_time,
                                                                              phi_center, rings, advective_layer,
-                                                                             adv_angle_index, a, b, tube_placements,
-                                                                             first_ring_flag)
-                        if first_ring_flag:
-                            if diff_angle_index < len(diff_special_angles) - 1:
-                                diff_angle_index += 1
-                            first_ring_flag = False
+                                                                             int(d[ keys[ dIdx ] ]), a, b)
+
+                        if dIdx < len(keys):
+                            dIdx += 1
+
                     else:
                         diffusive_layer[ 1 ][ m ][ n ] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta,
                                                                        d_time,
                                                                        phi_center, rings, advective_layer,
-                                                                       adv_angle_index,
+                                                                       aIdx,
                                                                        a, b,
                                                                        tube_placements)
-                    if n == tube_placements[ adv_angle_index ]:
+                    if n == tube_placements[ aIdx ]:
                         if mixed_config:
                             advective_layer[ 1 ][ m ][ n ] = num.u_tube_mixed(advective_layer, diffusive_layer, 0, m, n,
                                                                               a, b,
                                                                               v,
-                                                                              d_time, d_radius, d_theta, rays)
+                                                                              d_time, d_radius, d_theta, toggle)
                         else:
                             advective_layer[ 1 ][ m ][ n ] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b,
                                                                         v,
                                                                         d_time, d_radius, d_theta)
-                        if adv_angle_index < len(tube_placements) - 1:
-                            adv_angle_index += 1
+                        if aIdx < len(tube_placements) - 1:
+                            aIdx += 1
                 # ***************************************************************************************************************************************************************
 
                 if compute_mfpt and m == rings - 2:
@@ -320,10 +322,17 @@ def comp_until_mass_depletion(rings, rays, a, b, v, tube_placements, diffusive_l
 
     phi_center = 1 / (math.pi * (d_radius * d_radius))
 
-    diff_special_angles = np.empty(rays, dtype=np.int64)
-
+    # *** Mixed configuration block 5/9/25
+    d = Dict.empty(key_type=int64, value_type=int64)
     if mixed_config:
-        diff_special_angles = sup.mod_range_flat_sorted(tube_placements, 1, rays)
+        keys = sup.mod_range_flat(tube_placements, 1, rays, False)
+        values = tube_placements
+        d = sup.dict_gen(keys, values)
+        keys = np.sort(keys)
+    # *** Mixed configuration block 5/9/25
+
+    # temporary toggle
+    toggle = False
 
     mass_retained = 0
     # Mean first passage time
@@ -336,53 +345,49 @@ def comp_until_mass_depletion(rings, rays, a, b, v, tube_placements, diffusive_l
         m = 0
 
         while m < rings:
-            adv_angle_index = 0
-            diff_angle_index = 0
+
+            # The advective angle index 'aIdx'
+            aIdx = 0
+            # The diffusive angle index 'dIdx'
+            dIdx = 0
             n = 0
-            first_ring_flag = False
 
             while n < rays:
                 if m == rings - 1:
                     diffusive_layer[ 1 ][ m ][ n ] = 0
                 else:
 
-                    # Mixed configuration block 5/2/25
+                    # Mixed configuration block 5/9/25
                     # **********************************************************************************************************************************************
-                    if mixed_config:
-
-                        if m == 0 and n == diff_special_angles[diff_angle_index]:
-                            first_ring_flag = True
-                            # print('diff-special-angle', diff_special_angles[diff_angle_index])
+                    if not toggle and mixed_config and m == 0 and n == keys[ dIdx ]:
 
                         diffusive_layer[ 1 ][ m ][ n ] = num.u_density_mixed(diffusive_layer, 0, m, n, d_radius,
-                                                                             d_theta,
-                                                                             d_time,
+                                                                             d_theta, d_time,
                                                                              phi_center, rings, advective_layer,
-                                                                             adv_angle_index, a, b, tube_placements,
-                                                                             first_ring_flag)
-                        if first_ring_flag:
-                            if diff_angle_index < len(diff_special_angles) - 1:
-                                diff_angle_index += 1
-                            first_ring_flag = False
+                                                                             int(d[ keys[ dIdx ] ]), a, b)
+
+                        if dIdx < len(keys):
+                            dIdx += 1
+
                     else:
                         diffusive_layer[ 1 ][ m ][ n ] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta,
                                                                        d_time,
                                                                        phi_center, rings, advective_layer,
-                                                                       adv_angle_index,
+                                                                       aIdx,
                                                                        a, b,
                                                                        tube_placements)
-                    if n == tube_placements[ adv_angle_index ]:
+                    if n == tube_placements[ aIdx ]:
                         if mixed_config:
                             advective_layer[ 1 ][ m ][ n ] = num.u_tube_mixed(advective_layer, diffusive_layer, 0, m, n,
                                                                               a, b,
                                                                               v,
-                                                                              d_time, d_radius, d_theta, rays)
+                                                                              d_time, d_radius, d_theta, toggle)
                         else:
                             advective_layer[ 1 ][ m ][ n ] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b,
                                                                         v,
                                                                         d_time, d_radius, d_theta)
-                        if adv_angle_index < len(tube_placements) - 1:
-                            adv_angle_index += 1
+                        if aIdx < len(tube_placements) - 1:
+                            aIdx += 1
                 n += 1
             m += 1
         k += 1
@@ -423,12 +428,21 @@ def comp_diffusive_angle_snapshots(rings, rays, a, b, v, tube_placements, diffus
     phi_center = 1 / (math.pi * (d_radius * d_radius))
 
     mass_retained = 0
-    # initialization of values in approach 3
-    diff_special_angles = np.empty(rays, dtype=np.int64)
+    # initialization of values in approach
 
+    # *** Mixed configuration block 5/9/25
+    d = Dict.empty(key_type=int64, value_type=int64)
     if mixed_config:
-        diff_special_angles = sup.mod_range_flat_sorted(tube_placements, 1, rays)
-    i = 0
+        keys = sup.mod_range_flat(tube_placements, 1, rays, False)
+        values = tube_placements
+        d = sup.dict_gen(keys, values)
+        keys = np.sort(keys)
+    # *** Mixed configuration block 5/9/25
+
+    # temporary toggle
+    toggle = False
+
+    early_flag = False
 
     # **** - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     k = 0
@@ -439,53 +453,49 @@ def comp_diffusive_angle_snapshots(rings, rays, a, b, v, tube_placements, diffus
         m = 0
 
         while m < rings:
-            adv_angle_index = 0
-            diff_angle_index = 0
+
+            # The advective angle index 'aIdx'
+            aIdx = 0
+            # The diffusive angle index 'dIdx'
+            dIdx = 0
             n = 0
-            first_ring_flag = False
 
             while n < rays:
                 if m == rings - 1:
                     diffusive_layer[ 1 ][ m ][ n ] = 0
                 else:
 
-                    # Mixed configuration block 5/2/25
+                    # Mixed configuration block 5/9/25
                     # **********************************************************************************************************************************************
-                    if mixed_config:
-
-                        if m == 0 and n == diff_special_angles[ diff_angle_index ]:
-                            first_ring_flag = True
-                            # print('diff-special-angle', diff_special_angles[diff_angle_index])
+                    if not toggle and mixed_config and m == 0 and n == keys[ dIdx ]:
 
                         diffusive_layer[ 1 ][ m ][ n ] = num.u_density_mixed(diffusive_layer, 0, m, n, d_radius,
-                                                                             d_theta,
-                                                                             d_time,
+                                                                             d_theta, d_time,
                                                                              phi_center, rings, advective_layer,
-                                                                             adv_angle_index, a, b, tube_placements,
-                                                                             first_ring_flag)
-                        if first_ring_flag:
-                            if diff_angle_index < len(diff_special_angles) - 1:
-                                diff_angle_index += 1
-                            first_ring_flag = False
+                                                                             int(d[ keys[ dIdx ] ]), a, b)
+
+                        if dIdx < len(keys):
+                            dIdx += 1
+
                     else:
                         diffusive_layer[ 1 ][ m ][ n ] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta,
                                                                        d_time,
                                                                        phi_center, rings, advective_layer,
-                                                                       adv_angle_index,
+                                                                       aIdx,
                                                                        a, b,
                                                                        tube_placements)
-                    if n == tube_placements[ adv_angle_index ]:
+                    if n == tube_placements[ aIdx ]:
                         if mixed_config:
                             advective_layer[ 1 ][ m ][ n ] = num.u_tube_mixed(advective_layer, diffusive_layer, 0, m, n,
                                                                               a, b,
                                                                               v,
-                                                                              d_time, d_radius, d_theta, rays)
+                                                                              d_time, d_radius, d_theta, toggle)
                         else:
                             advective_layer[ 1 ][ m ][ n ] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b,
                                                                         v,
                                                                         d_time, d_radius, d_theta)
-                        if adv_angle_index < len(tube_placements) - 1:
-                            adv_angle_index += 1
+                        if aIdx < len(tube_placements) - 1:
+                            aIdx += 1
                 # ***************************************************************************************************************************************************************
                 n += 1
             m += 1
@@ -580,10 +590,18 @@ def comp_diffusive_rad_snapshots(rings, rays, a, b, v, tube_placements, diffusiv
     k = 0
     i = 0
     mass_retained = 0
-    diff_special_angles = np.empty(rays, dtype=np.int64)
 
+    # *** Mixed configuration block 5/9/25
+    d = Dict.empty(key_type=int64, value_type=int64)
     if mixed_config:
-        diff_special_angles = sup.mod_range_flat_sorted(tube_placements, 1, rays)
+        keys = sup.mod_range_flat(tube_placements, 1, rays, False)
+        values = tube_placements
+        d = sup.dict_gen(keys, values)
+        keys = np.sort(keys)
+    # *** Mixed configuration block 5/9/25
+
+    # temporary toggle
+    toggle = False
 
     while k == 0 or mass_retained > mass_retention_threshold:
 
@@ -591,53 +609,47 @@ def comp_diffusive_rad_snapshots(rings, rays, a, b, v, tube_placements, diffusiv
         m = 0
 
         while m < rings:
-            adv_angle_index = 0
-            diff_angle_index = 0
+
+            # The advective angle index 'aIdx'
+            aIdx = 0
+            # The diffusive angle index 'dIdx'
+            dIdx = 0
             n = 0
-            first_ring_flag = False
 
             while n < rays:
                 if m == rings - 1:
                     diffusive_layer[ 1 ][ m ][ n ] = 0
                 else:
 
-                    # Mixed configuration block 5/2/25
+                    # Mixed configuration block 5/9/25
                     # **********************************************************************************************************************************************
-                    if mixed_config:
+                    if not toggle and mixed_config and m == 0 and n == keys[dIdx]:
 
-                        if m == 0 and n == diff_special_angles[ diff_angle_index ]:
-                            first_ring_flag = True
-                            # print('diff-special-angle', diff_special_angles[diff_angle_index])
+                        diffusive_layer[1][m][n] = num.u_density_mixed(diffusive_layer, 0, m, n, d_radius, d_theta, d_time,
+                                                                       phi_center, rings, advective_layer, int(d[keys[dIdx]]), a, b)
 
-                        diffusive_layer[ 1 ][ m ][ n ] = num.u_density_mixed(diffusive_layer, 0, m, n, d_radius,
-                                                                             d_theta,
-                                                                             d_time,
-                                                                             phi_center, rings, advective_layer,
-                                                                             adv_angle_index, a, b, tube_placements,
-                                                                             first_ring_flag)
-                        if first_ring_flag:
-                            if diff_angle_index < len(diff_special_angles) - 1:
-                                diff_angle_index += 1
-                            first_ring_flag = False
+                        if dIdx < len(keys):
+                            dIdx += 1
+
                     else:
                         diffusive_layer[ 1 ][ m ][ n ] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta,
                                                                        d_time,
                                                                        phi_center, rings, advective_layer,
-                                                                       adv_angle_index,
+                                                                       aIdx,
                                                                        a, b,
                                                                        tube_placements)
-                    if n == tube_placements[ adv_angle_index ]:
+                    if n == tube_placements[aIdx]:
                         if mixed_config:
                             advective_layer[ 1 ][ m ][ n ] = num.u_tube_mixed(advective_layer, diffusive_layer, 0, m, n,
                                                                               a, b,
                                                                               v,
-                                                                              d_time, d_radius, d_theta, rays)
+                                                                              d_time, d_radius, d_theta, toggle)
                         else:
                             advective_layer[ 1 ][ m ][ n ] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b,
                                                                         v,
                                                                         d_time, d_radius, d_theta)
-                        if adv_angle_index < len(tube_placements) - 1:
-                            adv_angle_index += 1
+                        if aIdx < len(tube_placements) - 1:
+                            aIdx += 1
                 # ***************************************************************************************************************************************************************
                 n += 1
             m += 1
@@ -673,13 +685,6 @@ def comp_diffusive_rad_snapshots(rings, rays, a, b, v, tube_placements, diffusiv
                                   tube_placements, v)
         diffusive_layer[ 0 ] = diffusive_layer[ 1 ]
         advective_layer[ 0 ] = advective_layer[ 1 ]
-
-
-'''
-collect special diffusive angles (along with attributed filaments)
-using the dictionary code
-
-'''
 
 
 @njit(nopython=ENABLE_JIT)
@@ -732,6 +737,7 @@ def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements,
 
         m = 0
 
+        # ***********************
         while m < rings:
 
             # The advective angle index 'aIdx'
@@ -776,6 +782,7 @@ def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements,
                             aIdx += 1
                 n += 1
             m += 1
+        # ***********************
 
         if k_prime < relative_k and k % collection_width == 0:
             diff_mass_container[ k_prime ] = diffusive_mass

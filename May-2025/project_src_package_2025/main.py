@@ -22,7 +22,9 @@ def run_main():
     N_param = [0, 9, 18, 27]
     w_param = 10 ** 3
 
-    launch.collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param=0.1, collection_width=100, mixed_config=True)
+    # launch.collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param=0.1, collection_width=100, mixed_config=True)
+    # launch.collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, 3, time_point_container=[0.1, 0.2])
+    launch.collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, 0, [0.1, 0.2, 0.3], mixed_config=True)
 
 
 if __name__ == "__main__":

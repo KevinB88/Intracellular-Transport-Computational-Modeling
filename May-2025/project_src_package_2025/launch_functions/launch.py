@@ -102,7 +102,7 @@ def collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach,
 
     ant.comp_diffusive_angle_snapshots(rg_param, ry_param, w_param, w_param, v_param, N_param,
                                        diff_layer, adv_layer, phi_v_theta_container, approach, m_segment=m_segment, r=r, d=d,
-                                       mass_retention_threshold=mass_retention_threshold, time_point_container=time_point_container, mixed_config=rect_config)
+                                       mass_retention_threshold=mass_retention_threshold, time_point_container=time_point_container, mixed_config=mixed_config)
 
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 
@@ -157,8 +157,8 @@ def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fi
 
     # collecting raw results for rho-v-rad
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    if rect_config:
-        current_time += "-rect-config"
+    if mixed_config:
+        current_time += "-mixed-config"
     else:
         current_time += "-original-config"
     data_filepath = os.path.abspath(tb.create_directory(fp.radial_dependence_rho, current_time))
