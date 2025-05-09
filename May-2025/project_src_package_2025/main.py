@@ -4,6 +4,7 @@ from datetime import datetime
 from contextlib import redirect_stdout
 
 from launch_functions import launch
+from computational_tools import analysis_tools as an
 from data_visualization import animation_functions as ani, plot_functions as plt
 from auxiliary_tools import unit_conversion_functions as uni
 from system_configuration import file_paths as fp
@@ -21,13 +22,7 @@ def run_main():
     N_param = [0, 9, 18, 27]
     w_param = 10 ** 3
 
-    # container = sup.mod_range_flat_sorted(N_param, 1, ry_param)
-
-    # print(container)
-
-    # [ 35 0 1    8 9 10      17 18 19    26 27 28   ]
-
-    launch.collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param=1, collection_width=100, mixed_config=True, save_png=True, show_plt=True)
+    launch.collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param=0.1, collection_width=100, mixed_config=False)
 
 
 if __name__ == "__main__":

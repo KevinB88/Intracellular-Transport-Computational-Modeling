@@ -47,9 +47,10 @@ def u_density(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, mt_p
     return current_density - component_a - component_b - component_c
 
 
-# Alternate version of the advective layer update (mixed code implementation), implemented 5/2/25
+# This function will be called when the solver iterates onto the appropriate patch (i.e, the patch within the diffusive-to-advective extraction range)
+# microtubules (marked by indices in the tube_placements container) are centered within the diffusive-to-advective range
 @njit(nopython=ENABLE_JIT)
-def u_density_mixed(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, mt_pos, a, b, tube_placements, first_ring_flag):
+def u_density_mixed(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, mt_pos, a, b):
     """
 
     Calculate particle density at a position (m,n) on the diffusive layer at a time-point k.
@@ -71,7 +72,6 @@ def u_density_mixed(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho
     :param a: (float) switch rate onto the diffusive layer (switch-on rate)
     :param b: (float) switch rate onto the advective layer (switch-off rate)
     :param tube_placements: (list(int)) discrete microtubule/filament positions between [0, rays-1]
-    :param N
     :return: particle density at a position (m,n) on the diffusive layer
     """
 
@@ -85,14 +85,8 @@ def u_density_mixed(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho
 
     component_b *= d_time / ((m+1) * d_radius * d_theta)
 
-    if first_ring_flag:
-        # component_c = (a * phi[k][m][n]) * d_time - (3*(b / 3 * rho[k][m][n]) * d_time) / ((m + 1) * d_radius * d_theta)
-        component_c = (a * phi[ k ][ m ][ n ]) * d_time - ((b / 3 * rho[ k ][ m ][ n ]) * d_time) / (
-                    (m + 1) * d_radius * d_theta)
-    elif n == tube_placements[mt_pos]:
-        component_c = (a * phi[k][m][n]) * d_time - (((b * rho[k][m][n]) * d_time) / ((m+1) * d_radius * d_theta))
-    else:
-        component_c = 0
+    # in order to generalize this term, you would divide 'b' in component_c by the extraction range.
+    component_c = a * phi[k][m][mt_pos] * d_time + (b/3) * rho[k][m][mt_pos] * d_time * (1/d_radius) * (1/d_theta)
 
     return current_density - component_a - component_b - component_c
 
@@ -126,9 +120,8 @@ def u_tube(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta):
     return rho[k][m][n] - ((j_r - j_l) / d_radius) * d_time + (a * phi[k][m][n] * (m+1) * d_radius * d_theta) * d_time - b * rho[k][m][n] * d_time
 
 
-# Alternate version of the advective layer update (mixed code implementation), implemented 5/2/25
 @njit(nopython=ENABLE_JIT)
-def u_tube_mixed(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, N):
+def u_tube_mixed(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta):
     """
 
     Calculate particle density at a position (m,n) on the advective layer at a time-point k.
@@ -153,19 +146,19 @@ def u_tube_mixed(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, N):
     else:
         j_r = v * rho[k][m+1][n]
 
-    curr_rho = rho[k][m][n]
-    component_a = ((j_r - j_l) / d_radius) * d_time
-    component_b = phi[k][m][n]
+    current_rho = rho[k][m][n]
+    component_a = (j_r - j_l) * (1/d_radius) * d_time
+
+    N = len(phi[k][m])
 
     if m == 0:
-        component_b += (m+1) * (phi[k][m][(n-1) % N] + phi[k][m][(n+1) % N])
-        # component_b += (phi[ k ][ m ][ (n - 1) % N ] + phi[ k ][ m ][ (n + 1) % N ]) * 0
-
-    component_b *= a * d_radius * d_theta * d_time
+        component_b = (a * d_radius * d_theta * d_time) * (phi[k][m][n] + phi[k][m][(n-1) % N] + phi[k][m][(n+1) % N])
+    else:
+        component_b = a * phi[k][m][n] * (m+1) * d_radius * d_theta * d_time
 
     component_c = b * rho[k][m][n] * d_time
 
-    return curr_rho - component_a + component_b - component_c
+    return current_rho - component_a + component_b - component_c
 
 
 @njit(nopython=ENABLE_JIT)

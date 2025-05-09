@@ -107,8 +107,15 @@ cachegrind.out.*
 *.db
 *.db-journal
 
+
 # Output and temp data
-data_output/
+
+data_output/**/*
+!data_output/
+!data_output/**/
+!data_output/**/.gitkeep
+
+
 
 # IPython
 profile_default/

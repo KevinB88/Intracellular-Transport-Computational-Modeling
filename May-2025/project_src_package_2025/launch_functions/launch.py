@@ -191,11 +191,9 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
 
     diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
 
-    ant.comp_mass_analysis_respect_to_time(rg_param, ry_param, w_param, w_param, v_param, T_param,
-                                           N_param, diff_layer, adv_layer, diffusive_mass_container,
-                                           advective_mass_container, advective_over_total_container, total_mass_container,
-                                           collection_width,
-                                           mass_checkpoint, r, d, mixed_config=mixed_config)
+    ant.comp_mass_analysis_respect_to_time(rg_param, ry_param, w_param, w_param, v_param, T_param, N_param, diff_layer,
+                                           adv_layer, diffusive_mass_container, advective_mass_container, advective_over_total_container,
+                                           total_mass_container, collection_width, mass_checkpoint, r, d, mixed_config=mixed_config)
 
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     if mixed_config:

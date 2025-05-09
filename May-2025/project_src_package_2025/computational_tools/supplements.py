@@ -1,6 +1,9 @@
 from . import np, sys_config, njit
+from numba.typed import Dict
+from numba import int64
 
 ENABLE_JIT = sys_config.ENABLE_NJIT
+
 
 def initialize_layers(rg_param, ry_param):
     diffusive_layer = np.zeros((2, rg_param, ry_param), dtype=np.float64)
@@ -8,12 +11,30 @@ def initialize_layers(rg_param, ry_param):
     return diffusive_layer, advective_layer
 
 
-'''
-Generates a list of angles to be considered when updating the diffusive layer with respect to
-the "mixed-code"
-'''
 @njit(nopython=ENABLE_JIT)
-def mod_range_flat_sorted(centers, radius, N):
+def dict_gen(keys, values):
+    d = Dict.empty(
+        key_type=int64,
+        value_type=int64
+    )
+
+    n = len(keys)
+
+    j = 0
+
+    for i in range(n):
+        d[keys[i]] = values[j]
+        if (i + 1) % 3 == 0:
+            j += 1
+            if j >= len(values):
+                break
+    return d
+
+
+# collect ranges of centers across a modular ring and flatten them into a single container
+@njit(nopython=ENABLE_JIT)
+def mod_range_flat(centers, radius, ring_len, sorted=False):
+    N = ring_len
     total_len = len(centers) * (2 * radius + 1)
     flat_result = np.empty(total_len, dtype=np.int64)
     idx = 0
@@ -25,7 +46,11 @@ def mod_range_flat_sorted(centers, radius, N):
             flat_result[idx] = val
             idx += 1
 
-    return np.sort(flat_result)
+    if sorted:
+        flat_result = np.sort(flat_result)
+
+    return flat_result
+
 
 @njit(nopython=ENABLE_JIT)
 def in_ring(val, center, radius, N):
