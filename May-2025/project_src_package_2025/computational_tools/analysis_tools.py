@@ -722,6 +722,9 @@ def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements,
         keys = np.sort(keys)
     # *** Mixed configuration block 5/9/25
 
+    # temporary toggle
+    toggle = False
+
     # **** - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     k = 0
 
@@ -744,7 +747,7 @@ def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements,
 
                     # Mixed configuration block 5/9/25
                     # **********************************************************************************************************************************************
-                    if mixed_config and m == 0 and n == keys[dIdx]:
+                    if not toggle and mixed_config and m == 0 and n == keys[dIdx]:
 
                         diffusive_layer[1][m][n] = num.u_density_mixed(diffusive_layer, 0, m, n, d_radius, d_theta, d_time,
                                                                        phi_center, rings, advective_layer, int(d[keys[dIdx]]), a, b)
@@ -764,7 +767,7 @@ def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements,
                             advective_layer[ 1 ][ m ][ n ] = num.u_tube_mixed(advective_layer, diffusive_layer, 0, m, n,
                                                                               a, b,
                                                                               v,
-                                                                              d_time, d_radius, d_theta)
+                                                                              d_time, d_radius, d_theta, toggle)
                         else:
                             advective_layer[ 1 ][ m ][ n ] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b,
                                                                         v,

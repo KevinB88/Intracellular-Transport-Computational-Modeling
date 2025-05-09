@@ -121,7 +121,7 @@ def u_tube(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta):
 
 
 @njit(nopython=ENABLE_JIT)
-def u_tube_mixed(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta):
+def u_tube_mixed(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, toggle=False):
     """
 
     Calculate particle density at a position (m,n) on the advective layer at a time-point k.
@@ -151,7 +151,7 @@ def u_tube_mixed(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta):
 
     N = len(phi[k][m])
 
-    if m == 0:
+    if m == 0 and not toggle:
         component_b = (a * d_radius * d_theta * d_time) * (phi[k][m][n] + phi[k][m][(n-1) % N] + phi[k][m][(n+1) % N])
     else:
         component_b = a * phi[k][m][n] * (m+1) * d_radius * d_theta * d_time
