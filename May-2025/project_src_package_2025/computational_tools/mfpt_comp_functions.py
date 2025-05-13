@@ -1,5 +1,8 @@
-from . import njit, math, numerical_tools as num, sys_config
-import time
+from . import njit, math, numerical_tools as num, sys_config, sup, np
+# import time
+
+from numba.typed import Dict, List
+from numba import int64
 
 ENABLE_JIT = sys_config.ENABLE_NJIT
 
@@ -24,8 +27,7 @@ ENABLE_JIT = sys_config.ENABLE_NJIT
 
 @njit(nopython=ENABLE_JIT)
 def comp_mfpt_by_mass_loss(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer,
-                           mass_checkpoint=10**6, r=1.0, d=1.0, mass_retention_threshold=0.01):
-
+                           mass_checkpoint=10 ** 6, r=1.0, d=1.0, mass_retention_threshold=0.01):
     """
     Computation of Mean First Passage Time using a two-time step scheme such that particle density across the diffusive and advective
     layers are updated iteratively between two time points, the current and the next. MFPT is integrated numerically by summing
@@ -67,8 +69,8 @@ def comp_mfpt_by_mass_loss(rings, rays, a, b, v, tube_placements, diffusive_laye
             f'Too many microtubules requested: {len(tube_placements)}, within domain of {rays} angular rays.')
 
     for i in range(len(tube_placements)):
-        if tube_placements[i] < 0 or tube_placements[i] > rays:
-            raise IndexError(f'Angle {tube_placements[i]} is out of bounds, your range should be [0, {rays - 1}]')
+        if tube_placements[ i ] < 0 or tube_placements[ i ] > rays:
+            raise IndexError(f'Angle {tube_placements[ i ]} is out of bounds, your range should be [0, {rays - 1}]')
 
     d_radius = r / rings
     d_theta = ((2 * math.pi) / rays)
@@ -95,14 +97,15 @@ def comp_mfpt_by_mass_loss(rings, rays, a, b, v, tube_placements, diffusive_laye
             while n < rays:
                 # absorbing boundary condition
                 if m == rings - 1:
-                    diffusive_layer[1][m][n] = 0
+                    diffusive_layer[ 1 ][ m ][ n ] = 0
                 else:
-                    diffusive_layer[1][m][n] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta, d_time,
-                                                             phi_center, rings, advective_layer, angle_index,
-                                                             a, b, tube_placements)
-                    if n == tube_placements[angle_index]:
-                        advective_layer[1][m][n] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b, v, d_time,
-                                                              d_radius, d_theta)
+                    diffusive_layer[ 1 ][ m ][ n ] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta, d_time,
+                                                                   phi_center, rings, advective_layer, angle_index,
+                                                                   a, b, tube_placements)
+                    if n == tube_placements[ angle_index ]:
+                        advective_layer[ 1 ][ m ][ n ] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b, v,
+                                                                    d_time,
+                                                                    d_radius, d_theta)
                         if angle_index < len(tube_placements) - 1:
                             angle_index = angle_index + 1
 
@@ -117,7 +120,8 @@ def comp_mfpt_by_mass_loss(rings, rays, a, b, v, tube_placements, diffusive_laye
         k += 1
         # Implemented to provide occasional status checks/metrics during MFPT calculation
         if k > 0 and k % mass_checkpoint == 0:
-            print("Velocity (V)= ", v, "Time step: ", k, "Simulation time: ", k * d_time, "Current mass: ", mass_retained,
+            print("Velocity (V)= ", v, "Time step: ", k, "Simulation time: ", k * d_time, "Current mass: ",
+                  mass_retained,
                   "a=", a, "b=", b)
 
         mass_retained = num.calc_mass(diffusive_layer, advective_layer, 0, d_radius, d_theta, phi_center,
@@ -126,8 +130,8 @@ def comp_mfpt_by_mass_loss(rings, rays, a, b, v, tube_placements, diffusive_laye
                                   advective_layer, tube_placements, v)
 
         # transfer updated density info from the next step to the current
-        diffusive_layer[0] = diffusive_layer[1]
-        advective_layer[0] = advective_layer[1]
+        diffusive_layer[ 0 ] = diffusive_layer[ 1 ]
+        advective_layer[ 0 ] = advective_layer[ 1 ]
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # calculate the sim-time
     duration = k * d_time
@@ -137,9 +141,9 @@ def comp_mfpt_by_mass_loss(rings, rays, a, b, v, tube_placements, diffusive_laye
 
 # using the rectangular modification for DL update
 @njit(nopython=ENABLE_JIT)
-def comp_mfpt_by_mass_loss_rect(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer, rect_dist,
-                                mass_checkpoint=10**6, r=1.0, d=1.0, mass_retention_threshold=0.01):
-
+def comp_mfpt_by_mass_loss_rect(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer,
+                                mass_checkpoint=10 ** 6, r=1.0, d=1.0, mass_retention_threshold=0.01,
+                                mixed_config=False, mx_cn_rrange=1):
     """
     Computation of Mean First Passage Time using a two-time step scheme such that particle density across the diffusive and advective
     layers are updated iteratively between two time points, the current and the next. MFPT is integrated numerically by summing
@@ -171,6 +175,8 @@ def comp_mfpt_by_mass_loss_rect(rings, rays, a, b, v, tube_placements, diffusive
     :param r: (float) cellular radius, by default r=1.
     :param d: (float) diffusion constant, by default d=1
     :param mass_retention_threshold: (float) the amount of mass remaining in the domain until termination
+    :param mixed_config (bool)
+    :param mx_cn_rrange (int) The range of the rings enabled for the mixed configuration
     :return: a tuple, [(float), (float)]. The first being Mean First Passage Time (m_f_p_t), and the second being Simulation Time (duration)
     """
 
@@ -182,8 +188,8 @@ def comp_mfpt_by_mass_loss_rect(rings, rays, a, b, v, tube_placements, diffusive
             f'Too many microtubules requested: {len(tube_placements)}, within domain of {rays} angular rays.')
 
     for i in range(len(tube_placements)):
-        if tube_placements[i] < 0 or tube_placements[i] > rays:
-            raise IndexError(f'Angle {tube_placements[i]} is out of bounds, your range should be [0, {rays - 1}]')
+        if tube_placements[ i ] < 0 or tube_placements[ i ] > rays:
+            raise IndexError(f'Angle {tube_placements[ i ]} is out of bounds, your range should be [0, {rays - 1}]')
 
     d_radius = r / rings
     d_theta = ((2 * math.pi) / rays)
@@ -194,34 +200,72 @@ def comp_mfpt_by_mass_loss_rect(rings, rays, a, b, v, tube_placements, diffusive
     mass_retained = 0
     m_f_p_t = 0
 
-    # main bulk of the numerical solution for calculating MFPT
+    d_list = List()
+    key_list = List()
+
+    if mixed_config:
+
+        for _ in range(mx_cn_rrange):
+            keys = sup.mod_range_flat(tube_placements, 1, rays, False)
+            # d = Dict.empty(key_type=int64, value_type=int64)
+            d = sup.dict_gen(keys, tube_placements)
+            d_list.append(d)
+            keys = np.sort(keys)
+            key_list.append(keys)
+
     # **** - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     k = 0
 
     while k == 0 or mass_retained > mass_retention_threshold:
 
         net_current_out = 0
-
         m = 0
 
         while m < rings:
-            angle_index = 0
-            n = 0
-            while n < rays:
-                # absorbing boundary condition
-                if m == rings - 1:
-                    diffusive_layer[1][m][n] = 0
-                else:
-                    j_max = math.ceil(rect_dist / ((m+1) * d_radius * d_theta) - 0.5)
-                    diffusive_layer[1][m][n] = num.u_density_rec(diffusive_layer, 0, m, n, d_radius, d_theta, d_time,
-                                                                 phi_center, rings, advective_layer,
-                                                                 a, b, tube_placements, rays, j_max)
-                    if n == tube_placements[angle_index]:
-                        advective_layer[1][m][n] = num.u_tube_rec(advective_layer, diffusive_layer, 0, m,
-                                                                  n, a, b, v, d_time, d_radius, d_theta, j_max, rays)
-                        if angle_index < len(tube_placements) - 1:
-                            angle_index = angle_index + 1
 
+            # The advective angle index 'aIdx'
+            aIdx = 0
+            # The diffusive angle index 'dIdx'
+            dIdx = 0
+            n = 0
+
+            while n < rays:
+                if m == rings - 1:
+                    diffusive_layer[ 1 ][ m ][ n ] = 0
+                else:
+
+                    # Mixed configuration block 5/9/25
+                    # **********************************************************************************************************************************************
+                    if mixed_config and m < mx_cn_rrange and n == key_list[m][dIdx]:
+
+                        diffusive_layer[ 1 ][ m ][ n] = num.u_density_mixed(diffusive_layer, 0, m, n, d_radius,
+                                                                             d_theta, d_time,
+                                                                             phi_center, rings, advective_layer,
+                                                                             int(d_list[ m ][ key_list[ m ][ dIdx ] ]),
+                                                                             a, b)
+
+                        if dIdx < len(key_list[ m ]):
+                            dIdx += 1
+
+                    else:
+                        diffusive_layer[ 1 ][ m ][ n ] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta,
+                                                                       d_time,
+                                                                       phi_center, rings, advective_layer,
+                                                                       aIdx,
+                                                                       a, b,
+                                                                       tube_placements)
+                    if n == tube_placements[ aIdx ]:
+                        if mixed_config:
+                            advective_layer[ 1 ][ m ][ n ] = num.u_tube_mixed(advective_layer, diffusive_layer, 0, m, n,
+                                                                              a, b,
+                                                                              v,
+                                                                              d_time, d_radius, d_theta, mx_cn_rrange)
+                        else:
+                            advective_layer[ 1 ][ m ][ n ] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b,
+                                                                        v,
+                                                                        d_time, d_radius, d_theta)
+                        if aIdx < len(tube_placements) - 1:
+                            aIdx += 1
                 if m == rings - 2:
                     # incrementally calculating the amount of mass exiting from the final ring at the current time-step
                     net_current_out += num.j_r_r(diffusive_layer, 0, m, n, d_radius, 0) * rings * d_radius * d_theta
@@ -233,7 +277,8 @@ def comp_mfpt_by_mass_loss_rect(rings, rays, a, b, v, tube_placements, diffusive
         k += 1
         # Implemented to provide occasional status checks/metrics during MFPT calculation
         if k > 0 and k % mass_checkpoint == 0:
-            print("Velocity (V)= ", v, "Time step: ", k, "Simulation time: ", k * d_time, "Current mass: ", mass_retained,
+            print("Velocity (V)= ", v, "Time step: ", k, "Simulation time: ", k * d_time, "Current mass: ",
+                  mass_retained,
                   "a=", a, "b=", b)
 
         mass_retained = num.calc_mass(diffusive_layer, advective_layer, 0, d_radius, d_theta, phi_center,
@@ -242,8 +287,8 @@ def comp_mfpt_by_mass_loss_rect(rings, rays, a, b, v, tube_placements, diffusive
                                   advective_layer, tube_placements, v)
 
         # transfer updated density info from the next step to the current
-        diffusive_layer[0] = diffusive_layer[1]
-        advective_layer[0] = advective_layer[1]
+        diffusive_layer[ 0 ] = diffusive_layer[ 1 ]
+        advective_layer[ 0 ] = advective_layer[ 1 ]
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # calculate the sim-time
     duration = k * d_time

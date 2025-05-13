@@ -1,5 +1,5 @@
 from . import math, njit, numerical_tools as num, sys_config, supplements as sup, np
-from numba.typed import Dict
+from numba.typed import Dict, List
 from numba import int64
 
 ENABLE_JIT = sys_config.ENABLE_NJIT
@@ -149,6 +149,15 @@ def comp_diffusive_snapshots(rings, rays, a, b, v, tube_placements, diffusive_la
     if mixed_config:
         keys = sup.mod_range_flat(tube_placements, 1, rays, False)
         values = tube_placements
+
+        '''
+            Generalize the dictionary so that it functions for each ring (build the infrastructure)
+            
+            Goal: 
+                The mod ranges across each ring will vary relative to the calculation of j-max (also dependent on rect-dist)
+            
+        '''
+
         d = sup.dict_gen(keys, values)
         keys = np.sort(keys)
     # *** Mixed configuration block 5/9/25
@@ -651,6 +660,8 @@ def comp_diffusive_rad_snapshots(rings, rays, a, b, v, tube_placements, diffusiv
                         if aIdx < len(tube_placements) - 1:
                             aIdx += 1
                 # ***************************************************************************************************************************************************************
+
+
                 n += 1
             m += 1
         k += 1
@@ -691,7 +702,7 @@ def comp_diffusive_rad_snapshots(rings, rays, a, b, v, tube_placements, diffusiv
 def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements, diffusive_layer, advective_layer,
                                        diff_mass_container, adv_mass_container, adv_over_total_container,
                                        total_mass_container,
-                                       collection_width, mass_checkpoint=10 ** 6, r=1.0, d=1.0, mixed_config=False):
+                                       collection_width, mass_checkpoint=10 ** 6, r=1.0, d=1.0, mixed_config=False, mx_cn_rrange=1):
 
     if ENABLE_JIT:
         print("Running optimized version.")
@@ -718,17 +729,20 @@ def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements,
     relative_k = math.floor(K / collection_width)
     k_prime = 0
 
-    # *** Mixed configuration block 5/9/25
-    d = Dict.empty(key_type=int64, value_type=int64)
-    if mixed_config:
-        keys = sup.mod_range_flat(tube_placements, 1, rays, False)
-        values = tube_placements
-        d = sup.dict_gen(keys, values)
-        keys = np.sort(keys)
-    # *** Mixed configuration block 5/9/25
+    d_list = List()
+    key_list = List()
 
-    # temporary toggle
-    toggle = False
+    # *** Mixed configuration block 5/9/25
+    if mixed_config:
+
+        for _ in range(mx_cn_rrange):
+            keys = sup.mod_range_flat(tube_placements, 1, rays, False)
+            # d = Dict.empty(key_type=int64, value_type=int64)
+            d = sup.dict_gen(keys, tube_placements)
+            d_list.append(d)
+            keys = np.sort(keys)
+            key_list.append(keys)
+    # *** Mixed configuration block 5/9/25
 
     # **** - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     k = 0
@@ -753,12 +767,12 @@ def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements,
 
                     # Mixed configuration block 5/9/25
                     # **********************************************************************************************************************************************
-                    if not toggle and mixed_config and m == 0 and n == keys[dIdx]:
+                    if mixed_config and m < mx_cn_rrange and n == key_list[m][dIdx]:
 
                         diffusive_layer[1][m][n] = num.u_density_mixed(diffusive_layer, 0, m, n, d_radius, d_theta, d_time,
-                                                                       phi_center, rings, advective_layer, int(d[keys[dIdx]]), a, b)
+                                                                       phi_center, rings, advective_layer, int(d_list[ m ][ key_list[ m ][ dIdx ] ]), a, b)
 
-                        if dIdx < len(keys):
+                        if dIdx < len(key_list[m]):
                             dIdx += 1
 
                     else:
@@ -773,7 +787,7 @@ def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements,
                             advective_layer[ 1 ][ m ][ n ] = num.u_tube_mixed(advective_layer, diffusive_layer, 0, m, n,
                                                                               a, b,
                                                                               v,
-                                                                              d_time, d_radius, d_theta, toggle)
+                                                                              d_time, d_radius, d_theta, mx_cn_rrange)
                         else:
                             advective_layer[ 1 ][ m ][ n ] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b,
                                                                         v,

@@ -8,8 +8,7 @@ from computational_tools import analysis_tools as an
 from data_visualization import animation_functions as ani, plot_functions as plt
 from auxiliary_tools import unit_conversion_functions as uni
 from system_configuration import file_paths as fp
-from computational_tools import analysis_tools as ant, numerical_tools as num, supplements as sup, \
-    mfpt_comp_functions as mf
+from computational_tools import analysis_tools as ant, numerical_tools as num, supplements as sup
 import time as clk
 import math
 import numpy as np
@@ -22,9 +21,14 @@ def run_main():
     N_param = [0, 9, 18, 27]
     w_param = 10 ** 3
 
-    # launch.collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param=0.1, collection_width=100, mixed_config=True)
+    mfpt, time = launch.solve_mfpt(rg_param, ry_param, N_param, v_param, w_param, mixed_config=True, return_duration=True, mx_cn_rrange=3)
+    print(mfpt, time)
+    # mfpt, time = launch.solve_mfpt(rg_param, ry_param, N_param, v_param, w_param, mixed_config=False, return_duration=True)
+    # print(mfpt, time)
+    launch.collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param=1, collection_width=10,
+                                 mixed_config=True, save_png=True, show_plt=True, mx_cn_rrange=3)
     # launch.collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, 3, time_point_container=[0.1, 0.2])
-    launch.collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, 0, [0.1, 0.2, 0.3], mixed_config=True)
+    # launch.collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, 0, [0.1, 0.2, 0.3], mixed_config=True)
 
 
 if __name__ == "__main__":

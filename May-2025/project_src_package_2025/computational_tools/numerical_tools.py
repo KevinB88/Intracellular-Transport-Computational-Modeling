@@ -86,7 +86,7 @@ def u_density_mixed(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho
     component_b *= d_time / ((m+1) * d_radius * d_theta)
 
     # in order to generalize this term, you would divide 'b' in component_c by the extraction range.
-    component_c = a * phi[k][m][mt_pos] * d_time + (b/3) * rho[k][m][mt_pos] * d_time * (1/d_radius) * (1/d_theta)
+    component_c = a * phi[k][m][mt_pos] * d_time - (b/3) * rho[k][m][mt_pos] * d_time * (1/d_radius) * (1/d_theta) * 1/(m+1)
 
     return current_density - component_a - component_b - component_c
 
@@ -121,7 +121,7 @@ def u_tube(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta):
 
 
 @njit(nopython=ENABLE_JIT)
-def u_tube_mixed(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, toggle=False):
+def u_tube_mixed(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, mx_cn_rrange):
     """
 
     Calculate particle density at a position (m,n) on the advective layer at a time-point k.
@@ -137,6 +137,7 @@ def u_tube_mixed(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, toggle=F
     :param d_time: (float) delta-time
     :param d_radius: (float) delta-radius
     :param d_theta: (float) delta-theta
+    :param mx_cn_rrange (float)
     :return: particle density at position (m,n) on the advective layer.
     """
 
@@ -151,8 +152,8 @@ def u_tube_mixed(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, toggle=F
 
     N = len(phi[k][m])
 
-    if m == 0 and not toggle:
-        component_b = (a * d_radius * d_theta * d_time) * (phi[k][m][n] + phi[k][m][(n-1) % N] + phi[k][m][(n+1) % N])
+    if m < mx_cn_rrange:
+        component_b = (m+1) * (a * d_radius * d_theta * d_time) * (phi[k][m][n] + phi[k][m][(n-1) % N] + phi[k][m][(n+1) % N])
     else:
         component_b = a * phi[k][m][n] * (m+1) * d_radius * d_theta * d_time
 

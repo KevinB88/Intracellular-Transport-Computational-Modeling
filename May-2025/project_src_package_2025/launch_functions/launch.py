@@ -4,7 +4,6 @@ from . import mfpt_comp, sup, datetime, tb, fp, mp, config, partial, ant, np, os
 import time as clk
 import math
 
-
 '''
     ind_param:  independent parameter: the value that remains static across all MFPT solutions
     dep_param:  dependent parameter(s) : value that is being tested for MFPT dependence (contained within a set)
@@ -36,11 +35,10 @@ def solve_mfpt_multi_process(N_param, rg_param, ry_param, dep_type, ind_param, d
 
 
 def parallel_process_mfpt(N_list, rg_param, ry_param, dep_type, ind_type, dep_param, ind_list, cores=None):
-
     dep_type = dep_type.upper()
     if dep_type != "W" and dep_type != "V":
-        raise(f"{dep_type} is an undefined dependent parameter. The current available "
-              f"dependent parameters are Switch Rate (W), and Velocity (V)")
+        raise (f"{dep_type} is an undefined dependent parameter. The current available "
+               f"dependent parameters are Switch Rate (W), and Velocity (V)")
 
     print(f"{ind_type} list: {ind_list}")
 
@@ -54,18 +52,19 @@ def parallel_process_mfpt(N_list, rg_param, ry_param, dep_type, ind_type, dep_pa
 
     for n in range(len(N_list)):
         with mp.Pool(processes=core_count) as pool:
-            mfpt_results = pool.map(partial(solve_mfpt_multi_process, N_list[n],
+            mfpt_results = pool.map(partial(solve_mfpt_multi_process, N_list[ n ],
                                             rg_param, ry_param, dep_type, dep_param), ind_list)
         print(mfpt_results)
         tb.produce_csv_from_xy(mfpt_results, dep_type, "MFPT", data_filepath,
-                               f'MFPT_Results_N={len(N_list[n])}_{ind_type}={dep_param}_')
+                               f'MFPT_Results_N={len(N_list[ n ])}_{ind_type}={dep_param}_')
 
 
-def solve_mfpt(rg_param, ry_param, N_param, v_param, w_param, r=1.0, d=1.0, mass_checkpoint=10**6,
-               mass_threshold=0.01, return_duration=False):
+def solve_mfpt(rg_param, ry_param, N_param, v_param, w_param, r=1.0, d=1.0, mass_checkpoint=10 ** 6,
+               mass_threshold=0.01, return_duration=False, mixed_config=False, mx_cn_rrange=1):
     diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
-    mfpt, duration = mfpt_comp.comp_mfpt_by_mass_loss(rg_param, ry_param, w_param, w_param, v_param,
-                                                      N_param, diff_layer, adv_layer, mass_checkpoint, r, d, mass_threshold)
+    mfpt, duration = mfpt_comp.comp_mfpt_by_mass_loss_rect(rg_param, ry_param, w_param, w_param, v_param,
+                                                           N_param, diff_layer, adv_layer, mass_checkpoint, r, d,
+                                                           mass_threshold, mixed_config, mx_cn_rrange)
 
     if return_duration:
         return mfpt, duration
@@ -76,13 +75,15 @@ def solve_mfpt(rg_param, ry_param, N_param, v_param, w_param, r=1.0, d=1.0, mass
 def output_time_until_mass_depletion(rg_param, ry_param, N_param, v_param, w_param, mass_threshold=0.01):
     diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
     duration = ant.comp_until_mass_depletion(rg_param, ry_param, w_param, w_param,
-                                             v_param, N_param, diff_layer, adv_layer, mass_retention_threshold=mass_threshold)
+                                             v_param, N_param, diff_layer, adv_layer,
+                                             mass_retention_threshold=mass_threshold)
     return duration
 
 
 # produces a csv containing Phi versus Theta data relative to the specified approach
 def collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach, m_segment=0.5,
-                        r=1, d=1, mass_retention_threshold=0.01, time_point_container=None, verbose=False, save_png=True, show_plt=False,
+                        r=1, d=1, mass_retention_threshold=0.01, time_point_container=None, verbose=False,
+                        save_png=True, show_plt=False,
                         mixed_config=False):
     if approach == 1:
         rows = 2
@@ -101,8 +102,10 @@ def collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach,
     diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
 
     ant.comp_diffusive_angle_snapshots(rg_param, ry_param, w_param, w_param, v_param, N_param,
-                                       diff_layer, adv_layer, phi_v_theta_container, approach, m_segment=m_segment, r=r, d=d,
-                                       mass_retention_threshold=mass_retention_threshold, time_point_container=time_point_container, mixed_config=mixed_config)
+                                       diff_layer, adv_layer, phi_v_theta_container, approach, m_segment=m_segment, r=r,
+                                       d=d,
+                                       mass_retention_threshold=mass_retention_threshold,
+                                       time_point_container=time_point_container, mixed_config=mixed_config)
 
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 
@@ -124,13 +127,15 @@ def collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach,
 
     clk.sleep(2)
 
-    plt.plot_phi_v_theta(output_location, v_param, w_param, N_param, approach, m_segment, data_filepath, save_png=save_png, show_plt=show_plt, time_point_container=time_point_container)
+    plt.plot_phi_v_theta(output_location, v_param, w_param, N_param, approach, m_segment, data_filepath,
+                         save_png=save_png, show_plt=show_plt, time_point_container=time_point_container)
 
 
-def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fixed_angle, time_point_container, r=1.0, d=1.0,
-                               mass_retention_threshold=0.01, mass_checkpoint=10**6, save_png=True, show_plt=False, mixed_config=False):
-
-    phi_rad_container = np.zeros((3, rg_param+1), dtype=np.float64)
+def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fixed_angle, time_point_container, r=1.0,
+                               d=1.0,
+                               mass_retention_threshold=0.01, mass_checkpoint=10 ** 6, save_png=True, show_plt=False,
+                               mixed_config=False):
+    phi_rad_container = np.zeros((3, rg_param + 1), dtype=np.float64)
     rho_rad_container = np.zeros((3, rg_param), dtype=np.float64)
     diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
 
@@ -173,8 +178,7 @@ def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fi
 
 
 def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param, collection_width, r=1.0, d=1.0,
-                          mass_checkpoint=10**6, save_png=False, show_plt=True, mixed_config=False):
-
+                          mass_checkpoint=10 ** 6, save_png=False, show_plt=True, mixed_config=False, mx_cn_rrange=1):
     d_radius = r / rg_param
     d_theta = ((2 * math.pi) / ry_param)
     d_time = (0.1 * min(d_radius * d_radius, d_theta * d_theta * d_radius * d_radius)) / (2 * d)
@@ -184,16 +188,18 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
     print("Number of time-steps: ", K)
     print("Number of data-points to collect: ", relative_k)
 
-    diffusive_mass_container = np.zeros([relative_k], dtype=np.float64)
-    advective_mass_container = np.zeros([relative_k], dtype=np.float64)
-    advective_over_total_container = np.zeros([relative_k], dtype=np.float64)
-    total_mass_container = np.zeros([relative_k], dtype=np.float64)
+    diffusive_mass_container = np.zeros([ relative_k ], dtype=np.float64)
+    advective_mass_container = np.zeros([ relative_k ], dtype=np.float64)
+    advective_over_total_container = np.zeros([ relative_k ], dtype=np.float64)
+    total_mass_container = np.zeros([ relative_k ], dtype=np.float64)
 
     diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
 
     ant.comp_mass_analysis_respect_to_time(rg_param, ry_param, w_param, w_param, v_param, T_param, N_param, diff_layer,
-                                           adv_layer, diffusive_mass_container, advective_mass_container, advective_over_total_container,
-                                           total_mass_container, collection_width, mass_checkpoint, r, d, mixed_config=mixed_config)
+                                           adv_layer, diffusive_mass_container, advective_mass_container,
+                                           advective_over_total_container,
+                                           total_mass_container, collection_width, mass_checkpoint, r, d,
+                                           mixed_config=mixed_config, mx_cn_rrange=mx_cn_rrange)
 
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     if mixed_config:
@@ -206,7 +212,8 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
     output_location = os.path.join(data_filepath, filename)
     df = pd.DataFrame(diffusive_mass_container)
     df.to_csv(output_location, header=False, index=False)
-    plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "diffusive_mass", data_filepath, save_png, show_plt)
+    plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "diffusive_mass",
+                           data_filepath, save_png, show_plt)
 
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     if mixed_config:
@@ -255,8 +262,3 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
 
     plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "total_mass",
                            data_filepath, save_png, show_plt)
-
-
-
-
-
