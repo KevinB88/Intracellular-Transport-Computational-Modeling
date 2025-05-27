@@ -85,8 +85,10 @@ def u_density_mixed(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho
 
     component_b *= d_time / ((m+1) * d_radius * d_theta)
 
-    # in order to generalize this term, you would divide 'b' in component_c by the extraction range.
-    component_c = a * phi[k][m][mt_pos] * d_time - (b/3) * rho[k][m][mt_pos] * d_time * (1/d_radius) * (1/d_theta) * 1/(m+1)
+    component_c = a * phi[k][m][n] * d_time - (b * rho[k][m][mt_pos] * d_time) / (3 * (m+1) * d_radius * d_theta)
+    # component_c was previously computed as follows:
+    # component_c = a * phi[k][m][mt_pos] * d_time - (b * rho[k][m][mt_pos] * d_time) / (3 * (m+1) * d_radius * d_theta)
+    # This ^ resulted in the mass conservation error as we noticed before in prior meetings
 
     return current_density - component_a - component_b - component_c
 
@@ -147,19 +149,18 @@ def u_tube_mixed(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, mx_cn_rr
     else:
         j_r = v * rho[k][m+1][n]
 
-    current_rho = rho[k][m][n]
-    component_a = (j_r - j_l) * (1/d_radius) * d_time
+    component_a = (rho[k][m][n] - ((j_r - j_l) * (1/d_radius)) * d_time)
 
     N = len(phi[k][m])
 
     if m < mx_cn_rrange:
-        component_b = (m+1) * (a * d_radius * d_theta * d_time) * (phi[k][m][n] + phi[k][m][(n-1) % N] + phi[k][m][(n+1) % N])
+        component_b = a * (m+1) * (d_radius * d_theta * d_time) * (phi[k][m][n] + phi[k][m][(n-1) % N] + phi[k][m][(n+1) % N])
     else:
         component_b = a * phi[k][m][n] * (m+1) * d_radius * d_theta * d_time
 
     component_c = b * rho[k][m][n] * d_time
 
-    return current_rho - component_a + component_b - component_c
+    return component_a + component_b - component_c
 
 
 @njit(nopython=ENABLE_JIT)

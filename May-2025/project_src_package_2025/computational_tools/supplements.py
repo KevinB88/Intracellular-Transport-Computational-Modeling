@@ -12,7 +12,7 @@ def initialize_layers(rg_param, ry_param):
 
 
 @njit(nopython=ENABLE_JIT)
-def dict_gen(keys, values):
+def dict_gen(keys, values, radius=3):
     d = Dict.empty(
         key_type=int64,
         value_type=int64
@@ -24,7 +24,7 @@ def dict_gen(keys, values):
 
     for i in range(n):
         d[keys[i]] = values[j]
-        if (i + 1) % 3 == 0:
+        if (i + 1) % radius == 0:
             j += 1
             if j >= len(values):
                 break
