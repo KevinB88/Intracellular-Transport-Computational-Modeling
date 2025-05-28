@@ -1,6 +1,7 @@
 from . import np, sys_config, njit
 from numba.typed import Dict
 from numba import int64
+import math
 
 ENABLE_JIT = sys_config.ENABLE_NJIT
 
@@ -12,22 +13,49 @@ def initialize_layers(rg_param, ry_param):
 
 
 @njit(nopython=ENABLE_JIT)
-def dict_gen(keys, values, radius=3):
+def solve_d_rect(r, rings, rays, j_max, m):
+    d_radius = r / rings
+    d_theta = ((2 * math.pi) / rays)
+    return (j_max + 0.5) * (m + 1) * d_radius * d_theta
+
+
+# Decides the max j_max to prevent overlap in the domain\
+@njit(nopython=ENABLE_JIT)
+def j_max_bef_overlap(N, Microtubules):
+    min_range = N
+    r = len(Microtubules)
+    for n in range(r):
+        # current microtubule
+        c_n = Microtubules[n]
+        # right-most microtubule
+        r_n = Microtubules[(n+1) % r]
+        # left-most microtubule
+        l_n = Microtubules[(n-1) % r]
+        min_range = min(min_range, abs(c_n - r_n - 1) % N)
+        min_range = min(min_range, abs(c_n - l_n - 1) % N)
+    # print(min_range)
+    return min_range // 2
+    # note if this function returns 0, there exists at least one overlapping region
+
+
+@njit(nopython=ENABLE_JIT)
+def dict_gen(keys, values):
     d = Dict.empty(
         key_type=int64,
         value_type=int64
     )
+    m = len(keys)
+    n = len(values)
 
-    n = len(keys)
+    assert m % n == 0
 
+    group_size = m // n
     j = 0
 
-    for i in range(n):
+    for i in range(m):
         d[keys[i]] = values[j]
-        if (i + 1) % radius == 0:
+        if (i + 1) % group_size == 0:
             j += 1
-            if j >= len(values):
-                break
     return d
 
 

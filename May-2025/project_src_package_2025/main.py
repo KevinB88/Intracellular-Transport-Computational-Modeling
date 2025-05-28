@@ -26,7 +26,13 @@ def run_main():
     # mfpt, time = launch.solve_mfpt(rg_param, ry_param, N_param, v_param, w_param, mixed_config=False, return_duration=True)
     # print(mfpt, time)
     launch.collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param=1, collection_width=5,
-                                 mixed_config=True, save_png=True, show_plt=False, mx_cn_rrange=36)
+                                 mixed_config=True, save_png=True, show_plt=False, mx_cn_rrange=36, init_j_max=-1)
+    # diff, adv = sup.initialize_layers(rg_param, ry_param)
+
+    # print(sup.j_max_bef_overlap(ry_param, N_param))
+
+    # ant.comp_until_mass_depletion(rg_param, ry_param, w_param, w_param, v_param, N_param, diff, adv, mixed_config=True, mx_cn_rrange=5, init_j_max=-1)
+
     # launch.collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, 3, time_point_container=[0.1, 0.2])
     # launch.collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, 0, [0.1, 0.2, 0.3], mixed_config=True)
 

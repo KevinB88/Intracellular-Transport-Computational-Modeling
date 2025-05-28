@@ -178,7 +178,7 @@ def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fi
 
 
 def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param, collection_width, r=1.0, d=1.0,
-                          mass_checkpoint=10 ** 6, save_png=False, show_plt=True, mixed_config=False, mx_cn_rrange=1):
+                          mass_checkpoint=10 ** 6, save_png=False, show_plt=True, mixed_config=False, mx_cn_rrange=1, init_j_max=1):
     d_radius = r / rg_param
     d_theta = ((2 * math.pi) / ry_param)
     d_time = (0.1 * min(d_radius * d_radius, d_theta * d_theta * d_radius * d_radius)) / (2 * d)
@@ -199,7 +199,7 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
                                            adv_layer, diffusive_mass_container, advective_mass_container,
                                            advective_over_total_container,
                                            total_mass_container, collection_width, mass_checkpoint, r, d,
-                                           mixed_config=mixed_config, mx_cn_rrange=mx_cn_rrange)
+                                           mixed_config=mixed_config, mx_cn_rrange=mx_cn_rrange, init_j_max=init_j_max)
 
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     if mixed_config:
