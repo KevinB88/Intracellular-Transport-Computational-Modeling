@@ -130,11 +130,7 @@ def u_density_rect(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho,
     component_b *= d_time / ((m+1) * d_radius * d_theta)
 
     # at the moment there is no overlap between the regions
-    '''
-        We will use the sum for the regions that are overlapping,
-        specifically, we will determine which microtubules to consider in the overlapping region. 
-        As of now there will be no overlaps 
-    '''
+
     component_c = a * phi[k][m][n] * d_time - (b * rho[k][m][mt_pos] * d_time) / ((1 + 2 * j_max) * (m+1) * d_radius * d_theta)
     # component_c was previously computed as follows:
     # component_c = a * phi[k][m][mt_pos] * d_time - (b * rho[k][m][mt_pos] * d_time) / (3 * (m+1) * d_radius * d_theta)
