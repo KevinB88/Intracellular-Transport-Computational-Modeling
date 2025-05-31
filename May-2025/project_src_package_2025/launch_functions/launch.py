@@ -178,7 +178,7 @@ def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fi
 
 
 def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param, collection_width, r=1.0, d=1.0,
-                          mass_checkpoint=10 ** 6, save_png=False, show_plt=True, mixed_config=False, mx_cn_rrange=1, init_j_max=1):
+                          mass_checkpoint=10 ** 6, save_png=False, show_plt=True, mixed_config=False, d_tube=-1, collect_MFPT=False, collect_plots=True):
     d_radius = r / rg_param
     d_theta = ((2 * math.pi) / ry_param)
     d_time = (0.1 * min(d_radius * d_radius, d_theta * d_theta * d_radius * d_radius)) / (2 * d)
@@ -195,70 +195,82 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
 
     diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
 
+    # This conditional block is temporary while overlap of extraction regions are avoided
+    if mixed_config:
+        # This variable denotes the maximum j_max value with respect to microtubule configuration on the first ring
+        j_max_lim = sup.j_max_bef_overlap(ry_param, N_param)
+        max_d_tube = sup.solve_d_rect(r, ry_param, rg_param, j_max_lim, 0)
+
+        while d_tube <= 0 or d_tube > max_d_tube:
+            d_tube = float(input(f"Select d_tube within the range: (0, {max_d_tube}] to avoid DL extraction region overlap: "))
+
     ant.comp_mass_analysis_respect_to_time(rg_param, ry_param, w_param, w_param, v_param, T_param, N_param, diff_layer,
                                            adv_layer, diffusive_mass_container, advective_mass_container,
                                            advective_over_total_container,
                                            total_mass_container, collection_width, mass_checkpoint, r, d,
-                                           mixed_config=mixed_config, mx_cn_rrange=mx_cn_rrange, init_j_max=init_j_max)
+                                           mixed_config=mixed_config, d_tube=d_tube, collect_MFPT=collect_MFPT)
 
-    current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    if mixed_config:
-        current_time += "-mixed-config"
+    if collect_plots:
+        current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        if mixed_config:
+            current_time += "-mixed-config"
+        else:
+            current_time += "-original-config"
+        data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_diffusive, current_time))
+        print(data_filepath)
+        filename = f"diffusive_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
+        output_location = os.path.join(data_filepath, filename)
+        df = pd.DataFrame(diffusive_mass_container)
+        df.to_csv(output_location, header=False, index=False)
+        plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "diffusive_mass",
+                               data_filepath, save_png, show_plt)
+
+        current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        if mixed_config:
+            current_time += "-mixed-config"
+        else:
+            current_time += "-original-config"
+
+        data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective, current_time))
+        print(data_filepath)
+        filename = f"advective_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
+        output_location = os.path.join(data_filepath, filename)
+        df = pd.DataFrame(advective_mass_container)
+        df.to_csv(output_location, header=False, index=False)
+        plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "advective_mass",
+                               data_filepath, save_png, show_plt)
+
+        current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective_over_total, current_time))
+        print(data_filepath)
+
+        if mixed_config:
+            current_time += "-mixed-config"
+        else:
+            current_time += "-original-config"
+        filename = f"advective_over_total_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
+        output_location = os.path.join(data_filepath, filename)
+        df = pd.DataFrame(advective_over_total_container)
+        df.to_csv(output_location, header=False, index=False)
+
+        plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "adv_over_tot_mass",
+                               data_filepath, save_png, show_plt)
+
+        current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_total, current_time))
+        print(data_filepath)
+
+        if mixed_config:
+            current_time += "-mixed-config"
+        else:
+            current_time += "-original-config"
+
+        filename = f"total_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
+        output_location = os.path.join(data_filepath, filename)
+        df = pd.DataFrame(total_mass_container)
+        df.to_csv(output_location, header=False, index=False)
+
+        plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "total_mass",
+                               data_filepath, save_png, show_plt)
     else:
-        current_time += "-original-config"
-    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_diffusive, current_time))
-    print(data_filepath)
-    filename = f"diffusive_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
-    output_location = os.path.join(data_filepath, filename)
-    df = pd.DataFrame(diffusive_mass_container)
-    df.to_csv(output_location, header=False, index=False)
-    plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "diffusive_mass",
-                           data_filepath, save_png, show_plt)
-
-    current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    if mixed_config:
-        current_time += "-mixed-config"
-    else:
-        current_time += "-original-config"
-
-    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective, current_time))
-    print(data_filepath)
-    filename = f"advective_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
-    output_location = os.path.join(data_filepath, filename)
-    df = pd.DataFrame(advective_mass_container)
-    df.to_csv(output_location, header=False, index=False)
-    plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "advective_mass",
-                           data_filepath, save_png, show_plt)
-
-    current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective_over_total, current_time))
-    print(data_filepath)
-
-    if mixed_config:
-        current_time += "-mixed-config"
-    else:
-        current_time += "-original-config"
-    filename = f"advective_over_total_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
-    output_location = os.path.join(data_filepath, filename)
-    df = pd.DataFrame(advective_over_total_container)
-    df.to_csv(output_location, header=False, index=False)
-
-    plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "adv_over_tot_mass",
-                           data_filepath, save_png, show_plt)
-
-    current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_total, current_time))
-    print(data_filepath)
-
-    if mixed_config:
-        current_time += "-mixed-config"
-    else:
-        current_time += "-original-config"
-
-    filename = f"total_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
-    output_location = os.path.join(data_filepath, filename)
-    df = pd.DataFrame(total_mass_container)
-    df.to_csv(output_location, header=False, index=False)
-
-    plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "total_mass",
-                           data_filepath, save_png, show_plt)
+        print('Plots have not been printed because "collect_plots" has been set to False.')

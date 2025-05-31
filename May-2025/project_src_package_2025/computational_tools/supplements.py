@@ -1,5 +1,6 @@
 from . import np, sys_config, njit
-from numba.typed import Dict, ListType, List
+# from numba.typed import Dict, ListType, List
+from numba.typed import Dict
 # from numba.types import ListType
 from numba import int64
 import math
@@ -62,26 +63,26 @@ def dict_gen(keys, values):
 
 # An experimental function which accounts for overlapping extraction regions by allowing for a key to have multiple values
 # Each key now maps to a list of values
-@njit(nopython=ENABLE_JIT)
-def dict_gen_overlap(keys, values, radius):
-    d = Dict.empty(
-        key_type=int64,
-        value_type=ListType(int64)
-    )
-
-    n_keys = len(keys)
-    n_values = len(values)
-
-    for vi in range(n_values):
-        start = vi * (radius // 2)
-        end = min(start + radius, n_keys)
-
-        for i in range(start, end):
-            key = keys[i]
-            if key not in d:
-                d[key] = List.empty_list(int64)
-            d[key].append(values[vi])
-    return d
+# @njit(nopython=ENABLE_JIT)
+# def dict_gen_overlap(keys, values, radius):
+#     d = Dict.empty(
+#         key_type=int64,
+#         value_type=ListType(int64)
+#     )
+#
+#     n_keys = len(keys)
+#     n_values = len(values)
+#
+#     for vi in range(n_values):
+#         start = vi * (radius // 2)
+#         end = min(start + radius, n_keys)
+#
+#         for i in range(start, end):
+#             key = keys[i]
+#             if key not in d:
+#                 d[key] = List.empty_list(int64)
+#             d[key].append(values[vi])
+#     return d
 
 
 # collect ranges of centers across a modular ring and flatten them into a single container

@@ -570,6 +570,172 @@ def comp_diffusive_angle_snapshots(rings, rays, a, b, v, tube_placements, diffus
 
 
 @njit(nopython=ENABLE_JIT)
+def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements, diffusive_layer, advective_layer,
+                                       diff_mass_container, adv_mass_container, adv_over_total_container,
+                                       total_mass_container,
+                                       collection_width, mass_checkpoint=10 ** 6, r=1.0, d=1.0, mixed_config=False,
+                                       d_tube=-1, collect_MFPT=False):
+    if ENABLE_JIT:
+        print("Running optimized version.")
+
+    if len(tube_placements) > rays:
+        raise IndexError(
+            f'Too many microtubules requested: {len(tube_placements)}, within domain of {rays} angular rays.')
+
+    for i in range(len(tube_placements)):
+        if tube_placements[i] < 0 or tube_placements[i] > rays:
+            raise IndexError(f'Angle {tube_placements[i]} is out of bounds, your range should be [0, {rays - 1}]')
+
+    d_radius = r / rings
+    d_theta = ((2 * math.pi) / rays)
+    d_time = (0.1 * min(d_radius * d_radius, d_theta * d_theta * d_radius * d_radius)) / (2 * d)
+    K = math.floor(T / d_time)
+
+    phi_center = 1 / (math.pi * (d_radius * d_radius))
+
+    total_domain_mass = 1
+    diffusive_mass = total_domain_mass
+    advective_mass = 0
+
+    relative_k = math.floor(K / collection_width)
+    k_prime = 0
+
+    d_list = List()
+
+    # *** Mixed configuration block 5/28/25
+    if mixed_config:
+
+        # j_max = sup.j_max_bef_overlap(rays, tube_placements)
+        #
+        # if init_j_max < 0 or init_j_max > j_max:
+        #     d_rect = sup.solve_d_rect(r, rings, rays, j_max, 0)
+        #     print('Initial j-max: ', j_max)
+        # else:
+        #     d_rect = sup.solve_d_rect(r, rings, rays, init_j_max, 0)
+        #     print('Initial j-max: ', init_j_max)
+        # print(d_rect)
+
+        for m in range(rings):
+            j_max = math.floor((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
+            # print(j_max)
+            if j_max < 0:
+                j_max = 0
+            keys = sup.mod_range_flat(tube_placements, j_max, rays, False)
+            d = sup.dict_gen(keys, tube_placements)
+            d_list.append(d)
+    # *** Mixed configuration block 5/28/25
+
+    MFPT = 0
+    net_current_out = 0
+
+    # **** - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    k = 0
+
+    while k < K:
+
+        if collect_MFPT:
+            net_current_out = 0
+        m = 0
+
+        # **************************************************************************************************
+        while m < rings:
+
+            # The advective angle index 'aIdx'
+            aIdx = 0
+            n = 0
+
+            while n < rays:
+                if m == rings - 1:
+                    diffusive_layer[1][m][n] = 0
+                else:
+
+                    # Mixed configuration block 5/28/25
+                    # **********************************************************************************************************************************************
+                    if mixed_config and n in d_list[m]:
+
+                        j_max = math.floor((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
+                        if j_max < 0:
+                            j_max = 0
+
+                        diffusive_layer[1][m][n] = num.u_density_rect(diffusive_layer, 0, m, n, d_radius, d_theta,
+                                                                      d_time,
+                                                                      phi_center, rings, advective_layer,
+                                                                      int(d_list[m][n]), a, b, j_max)
+
+                        # diffusive_layer[1][m][n] = num.u_density_mixed(diffusive_layer, 0, m, n, d_radius, d_theta,
+                        #                                                d_time,
+                        #                                                phi_center, rings, advective_layer,
+                        #                                                int(d_list[m][n]), a, b)
+
+                    else:
+                        diffusive_layer[1][m][n] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta,
+                                                                 d_time,
+                                                                 phi_center, rings, advective_layer,
+                                                                 aIdx,
+                                                                 a, b,
+                                                                 tube_placements)
+                    if n == tube_placements[aIdx]: # potentially replace this line with a dictionary
+                        if mixed_config:
+                            j_max = math.floor((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
+                            if j_max < 0:
+                                j_max = 0
+
+                            advective_layer[1][m][n] = num.u_tube_rect(advective_layer, diffusive_layer, 0, m, n,
+                                                                       a, b,
+                                                                       v,
+                                                                       d_time, d_radius, d_theta, rings, j_max)
+
+                            # advective_layer[1][m][n] = num.u_tube_mixed(advective_layer, diffusive_layer, 0, m, n,
+                            #                                             a, b,
+                            #                                             v,
+                            #                                             d_time, d_radius, d_theta, mx_cn_rrange)
+                        else:
+                            advective_layer[1][m][n] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b,
+                                                                  v,
+                                                                  d_time, d_radius, d_theta)
+                        if aIdx < len(tube_placements) - 1:
+                            aIdx += 1
+                if collect_MFPT:
+                    if m == rings - 2:
+                        net_current_out += num.j_r_r(diffusive_layer, 0, m, n, d_radius, 0) * rings * d_radius * d_theta
+
+                n += 1
+            m += 1
+        # *****************************************************************************************************************
+
+        if collect_MFPT:
+            MFPT += net_current_out * k * d_time * d_time
+
+        if k_prime < relative_k and k % collection_width == 0:
+            diff_mass_container[k_prime] = diffusive_mass
+            adv_mass_container[k_prime] = advective_mass
+            total_mass_container[k_prime] = diffusive_mass + advective_mass
+            adv_over_total_container[k_prime] = advective_mass / total_mass_container[k_prime]
+            k_prime += 1
+
+        k += 1
+        # Implemented to provide occasional status checks/metrics during MFPT calculation
+        if k > 0 and k % mass_checkpoint == 0:
+            print("Velocity (V)= ", v, "Time step: ", k, "Simulation time: ", k * d_time, "Current mass: ",
+                  diffusive_mass,
+                  "a=", a, "b=", b)
+
+        diffusive_mass = num.calc_mass_diff(diffusive_layer, 0, d_radius, d_theta, phi_center, rings, rays)
+        advective_mass = num.calc_mass_adv(advective_layer, 0, d_radius, d_theta, rings, tube_placements)
+        # total_domain_mass = diffusive_mass + advective_mass
+
+        phi_center = num.u_center(diffusive_layer, 0, d_radius, d_theta, d_time, phi_center,
+                                  advective_layer, tube_placements, v)
+
+        # transfer updated density info from the next step to the current
+        diffusive_layer[0] = diffusive_layer[1]
+        advective_layer[0] = advective_layer[1]
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    if collect_MFPT:
+        print('MFPT: ', MFPT)
+
+
+@njit(nopython=ENABLE_JIT)
 # Collecting density across the diffusive and advective layers with respect to radius
 # The 'fixed_angle' parameter must be provided as an integer denoting the angle/positioning on the discretized domain
 def comp_diffusive_rad_snapshots(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer,
@@ -688,158 +854,3 @@ def comp_diffusive_rad_snapshots(rings, rays, a, b, v, tube_placements, diffusiv
                                   tube_placements, v)
         diffusive_layer[0] = diffusive_layer[1]
         advective_layer[0] = advective_layer[1]
-
-
-@njit(nopython=ENABLE_JIT)
-def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements, diffusive_layer, advective_layer,
-                                       diff_mass_container, adv_mass_container, adv_over_total_container,
-                                       total_mass_container,
-                                       collection_width, mass_checkpoint=10 ** 6, r=1.0, d=1.0, mixed_config=False,
-                                       mx_cn_rrange=1, init_j_max=1):
-    if ENABLE_JIT:
-        print("Running optimized version.")
-
-    if len(tube_placements) > rays:
-        raise IndexError(
-            f'Too many microtubules requested: {len(tube_placements)}, within domain of {rays} angular rays.')
-
-    for i in range(len(tube_placements)):
-        if tube_placements[i] < 0 or tube_placements[i] > rays:
-            raise IndexError(f'Angle {tube_placements[i]} is out of bounds, your range should be [0, {rays - 1}]')
-
-    d_radius = r / rings
-    d_theta = ((2 * math.pi) / rays)
-    d_time = (0.1 * min(d_radius * d_radius, d_theta * d_theta * d_radius * d_radius)) / (2 * d)
-    K = math.floor(T / d_time)
-
-    phi_center = 1 / (math.pi * (d_radius * d_radius))
-
-    total_domain_mass = 1
-    diffusive_mass = total_domain_mass
-    advective_mass = 0
-
-    relative_k = math.floor(K / collection_width)
-    k_prime = 0
-
-    d_list = List()
-    d_rect = 0
-
-    # *** Mixed configuration block 5/28/25
-    if mixed_config:
-
-        j_max = sup.j_max_bef_overlap(rays, tube_placements)
-
-        if init_j_max < 0 or init_j_max > j_max:
-            d_rect = sup.solve_d_rect(r, rings, rays, j_max, 0)
-            print('Initial j-max: ', j_max)
-        else:
-            d_rect = sup.solve_d_rect(r, rings, rays, init_j_max, 0)
-            print('Initial j-max: ', init_j_max)
-
-        # print(d_rect)
-
-        for m in range(mx_cn_rrange):
-            j_max = math.floor((d_rect / ((m + 1) * d_radius * d_theta)) - 0.5)
-            # print(j_max)
-            if j_max < 0:
-                j_max = 0
-            keys = sup.mod_range_flat(tube_placements, j_max, rays, False)
-            d = sup.dict_gen(keys, tube_placements)
-            d_list.append(d)
-    # *** Mixed configuration block 5/28/25
-
-    # **** - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    k = 0
-
-    while k < K:
-
-        m = 0
-
-        # **************************************************************************************************
-        while m < rings:
-
-            # The advective angle index 'aIdx'
-            aIdx = 0
-            n = 0
-
-            while n < rays:
-                if m == rings - 1:
-                    diffusive_layer[1][m][n] = 0
-                else:
-
-                    # Mixed configuration block 5/28/25
-                    # **********************************************************************************************************************************************
-                    if mixed_config and m < mx_cn_rrange and n in d_list[m]:
-
-                        j_max = math.floor((d_rect / ((m + 1) * d_radius * d_theta)) - 0.5)
-                        if j_max < 0:
-                            j_max = 0
-
-                        diffusive_layer[1][m][n] = num.u_density_rect(diffusive_layer, 0, m, n, d_radius, d_theta,
-                                                                      d_time,
-                                                                      phi_center, rings, advective_layer,
-                                                                      int(d_list[m][n]), a, b, j_max)
-
-                        # diffusive_layer[1][m][n] = num.u_density_mixed(diffusive_layer, 0, m, n, d_radius, d_theta,
-                        #                                                d_time,
-                        #                                                phi_center, rings, advective_layer,
-                        #                                                int(d_list[m][n]), a, b)
-
-                    else:
-                        diffusive_layer[1][m][n] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta,
-                                                                 d_time,
-                                                                 phi_center, rings, advective_layer,
-                                                                 aIdx,
-                                                                 a, b,
-                                                                 tube_placements)
-                    if n == tube_placements[aIdx]: # potentially replace this line with a dictionary
-                        if mixed_config:
-                            j_max = math.floor((d_rect / ((m + 1) * d_radius * d_theta)) - 0.5)
-                            if j_max < 0:
-                                j_max = 0
-
-                            advective_layer[1][m][n] = num.u_tube_rect(advective_layer, diffusive_layer, 0, m, n,
-                                                                       a, b,
-                                                                       v,
-                                                                       d_time, d_radius, d_theta, mx_cn_rrange, j_max)
-
-                            # advective_layer[1][m][n] = num.u_tube_mixed(advective_layer, diffusive_layer, 0, m, n,
-                            #                                             a, b,
-                            #                                             v,
-                            #                                             d_time, d_radius, d_theta, mx_cn_rrange)
-                        else:
-                            advective_layer[1][m][n] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b,
-                                                                  v,
-                                                                  d_time, d_radius, d_theta)
-                        if aIdx < len(tube_placements) - 1:
-                            aIdx += 1
-
-                n += 1
-            m += 1
-        # *****************************************************************************************************************
-
-        if k_prime < relative_k and k % collection_width == 0:
-            diff_mass_container[k_prime] = diffusive_mass
-            adv_mass_container[k_prime] = advective_mass
-            total_mass_container[k_prime] = diffusive_mass + advective_mass
-            adv_over_total_container[k_prime] = advective_mass / total_mass_container[k_prime]
-            k_prime += 1
-
-        k += 1
-        # Implemented to provide occasional status checks/metrics during MFPT calculation
-        if k > 0 and k % mass_checkpoint == 0:
-            print("Velocity (V)= ", v, "Time step: ", k, "Simulation time: ", k * d_time, "Current mass: ",
-                  diffusive_mass,
-                  "a=", a, "b=", b)
-
-        diffusive_mass = num.calc_mass_diff(diffusive_layer, 0, d_radius, d_theta, phi_center, rings, rays)
-        advective_mass = num.calc_mass_adv(advective_layer, 0, d_radius, d_theta, rings, tube_placements)
-        # total_domain_mass = diffusive_mass + advective_mass
-
-        phi_center = num.u_center(diffusive_layer, 0, d_radius, d_theta, d_time, phi_center,
-                                  advective_layer, tube_placements, v)
-
-        # transfer updated density info from the next step to the current
-        diffusive_layer[0] = diffusive_layer[1]
-        advective_layer[0] = advective_layer[1]
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

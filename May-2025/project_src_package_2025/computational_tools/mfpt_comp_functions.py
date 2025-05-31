@@ -140,10 +140,11 @@ def comp_mfpt_by_mass_loss(rings, rays, a, b, v, tube_placements, diffusive_laye
 
 
 # using the rectangular modification for DL update
+
 @njit(nopython=ENABLE_JIT)
 def comp_mfpt_by_mass_loss_rect(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer,
                                 mass_checkpoint=10 ** 6, r=1.0, d=1.0, mass_retention_threshold=0.01,
-                                mixed_config=False, mx_cn_rrange=1):
+                                mixed_config=False, d_tube=-1):
     """
     Computation of Mean First Passage Time using a two-time step scheme such that particle density across the diffusive and advective
     layers are updated iteratively between two time points, the current and the next. MFPT is integrated numerically by summing
@@ -201,17 +202,18 @@ def comp_mfpt_by_mass_loss_rect(rings, rays, a, b, v, tube_placements, diffusive
     m_f_p_t = 0
 
     d_list = List()
-    key_list = List()
 
+    # *** Mixed configuration block 5/28/25
     if mixed_config:
 
-        for _ in range(mx_cn_rrange):
-            keys = sup.mod_range_flat(tube_placements, 1, rays, False)
-            # d = Dict.empty(key_type=int64, value_type=int64)
+        for m in range(rings):
+            j_max = math.floor((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
+            if j_max < 0:
+                j_max = 0
+            keys = sup.mod_range_flat(tube_placements, j_max, rays, False)
             d = sup.dict_gen(keys, tube_placements)
             d_list.append(d)
-            keys = np.sort(keys)
-            key_list.append(keys)
+    # *** Mixed configuration block 5/28/25
 
     # **** - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     k = 0
@@ -221,56 +223,71 @@ def comp_mfpt_by_mass_loss_rect(rings, rays, a, b, v, tube_placements, diffusive
         net_current_out = 0
         m = 0
 
+        # **************************************************************************************************
         while m < rings:
 
             # The advective angle index 'aIdx'
             aIdx = 0
-            # The diffusive angle index 'dIdx'
-            dIdx = 0
             n = 0
 
             while n < rays:
                 if m == rings - 1:
-                    diffusive_layer[ 1 ][ m ][ n ] = 0
+                    diffusive_layer[1][m][n] = 0
                 else:
 
-                    # Mixed configuration block 5/9/25
+                    # Mixed configuration block 5/28/25
                     # **********************************************************************************************************************************************
-                    if mixed_config and m < mx_cn_rrange and n == key_list[m][dIdx]:
+                    if mixed_config and n in d_list[m]:
 
-                        diffusive_layer[ 1 ][ m ][ n] = num.u_density_mixed(diffusive_layer, 0, m, n, d_radius,
-                                                                             d_theta, d_time,
-                                                                             phi_center, rings, advective_layer,
-                                                                             int(d_list[ m ][ key_list[ m ][ dIdx ] ]),
-                                                                             a, b)
+                        j_max = math.floor((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
+                        if j_max < 0:
+                            j_max = 0
 
-                        if dIdx < len(key_list[ m ]):
-                            dIdx += 1
+                        diffusive_layer[1][m][n] = num.u_density_rect(diffusive_layer, 0, m, n, d_radius, d_theta,
+                                                                      d_time,
+                                                                      phi_center, rings, advective_layer,
+                                                                      int(d_list[m][n]), a, b, j_max)
+
+                        # diffusive_layer[1][m][n] = num.u_density_mixed(diffusive_layer, 0, m, n, d_radius, d_theta,
+                        #                                                d_time,
+                        #                                                phi_center, rings, advective_layer,
+                        #                                                int(d_list[m][n]), a, b)
 
                     else:
-                        diffusive_layer[ 1 ][ m ][ n ] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta,
-                                                                       d_time,
-                                                                       phi_center, rings, advective_layer,
-                                                                       aIdx,
-                                                                       a, b,
-                                                                       tube_placements)
-                    if n == tube_placements[ aIdx ]:
+                        diffusive_layer[1][m][n] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta,
+                                                                 d_time,
+                                                                 phi_center, rings, advective_layer,
+                                                                 aIdx,
+                                                                 a, b,
+                                                                 tube_placements)
+                    if n == tube_placements[aIdx]:  # potentially replace this line with a dictionary
                         if mixed_config:
-                            advective_layer[ 1 ][ m ][ n ] = num.u_tube_mixed(advective_layer, diffusive_layer, 0, m, n,
-                                                                              a, b,
-                                                                              v,
-                                                                              d_time, d_radius, d_theta, mx_cn_rrange)
+                            j_max = math.floor((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
+                            if j_max < 0:
+                                j_max = 0
+
+                            advective_layer[1][m][n] = num.u_tube_rect(advective_layer, diffusive_layer, 0, m, n,
+                                                                       a, b,
+                                                                       v,
+                                                                       d_time, d_radius, d_theta, rings, j_max)
+
+                            # advective_layer[1][m][n] = num.u_tube_mixed(advective_layer, diffusive_layer, 0, m, n,
+                            #                                             a, b,
+                            #                                             v,
+                            #                                             d_time, d_radius, d_theta, mx_cn_rrange)
                         else:
-                            advective_layer[ 1 ][ m ][ n ] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b,
-                                                                        v,
-                                                                        d_time, d_radius, d_theta)
+                            advective_layer[1][m][n] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b,
+                                                                  v,
+                                                                  d_time, d_radius, d_theta)
                         if aIdx < len(tube_placements) - 1:
                             aIdx += 1
-                if m == rings - 2:
-                    # incrementally calculating the amount of mass exiting from the final ring at the current time-step
-                    net_current_out += num.j_r_r(diffusive_layer, 0, m, n, d_radius, 0) * rings * d_radius * d_theta
+
+                    if m == rings - 2:
+                        # incrementally calculating the amount of mass exiting from the final ring at the current time-step
+                        net_current_out += num.j_r_r(diffusive_layer, 0, m, n, d_radius, 0) * rings * d_radius * d_theta
                 n += 1
             m += 1
+        # *****************************************************************************************************************
 
         m_f_p_t += net_current_out * k * d_time * d_time
 
