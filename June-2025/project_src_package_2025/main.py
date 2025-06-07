@@ -16,28 +16,45 @@ import numpy as np
 
 def run_main():
 
-    rg_param = 48
-    ry_param = 48
-    v_param = -1
-    N_param = [0, 12, 24, 36]
+    MFPT_16 = launch.solve_mfpt_(16, 16, [0, 4, 8, 12], -1, 10**-4, 5, d_tube=0.01)
+    print("MFPT(10^-4) 16x16: ", MFPT_16)
+    MFPT_16 = launch.solve_mfpt_(16, 16, [0, 4, 8, 12], -1, 1, 5, d_tube=0.01)
+    print("MFPT(1) 16x16: ", MFPT_16)
+    MFPT_16 = launch.solve_mfpt_(16, 16, [0, 4, 8, 12], -1, 100, 5, d_tube=0.01)
+    print("MFPT(100) 16x16: ", MFPT_16)
 
-    MFPT = launch.solve_mfpt_(rg_param, ry_param, N_param, v_param, 10**-4, T_param=10, d_tube=0.01)
-    print("MFPT(10^-4)", MFPT)
-    # MFPT(10^-4) 0.24576000129024328
-    MFPT = launch.solve_mfpt_(rg_param, ry_param, N_param, v_param, 10**0, T_param=10, d_tube=0.01)
-    print("MFPT(10^0)", MFPT)
-    MFPT = launch.solve_mfpt_(rg_param, ry_param, N_param, v_param, 10**2, T_param=10, d_tube=0.01)
-    print("MFPT(10^2)", MFPT)
+    launch.heatmap_production(16, 16, 10**-4, -1, [0, 4, 8, 12], time_point_container=[0.25, 0.5, 0.75],
+                              rect_config=True, d_tube=0.01, show_plot=False)
 
-    launch.collect_mass_analysis(rg_param, ry_param, N_param, v_param, 10**0, T_param=10, collection_width=5,
-                                 mixed_config=True, save_png=True, show_plt=False, collect_MFPT=True,
-                                 collect_plots=True, d_tube=0.01)
+    MFPT_32 = launch.solve_mfpt_(32, 32, [0, 8, 16, 24], -1, 10**-4, 5, d_tube=0.01)
+    print("MFPT(10^-4) 32x32: ", MFPT_32)
+    MFPT_32 = launch.solve_mfpt_(32, 32, [0, 8, 16, 24], -1, 1, 5, d_tube=0.01)
+    print("MFPT(1) 32x32: ", MFPT_32)
+    MFPT_32 = launch.solve_mfpt_(32, 32, [0, 8, 16, 24], -1, 100, 5, d_tube=0.01)
+    print("MFPT(100) 32x32: ", MFPT_32)
 
-    print()
+    launch.heatmap_production(32, 32, 10 ** -4, -1, [0, 8, 16, 24], time_point_container=[0.25, 0.5, 0.75],
+                              rect_config=True, d_tube=0.01, show_plot=False)
 
-    launch.collect_mass_analysis(rg_param, ry_param, N_param, v_param, 10**2, T_param=10, collection_width=5,
-                                 mixed_config=True, save_png=True, show_plt=False, collect_MFPT=True,
-                                 collect_plots=True, d_tube=0.01)
+    MFPT_48 = launch.solve_mfpt_(48, 48, [0, 12, 24, 36], -1, 10**-4, 5, d_tube=0.01)
+    print("MFPT(10^-4) 48x48: ", MFPT_48)
+    MFPT_48 = launch.solve_mfpt_(48, 48, [0, 12, 24, 36], -1, 1, 5, d_tube=0.01)
+    print("MFPT(1) 48x48: ", MFPT_48)
+    MFPT_48 = launch.solve_mfpt_(48, 48, [0, 12, 24, 36], -1, 100, 5, d_tube=0.01)
+    print("MFPT(100) 48x48: ", MFPT_48)
+
+    launch.heatmap_production(48, 48, 10 ** -4, -1, [0, 12, 24, 36], time_point_container=[0.25, 0.5, 0.75],
+                              rect_config=True, d_tube=0.01, show_plot=False)
+
+    MFPT_64 = launch.solve_mfpt_(64, 64, [0, 16, 32, 48], -1, 10**-4, 5, d_tube=0.01)
+    print("MFPT(10^-4) 64x64: ", MFPT_64)
+    MFPT_64 = launch.solve_mfpt_(64, 64, [0, 16, 32, 48], -1, 1, 5, d_tube=0.01)
+    print("MFPT(1) 64x64: ", MFPT_64)
+    MFPT_64 = launch.solve_mfpt_(64, 64, [0, 16, 32, 48], -1, 100, 5, d_tube=0.01)
+    print("MFPT(100) 64x64: ", MFPT_64)
+
+    launch.heatmap_production(64, 64, 10 ** -4, -1, [0, 16, 32, 48], time_point_container=[0.25, 0.5, 0.75],
+                              rect_config=True, d_tube=0.01, show_plot=False)
 
 
 if __name__ == "__main__":

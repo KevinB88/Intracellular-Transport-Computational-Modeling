@@ -145,25 +145,13 @@ def comp_diffusive_snapshots(rings, rays, a, b, v, tube_placements, diffusive_la
     d_list = List()
 
     # *** Mixed configuration block 5/28/25
-    if rect_config:
-
-        for m in range(rings):
-            j_max = math.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
-    early_flag = False
-
-    d_list = List()
-
-    # *** Mixed configuration block 5/28/25
 
     if rect_config:
-        if d_tube <= 0:
+        if d_tube < 0:
             d_tube = sup.solve_d_rect(1, rings, rays, sup.j_max_bef_overlap(rays, tube_placements), 0)
 
         for m in range(rings):
-            j_max = math.floor((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
-            # print(j_max)
-            if j_max < 0:
-                j_max = 0
+            j_max = math.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
             keys = sup.mod_range_flat(tube_placements, j_max, rays, False)
             d = sup.dict_gen(keys, tube_placements)
             d_list.append(d)
@@ -269,27 +257,27 @@ def comp_diffusive_snapshots(rings, rays, a, b, v, tube_placements, diffusive_la
         elif approach == 2:
 
             # determine if k * d_time is in (time_point - epsilon, time_point + epsilon)
-            if i < len(time_point_container) and (time_point_container[i] * 0.95) < k * d_time < (time_point_container[i] * 1.05):
-                domain_center_container[i] = phi_center
-                domain_snapshot_container[i] = diffusive_layer[0]
-                if compute_mfpt:
-                    mfpt_container[i] = MFPT
-                i = i + 1
-            else:
-                return
-
-            # if i < len(time_point_container):
-            #     time_point = time_point_container[i]
-            #     epsilon = time_point * 0.05
-            # else:
-            #     return
-            #
-            # if time_point - epsilon < k * d_time < time_point + epsilon:
+            # if i < len(time_point_container) and (time_point_container[i] * 0.95) < k * d_time < (time_point_container[i] * 1.05):
             #     domain_center_container[i] = phi_center
             #     domain_snapshot_container[i] = diffusive_layer[0]
             #     if compute_mfpt:
             #         mfpt_container[i] = MFPT
             #     i = i + 1
+            # else:
+            #     return
+
+            if i < len(time_point_container):
+                time_point = time_point_container[i]
+                epsilon = time_point * 0.05
+            else:
+                return
+
+            if time_point - epsilon < k * d_time < time_point + epsilon:
+                domain_center_container[i] = phi_center
+                domain_snapshot_container[i] = diffusive_layer[0]
+                if compute_mfpt:
+                    mfpt_container[i] = MFPT
+                i = i + 1
 
         else:
             raise ValueError(f'{approach} is not a valid argument, use either collection approach "1" or "2" (must be an int)')

@@ -12,12 +12,12 @@ def plot_general(file_list, N_labels, xlab, ylab, title, filepath, xlog=False, y
         df = pd.read_csv(file_list[i])
 
         if continuous:
-            plt.plot(df[xlab], df[ylab], label=f'{len(N_labels[i])}')
+            plt.plot(df[xlab], df[ylab], label=f'N={len(N_labels[i])}')
         else:
             if dynamic_pts:
-                plt.scatter(df[xlab], df[ylab], label=f'{len(N_labels[i])}', linewidth=(10 / (i + 1)))
+                plt.scatter(df[xlab], df[ylab], label=f'N={len(N_labels[i])}', linewidth=(10 / (i + 1)))
             else:
-                plt.scatter(df[xlab], df[ylab], label=f'{len(N_labels[i])}', linewidth=(10 / (i + 1)))
+                plt.scatter(df[xlab], df[ylab], label=f'N={len(N_labels[i])}', linewidth=(10 / (i + 1)))
         if xlog:
             plt.xscale('log')
 

@@ -1,8 +1,7 @@
 import pandas as pd
 
-from . import plt, os, np, datetime, cm, BoundaryNorm, Normalize, fp, ant, sup, tb
+from . import plt, os, np, datetime, cm, BoundaryNorm, Normalize, fp, ant, sup, tb, exc
 from matplotlib.patches import Polygon
-from extraction_colors import extraction_overlay_colors
 import time
 import math
 
@@ -10,7 +9,8 @@ import math
 def generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2,
                       filepath=fp.heatmap_output, time_point_container=None, save_png=True, show_plot=False,
                       compute_mfpt=False, verbose=False, output_csv=False, rect_config=False,
-                      d_tube=-1, r=1.0, d=1.0, mass_retention_threshold=0.01, mass_checkpoint=10 ** 6, color_scheme='viridis',
+                      d_tube=-1, r=1.0, d=1.0, mass_retention_threshold=0.01, mass_checkpoint=10 ** 6,
+                      color_scheme='viridis',
                       toggle_border=False, display_extraction=True):
     j_max_list = []
     if rect_config:
@@ -88,10 +88,14 @@ def generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2,
             time_point = time_point_container[i]
 
         if rect_config:
+            print(j_max_list)
             produce_heatmap_tool_rect(domain_snapshot_container[i], domain_center_snapshot_container[i],
-                                      toggle_border, w_param, v_param, len(N_param), data_filepath, color_scheme, save_png,
-                                      show_plot, approach=int(approach), pane=i, MFPT=MFPT, duration=duration, time_point=time_point,
-                                      extraction_angle_list=N_param, boundary_of_extraction_list=j_max_list, display_extraction=display_extraction)
+                                      toggle_border, w_param, v_param, len(N_param), data_filepath, color_scheme,
+                                      save_png,
+                                      show_plot, approach=int(approach), pane=i, MFPT=MFPT, duration=duration,
+                                      time_point=time_point,
+                                      extraction_angle_list=N_param, boundary_of_extraction_list=j_max_list,
+                                      display_extraction=display_extraction)
 
         else:
             produce_heatmap_tool(domain_snapshot_container[i], domain_center_snapshot_container[i],
@@ -211,12 +215,14 @@ def produce_heatmap_tool_rect(diffusive_layer, diffusive_layer_center, toggle_bo
     if display_extraction:
         if (boundary_of_extraction_list is not None and
                 extraction_angle_list is not None and
-                len(boundary_of_extraction_list) == rings):
-            ax = plt.gca()
-            overlay_color = extraction_overlay_colors.get(color_scheme, (0.5, 0.5, 0.5, 0.4))
+                len(boundary_of_extraction_list) == rings - 1):
 
-            for ring_idx in range(rings):
-                angular_spread = boundary_of_extraction_list[ring_idx]
+            ax = plt.gca()
+            overlay_color = exc.extraction_overlay_colors.get(color_scheme, (0.5, 0.5, 0.5, 0.15))
+            faint_color = (overlay_color[0], overlay_color[1], overlay_color[2], 0.08)
+
+            for ring_idx in range(1, rings):
+                angular_spread = boundary_of_extraction_list[ring_idx - 1]
                 for angle_center in extraction_angle_list:
                     for offset in range(-angular_spread, angular_spread + 1):
                         angle_idx = (angle_center + offset) % rays
@@ -228,7 +234,8 @@ def produce_heatmap_tool_rect(diffusive_layer, diffusive_layer_center, toggle_bo
                             (r2 * np.cos(t2), r2 * np.sin(t2)),
                             (r1 * np.cos(t2), r1 * np.sin(t2))
                         ]
-                        patch = Polygon(verts, closed=True, facecolor=overlay_color, edgecolor=None)
+                        color = faint_color if angular_spread == 0 else overlay_color
+                        patch = Polygon(verts, closed=True, facecolor=color, edgecolor='black', linewidth=1.0)
                         ax.add_patch(patch)
         else:
             print("[Warning] Extraction overlay skipped due to boundary list mismatch or missing input.")

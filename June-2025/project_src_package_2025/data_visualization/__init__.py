@@ -19,5 +19,6 @@ from datetime import datetime
 from project_src_package_2025.system_configuration import file_paths as fp
 from project_src_package_2025.computational_tools import analysis_tools as ant, supplements as sup
 from project_src_package_2025.auxiliary_tools import tabulate_functions as tb
+from project_src_package_2025.data_visualization import extraction_colors as exc
 
-__all__ = ["os", "np", "pd", "plt", "cm", "BoundaryNorm", "Normalize", "LogNorm", "Axes3D", "math", "Fraction", "datetime", "fp", "ant", "sup"]
+__all__ = ["os", "np", "pd", "plt", "cm", "BoundaryNorm", "Normalize", "LogNorm", "Axes3D", "math", "Fraction", "datetime", "fp", "ant", "sup", "exc"]

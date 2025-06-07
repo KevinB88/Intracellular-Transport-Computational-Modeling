@@ -349,12 +349,17 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
         print('Plots have not been printed because "collect_plots" has been set to False.')
 
 
-def heatmap_production(rg_param, ry_param, w_param, N_param, filepath=fp.heatmap_output, time_point_container=None,
+def heatmap_production(rg_param, ry_param, w_param, v_param, N_param, filepath=fp.heatmap_output, time_point_container=None,
                        save_png=True, show_plot=True, compute_MFPT=True, verbose=False, output_csv=True, rect_config=False,
                        d_tube=-1, r=1.0, d=1.0, mass_retention_threshold=0.01, mass_checkpoint=10**6, color_scheme='viridis',
-                       toggle_border=False, display_extraction=True):
-    ani.generate_heatmaps(rg_param, ry_param, w_param, N_param, filepath, time_point_container, save_png,
-                          show_plot, compute_MFPT, verbose, output_csv, rect_config, d_tube, r, d, mass_retention_threshold,
-                          mass_checkpoint, color_scheme, toggle_border, display_extraction)
+                       toggle_border=False, display_extraction=True, approach=2):
+    ani.generate_heatmaps(rg_param=rg_param, ry_param=ry_param, w_param=w_param, v_param=v_param, N_param=N_param, approach=approach,
+                          filepath=filepath, time_point_container=time_point_container, save_png=save_png, show_plot=show_plot, compute_mfpt=compute_MFPT,
+                          verbose=verbose, output_csv=output_csv, rect_config=rect_config, d_tube=d_tube, r=r, d=d, mass_retention_threshold=mass_retention_threshold,
+                          mass_checkpoint=mass_checkpoint, color_scheme=color_scheme, toggle_border=toggle_border, display_extraction=display_extraction)
 
+    '''
+        If approach 2 is selected, only run the diffusive snapshot collection function until the last/maximum time point in the time-point container.
+        The list of time-points should always be sorted in increasing order. 
+    '''
 
