@@ -49,11 +49,3 @@ if __name__ == "__main__":
         tee = Tee(sys.stdout, f)
         with redirect_stdout(tee):
             run_main()
-
-
-'''
-    Produce a plot from the resulting MFPT data
-    Construct an automatic MFPT(W) plotting function, allowing the user the option to specify for a number of domain sizes or number of microtubules.
-    Next steps, port the codebase onto the mac book pro
-    Write a function that automatically zips a file after it exceeds a file size threshold (for data output)
-'''
