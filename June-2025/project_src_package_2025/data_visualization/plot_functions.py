@@ -1,7 +1,7 @@
 from . import plt, os, pd, datetime, Fraction, math, np
 
 
-def plot_general(file_list, N_labels, xlab, ylab, title, filepath, xlog=False, ylog=False, ylims=None,
+def plot_general(file_list, labels, xlab, ylab, title, filepath, xlog=False, ylog=False, ylims=None,
                  continuous=False, dynamic_pts=False, save_png=False, show_plt=True, transparent=False,
                  figsize=(12, 8), lab_fontsize=30, title_fontsize=40, legend_fontsize=22,
                  fontname='Times New Roman'):
@@ -12,12 +12,12 @@ def plot_general(file_list, N_labels, xlab, ylab, title, filepath, xlog=False, y
         df = pd.read_csv(file_list[i])
 
         if continuous:
-            plt.plot(df[xlab], df[ylab], label=f'N={len(N_labels[i])}')
+            plt.plot(df[xlab], df[ylab], label=labels[i])
         else:
             if dynamic_pts:
-                plt.scatter(df[xlab], df[ylab], label=f'N={len(N_labels[i])}', linewidth=(10 / (i + 1)))
+                plt.scatter(df[xlab], df[ylab], label=labels[i], linewidth=(10 / (i + 1)))
             else:
-                plt.scatter(df[xlab], df[ylab], label=f'N={len(N_labels[i])}', linewidth=(10 / (i + 1)))
+                plt.scatter(df[xlab], df[ylab], label=labels[i], linewidth=(10 / (i + 1)))
         if xlog:
             plt.xscale('log')
 

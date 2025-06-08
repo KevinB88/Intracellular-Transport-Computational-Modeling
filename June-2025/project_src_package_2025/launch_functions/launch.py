@@ -10,6 +10,7 @@ import math
 '''
 
 
+# Will require further inspection
 def solve_mfpt_multi_process(N_param, rg_param, ry_param, dep_type, ind_param, dep_param):
     M = rg_param
     N = ry_param
@@ -34,6 +35,7 @@ def solve_mfpt_multi_process(N_param, rg_param, ry_param, dep_type, ind_param, d
         return {f'V: {w_param}', f'MFPT: {mfpt}'}
 
 
+# Will require further inspection
 def parallel_process_mfpt(N_list, rg_param, ry_param, dep_type, ind_type, dep_param, ind_list, cores=None):
     dep_type = dep_type.upper()
     if dep_type != "W" and dep_type != "V":
@@ -59,6 +61,7 @@ def parallel_process_mfpt(N_list, rg_param, ry_param, dep_type, ind_type, dep_pa
                                f'MFPT_Results_N={len(N_list[ n ])}_{ind_type}={dep_param}_')
 
 
+# Will require further inspection
 def solve_mfpt(rg_param, ry_param, N_param, v_param, w_param, r=1.0, d=1.0, mass_checkpoint=10 ** 6,
                mass_threshold=0.01, return_duration=False, mixed_config=False, mx_cn_rrange=1):
     diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
@@ -71,7 +74,7 @@ def solve_mfpt(rg_param, ry_param, N_param, v_param, w_param, r=1.0, d=1.0, mass
     else:
         return mfpt
 
-# update this version to also grant the user the option to compute MFPT with respect to time, or with respect to mass loss
+
 def solve_mfpt_(rg_param, ry_param, N_param, v_param, w_param, T_param, r=1.0, d=1.0, mass_checkpoint=10**6, d_tube=-1, return_duration=False):
     j_max_lim = sup.j_max_bef_overlap(ry_param, N_param)
     max_d_tube = sup.solve_d_rect(r, ry_param, rg_param, j_max_lim, 0)
@@ -87,6 +90,53 @@ def solve_mfpt_(rg_param, ry_param, N_param, v_param, w_param, T_param, r=1.0, d
         return MFPT, duration
     else:
         return MFPT
+
+
+# MFPT as a function of W saturation analysis
+
+# under construction
+def mfpt_of_W_sat_analysis(domain_list, N_param_list, v_param, w_param_list,  T_param, r=1.0, d=1.0, mass_checkpoint=10**6, d_tube=-1):
+
+    '''
+    Produces a visualization for a saturation of analysis as MFPT as a function of W (switching rate a=b) for varying domain sizes)
+    In addition, this current implementation only functions for a single microtubule configuration.
+
+    We are interested in saturation of MFPT across varying domain sizes under fixed number of microtubules, d_tube, velocity, and time.
+
+    Args:
+        domain_list: (2-Dimensional list: a list of domain dimensions, i.e. MxN, Rings x Rays)
+        N_param_list: (2-Dimensional list: a list of microtubule configurations corresponding to the dimensions in the above list)
+        v_param:
+        w_param_list: (1-dimensional list: a list of desired w_values in sorted order)
+        T_param:
+        r:
+        d:
+        mass_checkpoint:
+        d_tube:
+
+    Returns:
+    '''
+
+    # Throw an error if the sizes of the domain_list, N_param_list, and the w_param_list do not match
+
+    # In the case of non overlap, the current selection of d_tube (assuming it is non-zero) needs to be verified if it functions properly across all domain sizes and microtubule configurations.
+
+    output_file_list = []
+    for i in range(len(domain_list)):
+        MFPT_list = []
+        for j in range(len(w_param_list)):
+            MFPT = solve_mfpt_(domain_list[i][0], domain_list[i][1], N_param_list[i], v_param, w_param_list[j], T_param,
+                               r=r, d=d, mass_checkpoint=mass_checkpoint, d_tube=d_tube)
+            MFPT_list.append(MFPT)
+
+        # store the data and save the data to csv
+        # store a pointer to the csv data file
+        # append this pointer to a list of csv data files
+    # Configure a plot to display the saturation of results by overlapping the results contained in the list of csv data files.
+
+'''
+    Configure a launch function to produce an analysis on MFPT as a function of W for varying amounts of N 
+'''
 
 
 def output_time_until_mass_depletion(rg_param, ry_param, N_param, v_param, w_param, mass_threshold=0.01, mixed_config=False, d_tube=-1):
@@ -362,4 +412,5 @@ def heatmap_production(rg_param, ry_param, w_param, v_param, N_param, filepath=f
         If approach 2 is selected, only run the diffusive snapshot collection function until the last/maximum time point in the time-point container.
         The list of time-points should always be sorted in increasing order. 
     '''
+
 
