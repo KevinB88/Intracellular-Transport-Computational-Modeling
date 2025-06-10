@@ -49,35 +49,6 @@ def j_max_domain_list(ry_param, rg_param, N_param, r=1, overlap=False, d_tube=-1
         print("Ring: ", m, "j_max: ", j_max)
 
 
-
-def j_max_domain_list(ry_param, rg_param, N_param, r=1, overlap=False, d_tube=-1, ceil=True):
-
-    d_radius = r / rg_param
-    d_theta = ((2 * math.pi) / ry_param)
-
-    if not overlap:
-        # This variable denotes the maximum j_max value with respect to microtubule configuration on the first ring
-        j_max_lim = j_max_bef_overlap(ry_param, N_param)
-        max_d_tube = solve_d_rect(r, ry_param, rg_param, j_max_lim, 0)
-
-        while d_tube <= 0 or d_tube > max_d_tube:
-            d_tube = float(input(f"Select d_tube within the range: (0, {max_d_tube}] to avoid DL extraction region overlap: "))
-
-    else:
-        max_d_tube = solve_d_rect(r, ry_param, rg_param, ry_param - 1, 0)
-        while d_tube <= 0 or d_tube > max_d_tube:
-            d_tube = float(input(f"Select d_tube within the range: (0, {max_d_tube}]"))
-
-    # What should be the highest rect_dist?
-
-    for m in range(rg_param):
-        if ceil:
-            j_max = math.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
-        else:
-            j_max = math.floor((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
-        print("Ring: ", m, "j_max: ", j_max)
-
-
 # Decides the max j_max to prevent overlap in the domain\
 @njit(nopython=ENABLE_JIT)
 def j_max_bef_overlap(N, Microtubules):
@@ -137,6 +108,7 @@ def mod_range_flat(centers, radius, ring_len, sorted=False):
         flat_result = np.sort(flat_result)
 
     return flat_result
+
 
 # This function/algorithm is currently under construction
 def MTOC_offset_bound(bound_arr, rg_param, ry_param, offset_theta, offset_radius, disable_vert=False, disable_horz=False):
