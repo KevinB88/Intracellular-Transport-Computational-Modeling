@@ -17,7 +17,8 @@ def plot_general(file_list, labels, xlab, ylab, title, filepath, xlog=False, ylo
             if dynamic_pts:
                 plt.scatter(df[xlab], df[ylab], label=labels[i], linewidth=(10 / (i + 1)))
             else:
-                plt.scatter(df[xlab], df[ylab], label=labels[i], linewidth=(10 / (i + 1)))
+                    plt.scatter(df[xlab], df[ylab], label=labels[i], linewidth=(10 / (i + 1)))
+
         if xlog:
             plt.xscale('log')
 

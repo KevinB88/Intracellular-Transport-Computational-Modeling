@@ -20,6 +20,7 @@ def solve_d_rect(r, rings, rays, j_max, m):
     d_theta = ((2 * math.pi) / rays)
     return (j_max + 0.5) * (m + 1) * d_radius * d_theta
 
+
 def j_max_domain_list(ry_param, rg_param, N_param, r=1, overlap=False, d_tube=-1, ceil=True):
 
     d_radius = r / rg_param
@@ -115,30 +116,6 @@ def dict_gen(keys, values):
         if (i + 1) % group_size == 0:
             j += 1
     return d
-
-
-# An experimental function which accounts for overlapping extraction regions by allowing for a key to have multiple values
-# Each key now maps to a list of values
-# @njit(nopython=ENABLE_JIT)
-# def dict_gen_overlap(keys, values, radius):
-#     d = Dict.empty(
-#         key_type=int64,
-#         value_type=ListType(int64)
-#     )
-#
-#     n_keys = len(keys)
-#     n_values = len(values)
-#
-#     for vi in range(n_values):
-#         start = vi * (radius // 2)
-#         end = min(start + radius, n_keys)
-#
-#         for i in range(start, end):
-#             key = keys[i]
-#             if key not in d:
-#                 d[key] = List.empty_list(int64)
-#             d[key].append(values[vi])
-#     return d
 
 
 # collect ranges of centers across a modular ring and flatten them into a single container

@@ -8,4 +8,3 @@ def validate_contents(file_1, file_2):
 
     print(df1.equals(df2))
 
-
