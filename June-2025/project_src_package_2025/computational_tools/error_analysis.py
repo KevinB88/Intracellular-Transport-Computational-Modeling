@@ -1,4 +1,5 @@
-from . import pd, os
+from . import pd
+import os
 
 
 def compute_percent_diff(csv_path1: str,

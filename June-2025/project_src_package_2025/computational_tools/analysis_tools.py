@@ -1,5 +1,5 @@
-from . import math, njit, numerical_tools as num, sys_config, supplements as sup, np
-from numba.typed import Dict, List
+from . import math, njit, numerical_tools as num, sys_config, supplements as sup, np, strc
+from numba.typed import List
 from numba import int64
 
 ENABLE_JIT = sys_config.ENABLE_NJIT
@@ -621,23 +621,25 @@ def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements,
 
     relative_k = math.floor(K / collection_width)
     k_prime = 0
-    j_max = 0
 
-    d_list = List()
+    # d_list = List()
 
-    # *** Mixed configuration block 6/4/25
+    # *** Mixed configuration block 6/10/25
     if mixed_config:
 
         if d_tube < 0:
             d_tube = sup.solve_d_rect(1, rings, rays, sup.j_max_bef_overlap(rays, tube_placements), 0)
 
-        for m in range(rings):
-            j_max = math.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
-            print("Ring: ", m, "j_max: ", j_max)
-            keys = sup.mod_range_flat(tube_placements, j_max, rays, False)
-            dict_ = sup.dict_gen(keys, tube_placements)
-            d_list.append(dict_)
-    # *** Mixed configuration block 6/4/25
+        # for m in range(rings):
+        #     j_max = math.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
+        #     print("Ring: ", m, "j_max: ", j_max)
+        #     keys = sup.mod_range_flat(tube_placements, j_max, rays, False)
+        #     dict_ = sup.dict_gen(keys, tube_placements)
+        #     d_list.append(dict_)
+
+        D = strc.build_rect_config_dict(rings, rays, tube_placements, d_theta, d_radius, d_tube)
+
+    # *** Mixed configuration block 6/10/25
 
     MFPT = 0
     net_current_out = 0
@@ -665,13 +667,18 @@ def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements,
 
                     # Mixed configuration block 5/28/25
                     # **********************************************************************************************************************************************
-                    if mixed_config and n in d_list[m]:
-                        j_max = math.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
+                    if mixed_config and n in D[m]:
 
-                        diffusive_layer[1][m][n] = num.u_density_rect(diffusive_layer, 0, m, n, d_radius, d_theta,
+                        # diffusive_layer[1][m][n] = num.u_density_rect(diffusive_layer, 0, m, n, d_radius, d_theta,
+                        #                                               d_time,
+                        #                                               phi_center, rings, advective_layer,
+                        #                                               int(d_list[m][n]), a, b, j_max)
+
+                        diffusive_layer[1][m][n] = num.u_density_rect_v2(diffusive_layer, 0, m, n, d_radius, d_theta,
                                                                       d_time,
                                                                       phi_center, rings, advective_layer,
-                                                                      int(d_list[m][n]), a, b, j_max)
+                                                                      a, b, d_tube, D[m][n])
+
                     else:
                         diffusive_layer[1][m][n] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta,
                                                                  d_time,
@@ -682,12 +689,12 @@ def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements,
                     if n == tube_placements[aIdx]:
                         if mixed_config:
 
-                            j_max = math.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
+                            # j_max = math.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
 
                             advective_layer[1][m][n] = num.u_tube_rect(advective_layer, diffusive_layer, 0, m, n,
                                                                        a, b,
                                                                        v,
-                                                                       d_time, d_radius, d_theta, j_max)
+                                                                       d_time, d_radius, d_theta, d_tube)
 
                         else:
                             advective_layer[1][m][n] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b,

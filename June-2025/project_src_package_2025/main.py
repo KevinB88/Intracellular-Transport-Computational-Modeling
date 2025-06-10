@@ -16,17 +16,17 @@ from launch_functions import launch
 
 def run_main():
 
-    RG_PARAM = 48
-    RY_PARAM = 48
-    N_PARAM = [0, 6, 12, 18, 24, 30, 36, 42]
+    RG_PARAM = 16
+    RY_PARAM = 16
+    N_PARAM = [0, 4, 8, 12]
     D_TUBE = 0.01
-    # D_tube should range between (0,1)
+    V_PARAM = -1
+    W_PARAM = 10**-4
+    T_PARAM = 0.5
 
-    D_THETA = (2 * np.pi) / RY_PARAM
-    D_RADIUS = 1 / RG_PARAM
-
-    struct.export_rect_config_structure_to_csv(RG_PARAM, RY_PARAM, N_PARAM,
-                                               D_THETA, D_RADIUS, D_TUBE, fp.general_output)
+    launch.collect_mass_analysis(RG_PARAM, RY_PARAM, N_PARAM, V_PARAM, W_PARAM, T_PARAM,
+                                 collection_width=5, save_png=False, show_plt=True, mixed_config=True,
+                                 d_tube=D_TUBE)
 
 
 if __name__ == "__main__":

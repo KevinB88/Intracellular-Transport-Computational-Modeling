@@ -1,7 +1,9 @@
 from numba.typed import Dict, List
 from typing import List as PyList
 from numba.types import int64, ListType
-from . import sys_config, njit, np, csv, os
+from . import sys_config, njit, np
+import csv
+import os
 
 ENABLE_JIT = sys_config.ENABLE_NJIT
 

@@ -94,7 +94,7 @@ def u_density_mixed(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho
 
 
 @njit(nopython=ENABLE_JIT)
-def u_density_rect(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, mt_pos, a, b, j_max):
+def u_density_rect(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, mt_pos, a, b, d_tube):
     """
 
     Calculate particle density at a position (m,n) on the diffusive layer at a time-point k.
@@ -115,9 +115,11 @@ def u_density_rect(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho,
 
     :param a: (float) switch rate onto the diffusive layer (switch-on rate)
     :param b: (float) switch rate onto the advective layer (switch-off rate)
-    :param tube_placements: (list(int)) discrete microtubule/filament positions between [0, rays-1]
+    :param d_tube (float)
     :return: particle density at a position (m,n) on the diffusive layer
     """
+
+    j_max = math.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
 
     current_density = phi[k][m][n]
 
@@ -135,6 +137,53 @@ def u_density_rect(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho,
     # component_c was previously computed as follows:
     # component_c = a * phi[k][m][mt_pos] * d_time - (b * rho[k][m][mt_pos] * d_time) / (3 * (m+1) * d_radius * d_theta)
     # This ^ resulted in the mass conservation error as we noticed before in prior meetings
+
+    return current_density - component_a - component_b - component_c
+
+
+@njit(nopython=ENABLE_JIT)
+def u_density_rect_v2(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, a, b, d_tube, dict_list):
+    """
+
+    Calculate particle density at a position (m,n) on the diffusive layer at a time-point k.
+    (Positions are relative to patches across our domain for the diffusive layer)
+
+    :param phi: (3-D float array) With 2 time points, m rings (rows), and n rays (columns)
+    :param k: (int) time-point
+    :param m: (int) position of radial ring
+    :param n: (int) position of angular ray
+    :param d_radius: (float) delta_radius
+    :param d_theta: (float) delta_theta
+    :param d_time: (float) delta_time
+    :param central: (float) particle density at the center
+    :param rings: (int) # of radial rings in the domain
+    :param rho: (3-D float array) With 2 time points, m rings (rows), and n rays (columns)
+    (to specify particle density on the advective layer relative to microtubule/filament)
+
+    :param a: (float) switch rate onto the diffusive layer (switch-on rate)
+    :param b: (float) switch rate onto the advective layer (switch-off rate)
+    :param d_tube (float)
+    :param dict_list (List[int])
+    :return: particle density at a position (m,n) on the diffusive layer
+    """
+
+    j_max = math.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
+
+    current_density = phi[k][m][n]
+
+    component_a = ((m+2) * j_r_r(phi, k, m, n, d_radius, rings)) - ((m+1) * j_l_r(phi, k, m, n, d_radius, central))
+
+    component_a *= d_time / ((m+1) * d_radius)
+
+    component_b = (j_r_t(phi, k, m, n, d_radius, d_theta)) - (j_l_t(phi, k, m, n, d_radius, d_theta))
+
+    component_b *= d_time / ((m+1) * d_radius * d_theta)
+
+    rho_sum = 0
+    for i in range(len(dict_list)):
+        rho_sum += rho[k][m][dict_list[i]]
+
+    component_c = a * phi[k][m][n] * d_time + (b * rho_sum * d_time) / ((1 + 2 * j_max) * (m+1) * d_radius * d_theta)
 
     return current_density - component_a - component_b - component_c
 
@@ -219,7 +268,7 @@ def u_tube_mixed(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, mx_cn_rr
 
 
 @njit(nopython=ENABLE_JIT)
-def u_tube_rect(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, j_max):
+def u_tube_rect(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, d_tube):
     """
 
     Calculate particle density at a position (m,n) on the advective layer at a time-point k.
@@ -235,7 +284,7 @@ def u_tube_rect(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, j_max):
     :param d_time: (float) delta-time
     :param d_radius: (float) delta-radius
     :param d_theta: (float) delta-theta
-    :param j_max (int)
+    :param d_tube (int)
     :return: particle density at position (m,n) on the advective layer.
     """
 
@@ -248,6 +297,8 @@ def u_tube_rect(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, j_max):
     component_a = (rho[k][m][n] - ((j_r - j_l) * (1/d_radius)) * d_time)
 
     N = len(phi[k][m])
+
+    j_max = math.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
 
     component_b = 0
     for j in range(-j_max, j_max + 1):
