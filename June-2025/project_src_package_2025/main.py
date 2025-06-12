@@ -16,17 +16,21 @@ from launch_functions import launch
 
 def run_main():
 
-    RG_PARAM = 16
-    RY_PARAM = 16
-    N_PARAM = [0, 4, 8, 12]
+    RG_PARAM = 48
+    RY_PARAM = 96
+    N_PARAM = [0, 24, 48, 72]
     D_TUBE = 0.01
     V_PARAM = -1
-    W_PARAM = 10**-4
-    T_PARAM = 0.5
+    T_PARAM = 1
 
-    launch.collect_mass_analysis(RG_PARAM, RY_PARAM, N_PARAM, V_PARAM, W_PARAM, T_PARAM,
-                                 collection_width=5, save_png=False, show_plt=True, mixed_config=True,
-                                 d_tube=D_TUBE)
+    MFPT_1 = launch.solve_mfpt_(RG_PARAM, RY_PARAM, N_PARAM, V_PARAM, 10**-4, T_PARAM, d_tube=D_TUBE)
+    print("MFPT (w=0.0001): ", MFPT_1)
+
+    MFPT_2 = launch.solve_mfpt_(RG_PARAM, RY_PARAM, N_PARAM, V_PARAM, 1, T_PARAM, d_tube=D_TUBE)
+    print("MFPT (w=1): ", MFPT_2)
+
+    MFPT_3 = launch.solve_mfpt_(RG_PARAM, RY_PARAM, N_PARAM, V_PARAM, 100, T_PARAM, d_tube=D_TUBE)
+    print("MFPT (w=100): ", MFPT_3)
 
 
 if __name__ == "__main__":
@@ -54,4 +58,3 @@ if __name__ == "__main__":
         tee = Tee(sys.stdout, f)
         with redirect_stdout(tee):
             run_main()
-

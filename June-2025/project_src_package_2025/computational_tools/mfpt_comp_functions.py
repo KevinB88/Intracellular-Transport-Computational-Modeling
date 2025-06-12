@@ -369,12 +369,10 @@ def comp_mfpt_by_time_rect(rings, rays, a, b, v, tube_placements, diffusive_laye
                     # **********************************************************************************************************************************************
                     if n in d_list[m]:
 
-                        j_max = math.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
-
                         diffusive_layer[1][m][n] = num.u_density_rect(diffusive_layer, 0, m, n, d_radius, d_theta,
                                                                       d_time,
                                                                       phi_center, rings, advective_layer,
-                                                                      int(d_list[m][n]), a, b, j_max)
+                                                                      int(d_list[m][n]), a, b, d_tube)
 
                     else:
                         diffusive_layer[1][m][n] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta,
@@ -384,10 +382,9 @@ def comp_mfpt_by_time_rect(rings, rays, a, b, v, tube_placements, diffusive_laye
                                                                  a, b,
                                                                  tube_placements)
                     if n == tube_placements[aIdx]:
-                        j_max = math.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
 
                         advective_layer[1][m][n] = num.u_tube_rect(advective_layer, diffusive_layer, 0, m, n, a,
-                                                                   b, v, d_time, d_radius, d_theta, j_max)
+                                                                   b, v, d_time, d_radius, d_theta, d_tube)
                         if aIdx < len(tube_placements) - 1:
                             aIdx += 1
 

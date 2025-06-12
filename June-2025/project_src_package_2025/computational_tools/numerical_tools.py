@@ -558,6 +558,8 @@ def u_density_rec(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, 
 
     component_a = ((m+2) * j_r_r(phi, k, m, n, d_radius, rings)) - ((m+1) * j_l_r(phi, k, m, n, d_radius, central))
 
+
+
     component_a *= d_time / ((m+1) * d_radius)
 
     component_b = (j_r_t(phi, k, m, n, d_radius, d_theta)) - (j_l_t(phi, k, m, n, d_radius, d_theta))
