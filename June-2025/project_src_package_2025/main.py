@@ -16,21 +16,7 @@ from launch_functions import launch
 
 def run_main():
 
-    RG_PARAM = 48
-    RY_PARAM = 96
-    N_PARAM = [0, 24, 48, 72]
-    D_TUBE = 0.01
-    V_PARAM = -1
-    T_PARAM = 1
-
-    MFPT_1 = launch.solve_mfpt_(RG_PARAM, RY_PARAM, N_PARAM, V_PARAM, 10**-4, T_PARAM, d_tube=D_TUBE)
-    print("MFPT (w=0.0001): ", MFPT_1)
-
-    MFPT_2 = launch.solve_mfpt_(RG_PARAM, RY_PARAM, N_PARAM, V_PARAM, 1, T_PARAM, d_tube=D_TUBE)
-    print("MFPT (w=1): ", MFPT_2)
-
-    MFPT_3 = launch.solve_mfpt_(RG_PARAM, RY_PARAM, N_PARAM, V_PARAM, 100, T_PARAM, d_tube=D_TUBE)
-    print("MFPT (w=100): ", MFPT_3)
+    print()
 
 
 if __name__ == "__main__":

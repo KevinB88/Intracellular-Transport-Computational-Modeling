@@ -35,7 +35,7 @@ def generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2,
         panes = 4
     elif approach == 2:
         if time_point_container is None:
-            raise "Time point container must be non empty for collection approach #1."
+            raise "Time point container must be non empty for collection approach #2."
         panes = len(time_point_container)
         duration = True
     else:
