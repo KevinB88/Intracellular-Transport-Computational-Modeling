@@ -365,7 +365,6 @@ def comp_mfpt_by_time_rect(rings, rays, a, b, v, tube_placements, diffusive_laye
                     diffusive_layer[1][m][n] = 0
                 else:
 
-                    # Mixed configuration block 5/28/25
                     # **********************************************************************************************************************************************
                     if n in d_list[m]:
 
@@ -409,8 +408,8 @@ def comp_mfpt_by_time_rect(rings, rays, a, b, v, tube_placements, diffusive_laye
                                   advective_layer, tube_placements, v)
 
         # transfer updated density info from the next step to the current
-        diffusive_layer[0] = diffusive_layer[1]
-        advective_layer[0] = advective_layer[1]
+        num.update_layer_inplace(diffusive_layer[0], diffusive_layer[1])
+        num.update_layer_inplace(advective_layer[0], advective_layer[1])
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # calculate the sim-time
     duration = k * d_time

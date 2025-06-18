@@ -12,12 +12,14 @@ from auxiliary_tools import unit_conversion_functions as uni
 from auxiliary_tools import format_conversion as form
 from system_configuration import file_paths as fp
 from launch_functions import launch
+from computational_tools import time_analysis as tim
+
+from time import perf_counter
 
 
 def run_main():
 
     print()
-
 
 if __name__ == "__main__":
 
@@ -44,3 +46,24 @@ if __name__ == "__main__":
         tee = Tee(sys.stdout, f)
         with redirect_stdout(tee):
             run_main()
+
+'''
+    solving for T in this case: 
+    
+    1 = floor(T / d_time)
+    
+    -> same as saying: 
+    
+    any value that is floored and equates to 1:
+    
+    1 = floor(A)
+    
+    A is between the range:   [1, 2) 
+    
+    T/d_time is between the range: [1, 2)
+    
+            1 <= T/d_time < 2
+            d_time <= T < 2 * d_time
+    
+    in this case choose T = d_time             
+'''

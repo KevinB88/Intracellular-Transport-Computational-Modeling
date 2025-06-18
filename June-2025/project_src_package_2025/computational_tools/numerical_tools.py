@@ -3,6 +3,22 @@ from . import math, njit, sys_config
 ENABLE_JIT = sys_config.ENABLE_NJIT
 
 
+@njit(npython=ENABLE_JIT)
+def convert_K_to_T(RG, RY, K):
+    dR = 1 / RG
+    dT = 2 * math.pi / RY
+    dK = (0.1 * (min(dR ** 2, dT ** 2 * dR ** 2))) * 0.5
+    return K * dK
+
+
+@njit(nopython=ENABLE_JIT)
+def update_layer_inplace(layer_target, layer_source):
+    for i in range(layer_target.shape[0]):
+        for j in range(layer_target.shape[1]):
+            for k in range(layer_target.shape[2]):
+                layer_target[i, j, k] = layer_source[i, j, k]
+
+
 @njit(nopython=ENABLE_JIT)
 def u_density(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, mt_pos, a, b, tube_placements):
     """
@@ -180,7 +196,7 @@ def u_density_rect_v2(phi, k, m, n, d_radius, d_theta, d_time, central, rings, r
     component_b *= d_time / ((m+1) * d_radius * d_theta)
 
     rho_sum = 0
-    for i in range(len(dict_list)):
+    for i in range(dict_list.shape[0]):
         rho_sum += rho[k][m][dict_list[i]]
 
     component_c = a * phi[k][m][n] * d_time + (b * rho_sum * d_time) / ((1 + 2 * j_max) * (m+1) * d_radius * d_theta)
@@ -208,8 +224,10 @@ def u_tube(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta):
     :return: particle density at position (m,n) on the advective layer.
     """
 
+    N = phi.shape[2]
+
     j_l = v * rho[k][m][n]
-    if m == len(phi[k][m]) - 1:
+    if m == N - 1:
         j_r = 0
     else:
         j_r = v * rho[k][m+1][n]
@@ -247,15 +265,15 @@ def u_tube_mixed(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, mx_cn_rr
     :return: particle density at position (m,n) on the advective layer.
     """
 
+    N = phi.shape[2]
+
     j_l = v * rho[k][m][n]
-    if m == len(phi[k][m]) - 1:
+    if m == N - 1:
         j_r = 0
     else:
         j_r = v * rho[k][m+1][n]
 
     component_a = (rho[k][m][n] - ((j_r - j_l) * (1/d_radius)) * d_time)
-
-    N = len(phi[k][m])
 
     if m < mx_cn_rrange:
         component_b = a * (m+1) * (d_radius * d_theta * d_time) * (phi[k][m][n] + phi[k][m][(n-1) % N] + phi[k][m][(n+1) % N])
@@ -328,7 +346,7 @@ def u_center(phi, k, d_radius, d_theta, d_time, curr_central, rho, tube_placemen
     """
 
     total_sum = 0
-    for n in range(len(phi[k][0])):
+    for n in range(phi.shape[2]):
         total_sum += j_l_r(phi, k, 0, n, d_radius, curr_central)
 
     total_sum *= (d_theta * d_time) / (math.pi * d_radius)
@@ -336,7 +354,7 @@ def u_center(phi, k, d_radius, d_theta, d_time, curr_central, rho, tube_placemen
 
     advective_sum = 0
 
-    for i in range(len(tube_placements)):
+    for i in range(tube_placements.shape[0]):
         angle = tube_placements[i]
         j_l = rho[k][0][angle] * v
         advective_sum += (abs(j_l) * d_time) / (math.pi * d_radius * d_radius)
@@ -369,7 +387,7 @@ def calc_mass(phi, rho, k, d_radius, d_theta, curr_central, rings, rays, tube_pl
 
     advective_mass = 0
 
-    for i in range(len(tube_placements)):
+    for i in range(tube_placements.shape[0]):
         angle = tube_placements[i]
         for m in range(rings):
             advective_mass += rho[k][m][angle] * d_radius

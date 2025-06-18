@@ -93,7 +93,7 @@ def dict_gen(keys, values):
 @njit(nopython=ENABLE_JIT)
 def mod_range_flat(centers, radius, ring_len, sorted=False):
     N = ring_len
-    total_len = len(centers) * (2 * radius + 1)
+    total_len = int(len(centers) * (2 * radius + 1))
     flat_result = np.empty(total_len, dtype=np.int64)
     idx = 0
 

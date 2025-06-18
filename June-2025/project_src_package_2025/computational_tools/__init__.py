@@ -4,6 +4,7 @@ import numpy as np
 from project_src_package_2025.system_configuration import sys_config
 from project_src_package_2025.computational_tools import supplements as sup
 from project_src_package_2025.computational_tools import struct_init as strc
+from project_src_package_2025.auxiliary_tools import unit_conversion_functions as uni
 import pandas as pd
 
 
@@ -12,4 +13,4 @@ import pandas as pd
 '''
 
 # storing dependency titles/aliases which can be accessed across this package
-__all__ = ['math', 'njit', 'np', 'sup', 'pd', 'strc']
+__all__ = ['math', 'njit', 'np', 'sup', 'pd', 'strc', 'uni']
