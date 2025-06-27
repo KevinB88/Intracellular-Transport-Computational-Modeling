@@ -16,10 +16,21 @@ from computational_tools import time_analysis as tim
 
 from time import perf_counter
 
+from project_src_package_2025.gui_components import main_gui as gui
+
 
 def run_main():
 
-    print()
+    gui.run_app()
+
+    # 16x16
+    # 0.3009290248430992    original transfer
+    # 0.3009290248430992    new transfer
+
+    # 32x32
+    # 0.27894174382314735   original transfer
+    # 0.27894174382314735   new transfer
+
 
 if __name__ == "__main__":
 
@@ -46,24 +57,3 @@ if __name__ == "__main__":
         tee = Tee(sys.stdout, f)
         with redirect_stdout(tee):
             run_main()
-
-'''
-    solving for T in this case: 
-    
-    1 = floor(T / d_time)
-    
-    -> same as saying: 
-    
-    any value that is floored and equates to 1:
-    
-    1 = floor(A)
-    
-    A is between the range:   [1, 2) 
-    
-    T/d_time is between the range: [1, 2)
-    
-            1 <= T/d_time < 2
-            d_time <= T < 2 * d_time
-    
-    in this case choose T = d_time             
-'''

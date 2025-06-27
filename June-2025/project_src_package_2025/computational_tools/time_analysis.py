@@ -1,4 +1,4 @@
-from . import numerical_tools as num, njit, sys_config, np, sup, uni
+from . import numerical_tools as num, njit, sys_config, np, supplements as sup, uni
 from numba.typed import List
 from time import perf_counter
 

@@ -12,11 +12,10 @@ def convert_K_to_T(RG, RY, K):
 
 
 @njit(nopython=ENABLE_JIT)
-def update_layer_inplace(layer_target, layer_source):
-    for i in range(layer_target.shape[0]):
-        for j in range(layer_target.shape[1]):
-            for k in range(layer_target.shape[2]):
-                layer_target[i, j, k] = layer_source[i, j, k]
+def update_layer_inplace(layer_target, layer_source, N, M):
+    for i in range(M):
+        for j in range(N):
+            layer_target[i][j] = layer_source[i][j]
 
 
 @njit(nopython=ENABLE_JIT)
@@ -224,8 +223,8 @@ def u_tube(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta):
     :return: particle density at position (m,n) on the advective layer.
     """
 
-    N = phi.shape[2]
-
+    # N = phi.shape[2]
+    N = len(phi[k][m])
     j_l = v * rho[k][m][n]
     if m == N - 1:
         j_r = 0
@@ -265,8 +264,8 @@ def u_tube_mixed(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, mx_cn_rr
     :return: particle density at position (m,n) on the advective layer.
     """
 
-    N = phi.shape[2]
-
+    # N = phi.shape[2]
+    N = len(phi[k][m])
     j_l = v * rho[k][m][n]
     if m == N - 1:
         j_r = 0
@@ -346,7 +345,7 @@ def u_center(phi, k, d_radius, d_theta, d_time, curr_central, rho, tube_placemen
     """
 
     total_sum = 0
-    for n in range(phi.shape[2]):
+    for n in range(len(phi[0][0])):
         total_sum += j_l_r(phi, k, 0, n, d_radius, curr_central)
 
     total_sum *= (d_theta * d_time) / (math.pi * d_radius)
@@ -354,7 +353,7 @@ def u_center(phi, k, d_radius, d_theta, d_time, curr_central, rho, tube_placemen
 
     advective_sum = 0
 
-    for i in range(tube_placements.shape[0]):
+    for i in range(len(tube_placements)):
         angle = tube_placements[i]
         j_l = rho[k][0][angle] * v
         advective_sum += (abs(j_l) * d_time) / (math.pi * d_radius * d_radius)
@@ -387,7 +386,7 @@ def calc_mass(phi, rho, k, d_radius, d_theta, curr_central, rings, rays, tube_pl
 
     advective_mass = 0
 
-    for i in range(tube_placements.shape[0]):
+    for i in range(len(tube_placements)):
         angle = tube_placements[i]
         for m in range(rings):
             advective_mass += rho[k][m][angle] * d_radius
@@ -575,8 +574,6 @@ def u_density_rec(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, 
     current_density = phi[k][m][n]
 
     component_a = ((m+2) * j_r_r(phi, k, m, n, d_radius, rings)) - ((m+1) * j_l_r(phi, k, m, n, d_radius, central))
-
-
 
     component_a *= d_time / ((m+1) * d_radius)
 

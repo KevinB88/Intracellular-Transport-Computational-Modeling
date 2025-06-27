@@ -1,6 +1,8 @@
-from . import math, njit, numerical_tools as num, sys_config, supplements as sup, np, strc
+from . import math, njit, numerical_tools as num, sys_config, supplements as sup, np, struct_init as strc
 from numba.typed import List
 from numba import int64
+
+
 
 ENABLE_JIT = sys_config.ENABLE_NJIT
 

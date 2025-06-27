@@ -1,10 +1,13 @@
-from . import njit, math, numerical_tools as num, sys_config, sup, np
+from . import njit, math, numerical_tools as num, sys_config, supplements as sup, np
 # import time
 
 from numba.typed import Dict, List
 from numba import int64
 
+
 ENABLE_JIT = sys_config.ENABLE_NJIT
+
+
 
 '''
     Kevin Bedoya
@@ -300,8 +303,8 @@ def comp_mfpt_by_mass_loss_rect(rings, rays, a, b, v, tube_placements, diffusive
                                   advective_layer, tube_placements, v)
 
         # transfer updated density info from the next step to the current
-        diffusive_layer[ 0 ] = diffusive_layer[ 1 ]
-        advective_layer[ 0 ] = advective_layer[ 1 ]
+        diffusive_layer[0] = diffusive_layer[ 1 ]
+        advective_layer[0] = advective_layer[ 1 ]
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # calculate the sim-time
     duration = k * d_time
@@ -407,9 +410,11 @@ def comp_mfpt_by_time_rect(rings, rays, a, b, v, tube_placements, diffusive_laye
         phi_center = num.u_center(diffusive_layer, 0, d_radius, d_theta, d_time, phi_center,
                                   advective_layer, tube_placements, v)
 
+        diffusive_layer[0] = diffusive_layer[1]
+        advective_layer[0] = advective_layer[1]
         # transfer updated density info from the next step to the current
-        num.update_layer_inplace(diffusive_layer[0], diffusive_layer[1])
-        num.update_layer_inplace(advective_layer[0], advective_layer[1])
+        num.update_layer_inplace(diffusive_layer[0], diffusive_layer[1], rays, rings)
+        num.update_layer_inplace(advective_layer[0], advective_layer[1], rays, rings)
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # calculate the sim-time
     duration = k * d_time
