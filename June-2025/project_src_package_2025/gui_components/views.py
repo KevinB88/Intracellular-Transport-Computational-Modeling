@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QComboBox, QPushButton, QFormLayout,
-    QLineEdit, QMessageBox, QCheckBox
+    QLineEdit, QMessageBox, QCheckBox, QTextEdit
 )
 
 from PyQt5.QtGui import QColor, QPalette
@@ -9,11 +9,18 @@ from PyQt5.QtCore import Qt
 from . import parmas_config
 from . import controller
 from . import stdout_redirector
+from . import output_display_widget
+from . import aux_gui_funcs
+
+from . import computation_history_entry
+from . import history_cache
 
 
 class ControlPanel(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, history_dropdown, main_window, parent=None):
         super().__init__(parent)
+        self.history_dropdown = history_dropdown
+        self.main_window = main_window
 
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
@@ -33,6 +40,14 @@ class ControlPanel(QWidget):
         self.advanced_toggle.stateChanged.connect(self.toggle_advanced_fields)
         self.advanced_widgets = []
 
+        # Output display for MFPT and other information
+        self.output_display = QTextEdit()
+        self.output_display.setReadOnly(True)
+
+        self.mfpt_label = QLabel("MFPT: ")
+        self.duration_label = QLabel("")
+        self.duration_label.hide()
+
         # Launch button with status color
         self.launch_button = QPushButton("Launch")
         self.launch_button.clicked.connect(self.run_computation)
@@ -44,6 +59,12 @@ class ControlPanel(QWidget):
         self.layout.addLayout(self.param_form)
         self.layout.addWidget(self.advanced_toggle)
         self.layout.addWidget(self.launch_button)
+        self.layout.addWidget(self.mfpt_label)
+        self.layout.addWidget(self.output_display)
+
+        self.output_files_widget = output_display_widget.OutputFilesWidget()
+        self.layout.addWidget(self.output_files_widget)
+        self.output_files_widget.hide()
 
         # Initialize parameter fields
         self.update_parameter_fields(self.comp_select.currentText())
@@ -97,11 +118,68 @@ class ControlPanel(QWidget):
 
     def run_computation(self):
         self.set_launch_color("running")
+        self.output_display.clear()
+        self.mfpt_label.setText("MFPT: ")
+        self.duration_label.hide()
+
         try:
             inputs = {param: field.text() for param, field in self.param_inputs.items()}
             result = controller.run_selected_computation(self.comp_select.currentText(), inputs)
             print(f"Result: {result}")  # For now, log result in terminal
+
+            if isinstance(result, dict):
+                if "MFPT" in result:
+                    self.mfpt_label.setText(f"MFPT: {result['MFPT']:.6f}")
+                    self.output_display.append(f"Computation returned MFPT = {result['MFPT']:.6f}\n")
+                if "duration" in result:
+                    self.duration_label.setText(f"Duration: {result['duration']:.6f} seconds")
+                    self.duration_label.show()
             self.set_launch_color("success")
+
+            csv_paths = []
+            png_paths = []
+
+            if "output_dirs" in result:
+                csv_paths, png_paths = aux_gui_funcs.extract_csv_and_png_paths(result["output_dirs"])
+                if csv_paths or png_paths:
+                    self.output_files_widget.update_display(csv_paths, png_paths)
+                    self.output_files_widget.show()
+                else:
+                    self.output_files_widget.hide()
+            else:
+                self.output_files_widget.hide()
+
+            record = computation_history_entry.ComputationRecord(
+                comp_type=self.comp_select.currentText(),
+                params=inputs,
+                mfpt=result.get("MFPT"),
+                duration=result.get("duration"),
+                csv_files=csv_paths,
+                png_files=png_paths
+            )
+
+            history_cache.cache.add_entry(record)
+            self.history_dropdown.addItem(record.display_name())
+
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
             self.set_launch_color("error")
+
+    def load_entry(self, entry):
+        # Update labels
+        if entry.mfpt is not None:
+            self.mfpt_label.setText(f"MFPT: {entry.mfpt:.6f}")
+        else:
+            self.mfpt_label.setText("MFPT: ")
+
+        if entry.duration is not None:
+            self.duration_label.setText(f"Duration: {entry.duration:.6f} seconds")
+            self.duration_label.show()
+        else:
+            self.duration_label.hide()
+
+        # Update output files
+        self.output_files_widget.update_display(entry.csv_files or [], entry.png_files or [])
+        self.output_files_widget.show()
+
+

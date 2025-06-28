@@ -1,6 +1,7 @@
 # GUI_components/controller.py
 
 import ast
+import os
 from . import launch
 
 
@@ -27,13 +28,14 @@ def parse_input(value):
 def run_selected_computation(computation_name, param_dict):
     """
     Dispatches the selected computation function with the parsed parameters.
-    Returns whatever the backend function returns.
+    Returns whatever the backend function returns, formatted into a consistent output.
     """
     if computation_name not in COMPUTATION_FUNCTIONS:
         raise ValueError(f"Unknown computation: {computation_name}")
 
     func = COMPUTATION_FUNCTIONS[computation_name]
 
+    # Parse inputs
     parsed_inputs = {
         key: parse_input(val)
         for key, val in param_dict.items()
@@ -41,4 +43,41 @@ def run_selected_computation(computation_name, param_dict):
     }
 
     result = func(**parsed_inputs)
+
+    # --- Case 1: Solve MFPT ---
+    if computation_name == "Solve MFPT":
+        output = {}
+        if isinstance(result, tuple):
+            output["MFPT"] = result[0]
+            output["duration"] = result[1]
+        elif isinstance(result, dict):
+            output["MFPT"] = result.get("MFPT")
+            if "duration" in result and isinstance(result["duration"], (int, float)):
+                output["duration"] = result["duration"]
+        else:
+            output["MFPT"] = result
+        return output
+
+    # --- Case 2: Time Until Mass Depletion ---
+    if computation_name == "Time Until Mass Depletion":
+        return {"duration": result}
+
+    # --- Case 3: Plot-producing functions (return list of paths) ---
+    if computation_name in {
+        "Mass Analysis",
+        "Density Radial Dependence",
+        "Phi Angular Dependence",
+    }:
+        if isinstance(result, list) and all(isinstance(p, str) for p in result):
+            return {"output_dirs": [os.path.dirname(p) for p in result]}
+        elif isinstance(result, dict):
+            # Backward compatibility if returning a dict of lists
+            output = {}
+            for key, val in result.items():
+                if isinstance(val, list) and all(isinstance(p, str) for p in val):
+                    output["output_dirs"] = [os.path.dirname(p) for p in val]
+                    break
+            return output
+
+    # --- Fallback: return as-is ---
     return result

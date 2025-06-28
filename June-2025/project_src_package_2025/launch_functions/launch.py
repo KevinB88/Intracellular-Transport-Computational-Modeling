@@ -321,6 +321,7 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
 
         filename = f"diffusive_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
         output_location = os.path.join(data_filepath, filename)
+        diff_output = output_location
         df = pd.DataFrame(diffusive_mass_container)
         df.to_csv(output_location, header=False, index=False)
         plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "diffusive_mass",
@@ -340,6 +341,7 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
 
         filename = f"advective_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
         output_location = os.path.join(data_filepath, filename)
+        adv_output = output_location
         df = pd.DataFrame(advective_mass_container)
         df.to_csv(output_location, header=False, index=False)
         plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "advective_mass",
@@ -355,6 +357,7 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
 
         filename = f"advective_over_total_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
         output_location = os.path.join(data_filepath, filename)
+        adv_over_total_output = output_location
         df = pd.DataFrame(advective_over_total_container)
         df.to_csv(output_location, header=False, index=False)
         plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "adv_over_tot",
@@ -374,6 +377,7 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
 
         filename = f"total_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
         output_location = os.path.join(data_filepath, filename)
+        total_mass_output = output_location
         df = pd.DataFrame(total_mass_container)
         df.to_csv(output_location, header=False, index=False)
         plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "total_mass",
@@ -389,12 +393,15 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
 
         filename = f"advective_over_initial_mass_analysis_V={v_param}_W={w_param}_{rg_param}x{ry_param}_.csv"
         output_location = os.path.join(data_filepath, filename)
+        adv_over_initial_output = output_location
         df = pd.DataFrame(advective_over_initial_container)
         df.to_csv(output_location, header=False, index=False)
 
         plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "adv_over_init",
                                data_filepath, save_png, show_plt)
 
+        clk.sleep(2)
+        return [diff_output, adv_output, adv_over_initial_output, adv_over_total_output, total_mass_output]
     else:
         print('Plots have not been printed because "collect_plots" has been set to False.')
 

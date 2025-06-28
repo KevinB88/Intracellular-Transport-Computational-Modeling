@@ -1,0 +1,80 @@
+Index: project_src_package_2025/gui_components/views.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/project_src_package_2025/gui_components/views.py b/project_src_package_2025/gui_components/views.py
+--- a/project_src_package_2025/gui_components/views.py	
++++ b/project_src_package_2025/gui_components/views.py	(date 1751064042756)
+@@ -38,8 +38,8 @@
+         self.output_display.setReadOnly(True)
+ 
+         self.mfpt_label = QLabel("MFPT: Not computed")
+-        self.duration_label = QLabel("")
+-        self.duration_label.hide()
++        # self.duration_label = QLabel("")
++        # self.duration_label.hide()
+ 
+         # Launch button with status color
+         self.launch_button = QPushButton("Launch")
+@@ -52,6 +52,8 @@
+         self.layout.addLayout(self.param_form)
+         self.layout.addWidget(self.advanced_toggle)
+         self.layout.addWidget(self.launch_button)
++        self.layout.addWidget(self.mfpt_label)
++        self.layout.addWidget(self.output_display)
+ 
+         # Initialize parameter fields
+         self.update_parameter_fields(self.comp_select.currentText())
+@@ -106,25 +108,37 @@
+     def run_computation(self):
+         self.set_launch_color("running")
+         self.output_display.clear()
+-        self.mfpt_label.setText("MFPT: not computed")
+-        self.duration_label.hide()
++        self.mfpt_label.setText("MFPT: ")
++        self.duration_label.hide()  # You can remove this line if the separate label is no longer used
+ 
+         try:
+             inputs = {param: field.text() for param, field in self.param_inputs.items()}
+             result = controller.run_selected_computation(self.comp_select.currentText(), inputs)
+-            print(f"Result: {result}")  # For now, log result in terminal
++            # print(f"Result: {result}")  # For debugging/logging in terminal
+ 
+-            if isinstance(result, dict):
+-                if "MFPT" in result:
+-                    try:
+-                        val = float(result["MFPT"])
+-                        self.mfpt_label.setText(f"MFPT: {val:.6f}")
+-                        self.output_display.append(f"Computation returned MFPT = {val:.6f}\n")
+-                    except ValueError:
+-                        self.output_display.append("Returned MFPT is not a number.\n")
+-                if "duration" in result:
+-                    self.duration_label.setText(f"Duration: {result['duration']:.6f} seconds")
+-                    self.duration_label.show()
++            if isinstance(result, dict) and "MFPT" in result:
++                try:
++                    val = float(result["MFPT"])
++                    mfpt_str = f"{val:.6f}"
++                    label_text = f"MFPT: {mfpt_str}"
++
++                    # Append duration only if it exists
++                    if "duration" in result:
++                        duration_str = f"{result['duration']:.6f} s"
++                        label_text += f"   |   Duration: {duration_str}"
++                        self.output_display.append(
++                            f"Computation returned MFPT = {mfpt_str}, Duration = {duration_str}\n"
++                        )
++                    else:
++                        self.output_display.append(
++                            f"Computation returned MFPT = {mfpt_str}\n"
++                        )
++
++                    self.mfpt_label.setText(label_text)
++
++                except ValueError:
++                    self.output_display.append("Returned MFPT is not a number.\n")
++
+             self.set_launch_color("success")
+ 
+         except Exception as e:
