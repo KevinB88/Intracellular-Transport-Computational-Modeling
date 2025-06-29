@@ -1,5 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QComboBox, QPushButton, QMessageBox
+from PyQt5.QtGui import QGuiApplication
 from . import views
 from . import history_cache
 from . import fp
@@ -9,8 +10,23 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
+
+        screen = QGuiApplication.primaryScreen()
+        screen_geometry = screen.availableGeometry()
+        screen_width = screen_geometry.width()
+        screen_height = screen_geometry.height()
+
+        width = int(screen_width * 0.8)
+        height = int(screen_height * 0.8)
+
+        self.resize(width, height)
+        self.move(
+            (screen_width - width) // 2,
+            (screen_height - height) // 2
+        )
+
         self.setWindowTitle("GUI version 1.0")
-        self.setFixedSize(2000, 1000)
+        # self.setFixedSize(2000, 1000)
         self.layout = QVBoxLayout()
 
         self.history_dropdown = QComboBox()
