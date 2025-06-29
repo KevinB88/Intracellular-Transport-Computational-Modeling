@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QComboBox, QPushButton, QFormLayout,
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton, QFormLayout,
     QLineEdit, QMessageBox, QCheckBox, QTextEdit
 )
 
@@ -22,8 +22,15 @@ class ControlPanel(QWidget):
         self.history_dropdown = history_dropdown
         self.main_window = main_window
 
-        self.layout = QVBoxLayout()
-        self.setLayout(self.layout)
+        self.main_layout = QHBoxLayout()
+        self.setLayout(self.main_layout)
+        self.left_panel = QVBoxLayout()
+        self.main_layout.addLayout(self.left_panel)
+
+        self.left_panel = QVBoxLayout()
+        self.right_panel = QVBoxLayout()
+        self.main_layout.addLayout(self.left_panel, stretch=2)
+        self.main_layout.addLayout(self.right_panel, stretch=3)
 
         # Dropdown to select computation
         self.comp_label = QLabel("Select Computation:")
@@ -54,20 +61,32 @@ class ControlPanel(QWidget):
         self.set_launch_color("idle")
 
         # Assemble layout
-        self.layout.addWidget(self.comp_label)
-        self.layout.addWidget(self.comp_select)
-        self.layout.addLayout(self.param_form)
-        self.layout.addWidget(self.advanced_toggle)
-        self.layout.addWidget(self.launch_button)
-        self.layout.addWidget(self.mfpt_label)
-        self.layout.addWidget(self.output_display)
+        self.left_panel.addWidget(self.comp_label)
+        self.left_panel.addWidget(self.comp_select)
+        self.left_panel.addLayout(self.param_form)
+        self.left_panel.addWidget(self.advanced_toggle)
+        self.left_panel.addWidget(self.launch_button)
+        self.left_panel.addWidget(self.mfpt_label)
+        self.left_panel.addWidget(self.output_display)
+
+        self.png_preview_widget = output_display_widget.PNGPreviewWidget()
+        self.right_panel.addWidget(self.png_preview_widget)
+        # self.layout.addWidget(self.png_preview_widget)
+        self.png_preview_widget.hide()
 
         self.output_files_widget = output_display_widget.OutputFilesWidget()
-        self.layout.addWidget(self.output_files_widget)
+        self.right_panel.addWidget(self.output_files_widget)
         self.output_files_widget.hide()
+
+        self.main_layout.addWidget(self.output_files_widget)
 
         # Initialize parameter fields
         self.update_parameter_fields(self.comp_select.currentText())
+
+        self.restored_label = QLabel("")
+        self.restored_label.setStyleSheet("Color: blue; font-weight: bold;")
+        self.restored_label.hide()
+        self.main_layout.insertWidget(2, self.restored_label)
 
     def update_parameter_fields(self, computation_name):
         # Clear previous inputs
@@ -144,8 +163,11 @@ class ControlPanel(QWidget):
                 if csv_paths or png_paths:
                     self.output_files_widget.update_display(csv_paths, png_paths)
                     self.output_files_widget.show()
+                    self.png_preview_widget.update_png_list(png_paths)
+                    self.png_preview_widget.show()
                 else:
                     self.output_files_widget.hide()
+                    self.png_preview_widget.hide()
             else:
                 self.output_files_widget.hide()
 
@@ -181,5 +203,21 @@ class ControlPanel(QWidget):
         # Update output files
         self.output_files_widget.update_display(entry.csv_files or [], entry.png_files or [])
         self.output_files_widget.show()
+
+    def set_computation(self, computation_name):
+        self.comp_select.setCurrentText(computation_name)
+        self.update_parameter_fields(computation_name)
+
+    def set_parameters(self, params: dict):
+        for key, val in params.items():
+            if key in self.param_inputs:
+                self.param_inputs[key].setText(str(val))
+
+    def show_restored_message(self, record):
+        label_text = f"Restored: {record.comp_type} ({record.timestamp})"
+        self.restored_label.setText(label_text)
+        self.restored_label.show()
+
+
 
 

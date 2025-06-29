@@ -29,3 +29,5 @@ mass_analysis_advective_over_initial = Path("data_output/mass_analysis_results/a
 
 rect_logs = Path("data_output/output_logs")
 
+
+styles_location = Path("gui_components/style.qss")
