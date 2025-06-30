@@ -2,6 +2,7 @@ import pandas as pd
 
 from . import plt, os, np, datetime, cm, BoundaryNorm, Normalize, fp, ant, sup, tb, exc
 from matplotlib.patches import Polygon
+from matplotlib.collections import LineCollection
 import time
 import math
 
@@ -255,3 +256,130 @@ def produce_heatmap_tool_rect(diffusive_layer, diffusive_layer_center, toggle_bo
     if show_plot:
         plt.show()
     plt.close()
+
+
+def display_domain_grid(rings, rays, microtubules, d_tube, r=1, display_extract=True, toggle_border=True):
+
+    j_max_list = []
+
+    j_max_lim = sup.j_max_bef_overlap(rings, microtubules)
+    max_d_tube = sup.solve_d_rect(r, rings, rays, j_max_lim, 0)
+
+    microtubules = list(np.unique(microtubules))
+
+    while d_tube < 0 or d_tube > max_d_tube:
+        d_tube = float(
+            input(f"Select d_tube within the range: [0, {max_d_tube}] to avoid DL extraction region overlap: "))
+
+    d_radius = r / rings
+    d_theta = ((2 * math.pi) / rays)
+
+    for m in range(rings):
+        j_max = math.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
+        j_max_list.append(j_max)
+
+    return build_domain_grid(rings, rays, j_max_list, microtubules, display_extract, toggle_border)
+
+
+def build_domain_grid(rings, rays, boundary_of_extraction_list=None,
+                      extraction_angle_list=None, display_extraction=False, toggle_border=True):
+    assert isinstance(rings, int) and rings > 0
+    assert isinstance(rays, int) and rays > 0
+    assert (not display_extraction) or (
+        boundary_of_extraction_list is not None
+        and extraction_angle_list is not None
+        and len(boundary_of_extraction_list) == rings
+    )
+
+    # +1 for including center, +1 for boundary edge
+    r = np.linspace(0, 1, rings + 2)
+    theta = np.linspace(0, 2 * np.pi, rays + 1)
+    R, Theta = np.meshgrid(r, theta)
+    X, Y = R * np.cos(Theta), R * np.sin(Theta)
+
+    fig, ax = plt.subplots(figsize=(8, 8), subplot_kw={'aspect': 'equal'})
+
+    ax.set_title(f"Discretized polar grid preview: {rings}x{rays} N={len(extraction_angle_list)}")
+
+    # Base greyscale grid (used only as placeholder shading)
+    C = np.zeros((theta.shape[0]-1, r.shape[0]-1))
+
+    if toggle_border:
+        pcm = ax.pcolormesh(X, Y, C, shading='flat', cmap='Greys', edgecolors='k', linewidth=0.1)
+    else:
+        pcm = ax.pcolormesh(X, Y, C, shading='flat', cmap='Greys', edgecolors='k', linewidth=0)
+
+    center_radius = r[1]
+    # center_circle = plt.Circle((0, 0), radius=(center_radius - 0.0004), color='white', zorder=10)
+    center_circle = plt.Circle(
+        (0, 0),
+        center_radius,
+        facecolor='white',
+        edgecolor='black',  # Border color
+        linewidth=1.2,  # Border thickness
+        zorder=10  # Ensure it overlays everything
+    )
+    ax.add_patch(center_circle)
+
+    ax.axis('off')
+
+    # Red outer boundary edges (absorbing boundary)
+    for i in range(rays):
+        t1, t2 = theta[i], theta[i + 1]
+        r1, r2 = r[-2], r[-1]
+        verts = [
+            (r1 * np.cos(t1), r1 * np.sin(t1)),
+            (r2 * np.cos(t1), r2 * np.sin(t1)),
+            (r2 * np.cos(t2), r2 * np.sin(t2)),
+            (r1 * np.cos(t2), r1 * np.sin(t2))
+        ]
+        patch = Polygon(verts, closed=True, facecolor='none', edgecolor='red', linewidth=1.5)
+        ax.add_patch(patch)
+
+    # Extraction overlays (only until before absorbing ring)
+    if display_extraction:
+        overlay_color = (0.6, 0.2, 0.2, 0.3)
+        for ring_idx in range(rings - 1):  # exclude last ring (absorbing)
+            angular_spread = boundary_of_extraction_list[ring_idx]
+            r1, r2 = r[ring_idx + 1], r[ring_idx + 2]
+            for angle_center in extraction_angle_list:
+                for offset in range(-angular_spread, angular_spread + 1):
+                    angle_idx = (angle_center + offset) % rays
+                    t1 = theta[angle_idx]
+                    t2 = theta[(angle_idx + 1) % rays]
+                    verts = [
+                        (r1 * np.cos(t1), r1 * np.sin(t1)),
+                        (r2 * np.cos(t1), r2 * np.sin(t1)),
+                        (r2 * np.cos(t2), r2 * np.sin(t2)),
+                        (r1 * np.cos(t2), r1 * np.sin(t2))
+                    ]
+                    patch = Polygon(verts, closed=True, facecolor=overlay_color,
+                                    edgecolor='black', linewidth=0.8)
+                    ax.add_patch(patch)
+
+    # Microtubules (green radial lines at specified angular indices)
+    for angle_idx in extraction_angle_list or []:
+        # angle = 0.5 * (theta[angle_idx] + theta[(angle_idx + 1) % rays])  # center of conic region
+
+        r_start = r[1]
+        r_end = r[-2]  # last valid ring before absorbing boundary
+
+        angle = 0.5 * (theta[angle_idx] + theta[(angle_idx + 1) % rays])  # center of conic region
+        x1, y1 = r_start * np.cos(angle), r_start * np.sin(angle)
+
+        # Get angular endpoints of the conic wedge
+        t1 = theta[angle_idx]
+        t2 = theta[(angle_idx + 1) % rays]
+
+        # Compute the *polygonal* endpoints of the absorbing ring arc
+        xA, yA = r_end * np.cos(t1), r_end * np.sin(t1)
+        xB, yB = r_end * np.cos(t2), r_end * np.sin(t2)
+
+        # Take the midpoint between those endpoints — this lies *on the polygonal arc*
+        x2, y2 = 0.5 * (xA + xB), 0.5 * (yA + yB)
+
+        ax.plot([x1, x2], [y1, y2], color='green', linewidth=3)
+
+    plt.tight_layout()
+    # plt.show()
+    return fig

@@ -1,7 +1,10 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton, QFormLayout,
-    QLineEdit, QMessageBox, QCheckBox, QTextEdit
+    QLineEdit, QMessageBox, QCheckBox, QTextEdit, QGroupBox, QSpinBox, QDoubleSpinBox,
+    QSizePolicy
 )
+
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from PyQt5.QtGui import QColor, QPalette
 from PyQt5.QtCore import Qt
@@ -14,23 +17,88 @@ from . import aux_gui_funcs
 
 from . import computation_history_entry
 from . import history_cache
+from . import ani
+
+import ast
+
+import matplotlib.pyplot as plt
 
 
 class ControlPanel(QWidget):
-    def __init__(self, history_dropdown, main_window, parent=None):
+    def __init__(self, main_window, parent=None):
         super().__init__(parent)
-        self.history_dropdown = history_dropdown
         self.main_window = main_window
 
         self.main_layout = QHBoxLayout()
         self.setLayout(self.main_layout)
         self.left_panel = QVBoxLayout()
-        self.main_layout.addLayout(self.left_panel)
 
-        self.left_panel = QVBoxLayout()
+        # Domain display
+
+        # checkbox_group = QGroupBox("Domain Grid Options")
+
+        title_label = QLabel("Domain Grid Options")
+        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setStyleSheet("font-weight: bold;")
+
+        checkbox_group = QGroupBox()
+        checkbox_layout = QVBoxLayout()
+        checkbox_layout.setContentsMargins(10, 15, 10, 10)
+
+        checkbox_layout.addWidget(title_label)
+
+        self.display_extract_checkbox = QCheckBox("Display Extraction Region")
+        self.toggle_border_checkbox = QCheckBox("Display Internal Borders")
+        self.toggle_border_checkbox.setChecked(True)
+
+        checkbox_layout.addWidget(self.display_extract_checkbox)
+        checkbox_layout.addWidget(self.toggle_border_checkbox)
+
+        checkbox_layout.addSpacing(15)
+
+        # Now add the buttons below the checkboxes, in the same layout
+        self.display_domain_button = QPushButton("Preview Domain")
+        self.display_domain_button.clicked.connect(self.handle_display_domain)
+        checkbox_layout.addWidget(self.display_domain_button)
+
+        self.close_domain_button = QPushButton("Close Domain")
+        self.close_domain_button.clicked.connect(self.close_domain)
+        self.close_domain_button.hide()
+        checkbox_layout.addWidget(self.close_domain_button)
+
+        checkbox_group.setLayout(checkbox_layout)
+
+        # Add the whole group box (checkbox + buttons) to the left panel
+        self.left_panel.addWidget(checkbox_group)
+
+        # History management
+
+        self.history_dropdown = QComboBox()
+        self.history_dropdown.addItem("Select Previous Computation: ")
+        self.history_dropdown.currentIndexChanged.connect(self.load_history_entry)
+        self.left_panel.addWidget(self.history_dropdown)
+
+        for label in history_cache.cache.get_labels():
+            self.history_dropdown.addItem(label)
+
+        self.reset_params_button = QPushButton("Reset Parameters")
+        self.reset_params_button.clicked.connect(self.clear_parameter_fields)
+        self.left_panel.addWidget(self.reset_params_button)
+
+        self.clear_button = QPushButton("Clear History")
+        self.clear_button.clicked.connect(self.clear_history)
+        self.left_panel.addWidget(self.clear_button)
+
         self.right_panel = QVBoxLayout()
+
         self.main_layout.addLayout(self.left_panel, stretch=2)
         self.main_layout.addLayout(self.right_panel, stretch=3)
+
+        # Clearing outputs
+
+        self.clear_output_button = QPushButton("Clear Outputs")
+        self.clear_output_button.clicked.connect(self.clear_displayed_results)
+        self.left_panel.addWidget(self.clear_output_button)
 
         # Dropdown to select computation
         self.comp_label = QLabel("Select Computation:")
@@ -78,15 +146,20 @@ class ControlPanel(QWidget):
         self.right_panel.addWidget(self.output_files_widget)
         self.output_files_widget.hide()
 
-        self.main_layout.addWidget(self.output_files_widget)
+        self.restored_label = QLabel("")
+        self.restored_label.setStyleSheet("Color: blue; font-weight: bold;")
+        self.restored_label.hide()
+
+        self.right_panel.addWidget(self.restored_label, alignment=Qt.AlignRight)
+        self.plot_layout = QVBoxLayout()
+        self.right_panel.addLayout(self.plot_layout)
+        self.right_panel.addStretch()
 
         # Initialize parameter fields
         self.update_parameter_fields(self.comp_select.currentText())
 
-        self.restored_label = QLabel("")
-        self.restored_label.setStyleSheet("Color: blue; font-weight: bold;")
-        self.restored_label.hide()
-        self.main_layout.insertWidget(2, self.restored_label)
+        # real time update of domain preview relative to updates of the microtubules
+        # self.param_inputs["N_param"].textChanged.connect(self.update_microtubules_live)
 
     def update_parameter_fields(self, computation_name):
         # Clear previous inputs
@@ -218,6 +291,153 @@ class ControlPanel(QWidget):
         self.restored_label.setText(label_text)
         self.restored_label.show()
 
+    def clear_history(self):
+        reply = QMessageBox.question(
+            self,
+            "Confirm Clear",
+            "Are you sure you want to delete all saved history?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        if reply == QMessageBox.Yes:
+            history_cache.cache.clear()
+            self.history_dropdown.clear()
+            self.history_dropdown.addItem("Select Previous Computation: ")
+            self.clear_displayed_results()
+            self.clear_parameter_fields()
 
+    def clear_parameter_fields(self):
+        self.update_parameter_fields(self.comp_select.currentText())
+        self.mfpt_label.setText("MFPT: ")
+        self.output_display.clear()
+
+    def clear_displayed_results(self):
+        self.output_files_widget.hide()
+        self.png_preview_widget.hide()
+        self.restored_label.hide()
+        # self.png_preview_widget.update_png_list()
+
+    def load_history_entry(self, index):
+        if index == 0:
+            return  # Ignore placeholder
+
+        entry = history_cache.cache.get_entry(index - 1)
+        if not entry:
+            return
+
+        self.set_computation(entry.comp_type)
+        self.set_parameters(entry.params)
+
+        if entry.mfpt is not None:
+            self.mfpt_label.setText(f"MFPT: {entry.mfpt:.6f}")
+        if entry.duration is not None:
+            self.duration_label.setText(f"Duration: {entry.duration:.6f} seconds")
+            self.duration_label.show()
+        else:
+            self.duration_label.hide()
+
+        self.output_files_widget.update_display(entry.csv_files or [], entry.png_files or [])
+        self.output_files_widget.show()
+
+        self.show_restored_message(entry)
+        self.png_preview_widget.update_png_list(entry.png_files or [])
+        self.png_preview_widget.show()
+
+    def handle_display_domain(self):
+
+        try:
+            plt.close('all')
+
+            rings = int(self.param_inputs["rg_param"].text())
+            rays = int(self.param_inputs["ry_param"].text())
+            d_tube = float(self.param_inputs["d_tube"].text())
+
+            try:
+                microtubules_input = self.param_inputs["N_param"].text()
+                parsed = ast.literal_eval(microtubules_input)
+                microtubules = list(parsed) if isinstance(parsed, (list, tuple)) else [int(parsed)]
+            except (ValueError, SyntaxError):
+                print("[Error] Invalid microtubule input. Please enter a list like [0,1,2] or comma-separated values.")
+                microtubules = []
+
+            display_extract = self.display_extract_checkbox.isChecked()
+            toggle_border = self.toggle_border_checkbox.isChecked()
+
+            fig = ani.display_domain_grid(
+                rings=rings,
+                rays=rays,
+                microtubules=microtubules,
+                d_tube=d_tube,
+                display_extract=display_extract,
+                toggle_border=toggle_border
+            )
+
+            self.display_matplotlib_figure(fig)
+
+            self.close_domain_button.show()
+            self.display_domain_button.setText("Update Domain")
+
+            # self.close_domain_button.show()
+        except Exception as e:
+            print(f"[Error] Failed to display domain grid: {e}")
+
+    def close_domain(self):
+        if hasattr(self, "plot_layout"):
+            for i in reversed(range(self.plot_layout.count())):
+                widget = self.plot_layout.itemAt(i).widget()
+                if widget is not None:
+                    widget.setParent(None)
+
+        self.close_domain_button.hide()
+        self.display_domain_button.setText("Display Domain")
+    def display_matplotlib_figure(self, fig):
+        for i in reversed(range(self.plot_layout.count())):
+            widget_to_remove = self.plot_layout.itemAt(i).widget()
+            if widget_to_remove is not None:
+                widget_to_remove.setParent(None)
+                widget_to_remove.deleteLater()
+        canvas = FigureCanvas(fig)
+        canvas.setParent(self)
+
+        canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        canvas.updateGeometry()
+
+        self.plot_layout.addWidget(canvas)
+        canvas.draw()
+        canvas.show()
+
+    # def update_microtubules_live(self):
+    #     try:
+    #         plt.close('all')
+    #
+    #         rings = int(self.param_inputs["rg_param"].text())
+    #         rays = int(self.param_inputs["ry_param"].text())
+    #         d_tube = float(self.param_inputs["d_tube"].text())
+    #
+    #         microtubules_text = self.param_inputs["N_param"].text()
+    #         cleaned = ''.join(c for c in microtubules_text if c.isdigit() or c in [','])
+    #         candidate_strs = cleaned.split(',')
+    #         microtubules = []
+    #
+    #         for val in candidate_strs:
+    #             if val.strip().isdigit():
+    #                 v = int(val.strip())
+    #                 if 0 <= v < rays:
+    #                     microtubules.append(v)
+    #                 else:
+    #                     print(f"[Warning] Microtubule index {v} is out of range [0, {rays-1}]")
+    #
+    #         display_extract = self.display_extract_checkbox.isChecked()
+    #         toggle_border = self.toggle_border_checkout.isChecked()
+    #
+    #         ani.display_domain_grid(
+    #             rings=rings,
+    #             rays=rays,
+    #             microtubules=microtubules,
+    #             d_tube=d_tube,
+    #             display_extract=display_extract,
+    #             toggle_border=toggle_border
+    #         )
+    #     except Exception as e:
+    #         print(f"[Live Update Error] Could not update microtubules: {e}")
 
 
