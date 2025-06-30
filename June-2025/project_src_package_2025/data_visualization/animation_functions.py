@@ -278,18 +278,18 @@ def display_domain_grid(rings, rays, microtubules, d_tube, r=1, display_extract=
         j_max = math.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
         j_max_list.append(j_max)
 
-    return build_domain_grid(rings, rays, j_max_list, microtubules, display_extract, toggle_border)
+    return build_domain_grid(rings, rays, j_max_list, microtubules, display_extract, toggle_border, max_d_tube)
 
 
 def build_domain_grid(rings, rays, boundary_of_extraction_list=None,
-                      extraction_angle_list=None, display_extraction=False, toggle_border=True):
+                      extraction_angle_list=None, display_extraction=False, toggle_border=True, d_sup=0):
+
     assert isinstance(rings, int) and rings > 0
     assert isinstance(rays, int) and rays > 0
     assert (not display_extraction) or (
         boundary_of_extraction_list is not None
         and extraction_angle_list is not None
-        and len(boundary_of_extraction_list) == rings
-    )
+        and len(boundary_of_extraction_list) == rings)
 
     # +1 for including center, +1 for boundary edge
     r = np.linspace(0, 1, rings + 2)
@@ -299,7 +299,7 @@ def build_domain_grid(rings, rays, boundary_of_extraction_list=None,
 
     fig, ax = plt.subplots(figsize=(8, 8), subplot_kw={'aspect': 'equal'})
 
-    ax.set_title(f"Discretized polar grid preview: {rings}x{rays} N={len(extraction_angle_list)}")
+    ax.set_title(f"Discretized Polar Grid Preview: {rings}x{rays} N={len(extraction_angle_list)} d_sup={d_sup:.5f}")
 
     # Base greyscale grid (used only as placeholder shading)
     C = np.zeros((theta.shape[0]-1, r.shape[0]-1))
