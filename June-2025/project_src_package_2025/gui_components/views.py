@@ -8,6 +8,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from PyQt5.QtGui import QColor, QPalette
 from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QEvent
 
 from . import parmas_config
 from . import controller
@@ -157,6 +158,8 @@ class ControlPanel(QWidget):
 
         # Initialize parameter fields
         self.update_parameter_fields(self.comp_select.currentText())
+        for line_edit in self.param_inputs.values():
+            line_edit.installEventFilter(self)
 
         # real time update of domain preview relative to updates of the microtubules
         # self.param_inputs["N_param"].textChanged.connect(self.update_microtubules_live)
@@ -404,6 +407,22 @@ class ControlPanel(QWidget):
         self.plot_layout.addWidget(canvas)
         canvas.draw()
         canvas.show()
+
+    def eventFilter(self, source, event):
+        if event.type() == QEvent.KeyPress:
+            if isinstance(source, QLineEdit):
+                keys = list(self.param_inputs.values())
+                idx = keys.index(source)
+
+                if event.key() == Qt.Key_Up:
+                    prev_idx = (idx - 1) % len(keys)
+                    keys[prev_idx].setFocus()
+                    return True
+                elif event.key() == Qt.Key_Down:
+                    next_idx = (idx + 1) % len(keys)
+                    keys[next_idx].setFocus()
+                    return True
+        return super().eventFilter(source, event)
 
     # def update_microtubules_live(self):
     #     try:

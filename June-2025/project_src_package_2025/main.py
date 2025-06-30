@@ -22,17 +22,6 @@ from project_src_package_2025.gui_components import main_gui as gui
 def run_main():
 
     gui.run_app()
-    # ani.display_domain_grid(32, 32, [0, 8, 16, 24], 0,
-    #                         toggle_border=True)
-
-
-    # 16x16
-    # 0.3009290248430992    original transfer
-    # 0.3009290248430992    new transfer
-
-    # 32x32
-    # 0.27894174382314735   original transfer
-    # 0.27894174382314735   new transfer
 
 
 if __name__ == "__main__":
@@ -60,3 +49,14 @@ if __name__ == "__main__":
         tee = Tee(sys.stdout, f)
         with redirect_stdout(tee):
             run_main()
+
+    # ani.display_domain_grid(32, 32, [0, 8, 16, 24], 0,
+    #                         toggle_border=True)
+
+    # 16x16
+    # 0.3009290248430992    original transfer
+    # 0.3009290248430992    new transfer
+
+    # 32x32
+    # 0.27894174382314735   original transfer
+    # 0.27894174382314735   new transfer
