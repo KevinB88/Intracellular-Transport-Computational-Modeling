@@ -17,11 +17,20 @@ from computational_tools import time_analysis as tim
 from time import perf_counter
 
 from project_src_package_2025.gui_components import main_gui as gui
+from project_src_package_2025.data_visualization import ani_evolution as evo
 
 
 def run_main():
 
-    gui.run_app()
+    rg_param = 32
+    ry_param = 32
+    N_param = [0, 8, 16, 24]
+    v_param = -1
+    w_param = 0.1
+    T_param = 5
+
+    # gui.run_app()
+    evo.run_realtime_simulation(rg_param, ry_param, w_param, v_param, N_param, 1000)
 
 
 if __name__ == "__main__":
