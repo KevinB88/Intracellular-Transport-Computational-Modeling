@@ -1,0 +1,44 @@
+#     # Meshgrid for polar plotting
+#     r = np.linspace(0, 1, rings + 1)
+#     theta = np.linspace(0, 2 * np.pi, rays + 1)
+#     R, Theta = np.meshgrid(r, theta)
+#     X, Y = R * np.cos(Theta), R * np.sin(Theta)
+#
+#     # Plot setup
+#     fig, ax = plt.subplots(subplot_kw={'projection': None}, figsize=(8, 8))
+#     cmap = cm.get_cmap(color_scheme, 512)
+#
+#     # Initial heatmap (we will replace this each frame)
+#     mesh = ax.pcolormesh(X, Y, full_diffusive_layer.T, shading='flat', cmap=cmap)
+#
+#     # Data prep
+#     diff_layer = np.zeros((K_param, rg_param, ry_param), dtype=np.float64)
+#     adv_layer = np.zeros((K_param, rg_param, ry_param), dtype=np.float64)
+#     center = np.zeros(K_param, dtype=np.float64)
+#
+#     diff, adv, center = collect_stamps_for_animation(
+#         rg_param, ry_param, w_param, w_param,
+#         v_param, N_param, diff_layer, adv_layer, center, K_param
+#     )
+#
+#     # Animation update function
+#     def update(frame):
+#         nonlocal mesh  # so we can replace it
+#
+#         i = frame * steps_per_frame
+#         if i >= len(diff):
+#             return []
+#
+#         diffusive_center = np.full((1, ry_param), center[i])
+#         full_diffusive_layer = np.vstack([diffusive_center, diff[i]])  # (rg_param+1, ry_param)
+#
+#         # Remove old mesh
+#         mesh.remove()
+#
+#         # Redraw updated mesh
+#         mesh_data = full_diffusive_layer.T  # (ry_param, rg_param+1)
+#         mesh = ax.pcolormesh(X, Y, mesh_data, shading='flat', cmap=cmap)
+#
+
+#
+#         return [mesh]

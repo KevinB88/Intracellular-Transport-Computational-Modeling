@@ -25,12 +25,13 @@ def run_main():
     rg_param = 32
     ry_param = 32
     N_param = [0, 8, 16, 24]
-    v_param = -1
-    w_param = 0.1
-    T_param = 5
+    v_param = -10
+    w_param = 10**1
+    T_param = 0.1
+    K_param = 10**3
 
-    # gui.run_app()
-    evo.run_realtime_simulation(rg_param, ry_param, w_param, v_param, N_param, 1000)
+    gui.run_app()
+    # evo.run_realtime_simulation(rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, steps_per_frame=50)
 
 
 if __name__ == "__main__":
