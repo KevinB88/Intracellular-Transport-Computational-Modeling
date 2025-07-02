@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton, QFormLayout,
     QLineEdit, QMessageBox, QCheckBox, QTextEdit, QGroupBox, QSpinBox, QDoubleSpinBox,
-    QSizePolicy
+    QSizePolicy, QSlider, QStackedWidget
 )
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -19,7 +19,9 @@ from . import aux_gui_funcs
 from . import computation_history_entry
 from . import history_cache
 from . import ani
+from . import evo
 
+import re
 import ast
 
 import matplotlib.pyplot as plt
@@ -28,49 +30,21 @@ import matplotlib.pyplot as plt
 class ControlPanel(QWidget):
     def __init__(self, main_window, parent=None):
         super().__init__(parent)
+        self.current_canvas = None
         self.main_window = main_window
 
         self.main_layout = QHBoxLayout()
         self.setLayout(self.main_layout)
         self.left_panel = QVBoxLayout()
 
-        # Domain display
+        # Parameter form
+        self.param_form = QFormLayout()
+        self.param_inputs = {}
 
-        # checkbox_group = QGroupBox("Domain Grid Options")
-
-        title_label = QLabel("Domain Grid Options")
-        title_label.setAlignment(Qt.AlignCenter)
-        title_label.setStyleSheet("font-weight: bold;")
-
-        checkbox_group = QGroupBox()
-        checkbox_layout = QVBoxLayout()
-        checkbox_layout.setContentsMargins(10, 15, 10, 10)
-
-        checkbox_layout.addWidget(title_label)
-
-        self.display_extract_checkbox = QCheckBox("Display Extraction Region")
-        self.toggle_border_checkbox = QCheckBox("Display Internal Borders")
-        self.toggle_border_checkbox.setChecked(True)
-
-        checkbox_layout.addWidget(self.display_extract_checkbox)
-        checkbox_layout.addWidget(self.toggle_border_checkbox)
-
-        checkbox_layout.addSpacing(15)
-
-        # Now add the buttons below the checkboxes, in the same layout
-        self.display_domain_button = QPushButton("Preview Domain")
-        self.display_domain_button.clicked.connect(self.handle_display_domain)
-        checkbox_layout.addWidget(self.display_domain_button)
-
-        self.close_domain_button = QPushButton("Close Domain")
-        self.close_domain_button.clicked.connect(self.close_domain)
-        self.close_domain_button.hide()
-        checkbox_layout.addWidget(self.close_domain_button)
-
-        checkbox_group.setLayout(checkbox_layout)
-
-        # Add the whole group box (checkbox + buttons) to the left panel
-        self.left_panel.addWidget(checkbox_group)
+        # Advanced toggle
+        self.advanced_toggle = QCheckBox("Show Advanced Parameters")
+        self.advanced_toggle.stateChanged.connect(self.toggle_advanced_fields)
+        self.advanced_widgets = []
 
         # History management
 
@@ -106,15 +80,6 @@ class ControlPanel(QWidget):
         self.comp_select = QComboBox()
         self.comp_select.addItems(parmas_config.PARAMETER_SCHEMAS.keys())
         self.comp_select.currentTextChanged.connect(self.update_parameter_fields)
-
-        # Parameter form
-        self.param_form = QFormLayout()
-        self.param_inputs = {}
-
-        # Advanced toggle
-        self.advanced_toggle = QCheckBox("Show Advanced Parameters")
-        self.advanced_toggle.stateChanged.connect(self.toggle_advanced_fields)
-        self.advanced_widgets = []
 
         # Output display for MFPT and other information
         self.output_display = QTextEdit()
@@ -163,6 +128,227 @@ class ControlPanel(QWidget):
 
         # real time update of domain preview relative to updates of the microtubules
         # self.param_inputs["N_param"].textChanged.connect(self.update_microtubules_live)
+
+        # --- Visualization Dropdown Group ---
+
+        viz_group = QGroupBox()
+        viz_layout = QVBoxLayout()
+        viz_group.setLayout(viz_layout)
+
+        viz_label = QLabel("Select Visualization: ")
+        viz_label.setStyleSheet("font-weight: bold;")
+        self.visualization_select = QComboBox()
+        self.visualization_select.addItems(["Show Domain", "Animate Diffusion"])
+        self.visualization_select.currentTextChanged.connect(self.handle_visualization_mode_change)
+
+        viz_layout.addWidget(viz_label)
+        viz_layout.addWidget(self.visualization_select)
+
+        self.left_panel.addWidget(viz_group)
+
+        self.visualization_mode = "Show Domain"
+
+        # --- Domain Visualization UI Group ---
+        self.domain_checkbox_group = QGroupBox("Domain Grid Options")
+        self.domain_checkbox_group.setStyleSheet("font-weight: bold;")
+
+        checkbox_layout = QVBoxLayout()
+        checkbox_layout.setContentsMargins(10, 15, 10, 10)
+
+        self.display_extract_checkbox = QCheckBox("Display Extraction Region")
+        self.toggle_border_checkbox = QCheckBox("Display Internal Borders")
+        self.toggle_border_checkbox.setChecked(True)
+
+        checkbox_layout.addWidget(self.display_extract_checkbox)
+        checkbox_layout.addWidget(self.toggle_border_checkbox)
+
+        checkbox_layout.addSpacing(20)
+
+        self.display_domain_button = QPushButton("Preview Domain")
+        self.display_domain_button.clicked.connect(self.handle_display_domain)
+
+        self.close_domain_button = QPushButton("Close Domain")
+        self.close_domain_button.clicked.connect(self.close_domain)
+        self.close_domain_button.hide()
+
+        checkbox_layout.addWidget(self.display_domain_button)
+        checkbox_layout.addWidget(self.close_domain_button)
+
+        self.domain_checkbox_group.setLayout(checkbox_layout)
+
+        # Add this group to the left panel
+        self.left_panel.addWidget(self.domain_checkbox_group)
+
+        # --- Animation Mode UI ---
+        self.animation_controls_group = QGroupBox("Animation Controls")
+        self.animation_controls_group.setVisible(False)
+        anim_layout = QVBoxLayout()
+
+        # Steps per frame slider
+        self.steps_slider = QSlider(Qt.Horizontal)
+        self.steps_slider.setMinimum(1)
+        self.steps_slider.setMaximum(150)
+        self.steps_slider.setValue(10)
+        self.steps_slider.setTickInterval(10)
+        self.steps_slider.setTickPosition(QSlider.TicksBelow)
+
+        self.steps_label = QLabel("Steps per Frame: 10")
+        self.steps_slider.valueChanged.connect(
+            lambda val: self.steps_label.setText(f"Steps per Frame: {val}")
+        )
+
+        # Interval ms slider
+        self.interval_slider = QSlider(Qt.Horizontal)
+        self.interval_slider.setMinimum(5)
+        self.interval_slider.setMaximum(100)
+        self.interval_slider.setValue(20)
+        self.interval_slider.setTickInterval(5)
+        self.interval_slider.setTickPosition(QSlider.TicksBelow)
+
+        self.interval_label = QLabel("Interval (ms): 20")
+        self.interval_slider.valueChanged.connect(
+            lambda val: self.interval_label.setText(f"Interval (ms) : {val}")
+        )
+
+        # Launch button
+
+        self.launch_animation_button = QPushButton("Launch Animation")
+        self.launch_animation_button.setEnabled(False)
+        self.launch_animation_button.setStyleSheet("background-color : lightgray")
+
+        # Connect all relevant QLineEdit fields to validation
+        for key in ["rg_param", "ry_param", "w_param", "v_param", "N_param", "T_param", "d_tube"]:
+            if key in self.param_inputs:
+                self.param_inputs[key].textChanged.connect(self.validate_animation)
+
+        self.launch_animation_button.clicked.connect(self.handle_launch_animation)
+
+        # Animation evolution display
+        self.visualization_area = QStackedWidget()
+        self.visualization_area.setMinimumSize(600, 600)
+        self.right_panel.addWidget(self.visualization_area)
+
+        # Animation evolution buttons
+
+        self.pause_button = QPushButton("Pause")
+        self.pause_button.setEnabled(True)
+        self.pause_button.clicked.connect(self.pause_animation)
+
+        self.clear_button = QPushButton("Clear Animation")
+        self.clear_button.setEnabled(True)
+        self.clear_button.clicked.connect(self.clear_animation)
+
+        anim_layout.addWidget(self.pause_button)
+        anim_layout.addWidget(self.clear_button)
+
+        # add to layout
+        anim_layout.addWidget(self.steps_label)
+        anim_layout.addWidget(self.steps_slider)
+        anim_layout.addSpacing(10)
+        anim_layout.addWidget(self.interval_label)
+        anim_layout.addWidget(self.interval_slider)
+        anim_layout.addSpacing(10)
+        anim_layout.addWidget(self.launch_animation_button)
+
+        self.animation_controls_group.setLayout(anim_layout)
+        self.left_panel.addWidget(self.animation_controls_group)
+
+    def pause_animation(self):
+        canvas = self.current_canvas
+        if not hasattr(canvas, 'ani') or canvas.ani is None:
+            return
+
+        if canvas.ani_paused:
+            canvas.ani.event_source.start()
+            canvas.ani_paused = False
+            self.pause_button.setText("Pause Animation")
+        else:
+            canvas.ani.event_source.stop()
+            canvas.ani_paused = True
+            self.pause_button.setText("Resume Animation")
+
+    def clear_animation(self):
+        canvas = self.current_canvas
+        if canvas is not None:
+            # Stop animation
+            if hasattr(canvas, 'ani') and canvas.ani is not None:
+                canvas.ani.event_source.stop()
+                canvas.ani = None
+
+            # Remove canvas from layout
+            self.right_panel.removeWidget(canvas)
+            canvas.setParent(None)
+
+            # Clean up reference
+            self.current_canvas= None
+
+    def handle_launch_animation(self):
+        try:
+            rg = int(self.param_inputs["rg_param"].text())
+            ry = int(self.param_inputs["ry_param"].text())
+            w = float(self.param_inputs["w_param"].text())
+            v = float(self.param_inputs["v_param"].text())
+            N_raw = self.param_inputs["N_param"].text()
+            N = list(map(int, re.findall(r'\d+', N_raw))) if N_raw else []
+            T = float(self.param_inputs["T_param"].text())
+            d_tube = float(self .param_inputs["d_tube"].text())
+
+            steps_per_frame = self.steps_slider.value()
+            interval_ms = self.interval_slider.value()
+            K_param = 1000
+            color_scheme = 'viridis'
+            canvas = evo.animate_diffusion(rg, ry, w, v, N, K_param,
+                                  T, d_tube, steps_per_frame=steps_per_frame,
+                                  interval_ms=interval_ms,
+                                  color_scheme=color_scheme)
+            if hasattr(self, 'current_canvas') and self.current_canvas:
+                self.visualization_area.removeWidget(self.current_canvas)
+                self.current_canvas.setParent(None)
+
+            self.current_canvas = canvas
+            self.visualization_area.addWidget(canvas)
+            self.visualization_area.setCurrentWidget(canvas)
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to launch animation: \n{str(e)}")
+
+    def handle_visualization_mode_change(self, mode):
+        self.visualization_mode = mode
+
+        if mode == "Show Domain":
+            self.show_domain_ui()
+        elif mode == "Animate Diffusion":
+            self.show_animation_ui()
+
+    def show_domain_ui(self):
+        self.domain_checkbox_group.show()
+        self.display_domain_button.show()
+        self.close_domain_button.show()
+
+        self.animation_controls_group.hide()
+
+    def show_animation_ui(self):
+        self.domain_checkbox_group.hide()
+        self.display_domain_button.hide()
+        self.close_domain_button.hide()
+
+        self.animation_controls_group.show()
+        self.validate_animation()
+
+    def validate_animation(self):
+        required_keys = ["rg_param", "ry_param", "w_param", "v_param",
+                         "N_param", "T_param", "d_tube"]
+        inputs_filled = all(
+            key in self.param_inputs and self.param_inputs[key].text().strip() != ""
+            for key in required_keys
+        )
+
+        if inputs_filled:
+            self.launch_animation_button.setEnabled(True)
+            self.launch_animation_button.setStyleSheet("background-color: lightgreen")
+        else:
+            self.launch_animation_button.setEnabled(False)
+            self.launch_animation_button.setStyleSheet("background-color: lightgray")
 
     def update_parameter_fields(self, computation_name):
         # Clear previous inputs
@@ -392,6 +578,7 @@ class ControlPanel(QWidget):
 
         self.close_domain_button.hide()
         self.display_domain_button.setText("Display Domain")
+
     def display_matplotlib_figure(self, fig):
         for i in reversed(range(self.plot_layout.count())):
             widget_to_remove = self.plot_layout.itemAt(i).widget()

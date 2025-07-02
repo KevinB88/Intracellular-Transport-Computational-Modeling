@@ -1,20 +1,36 @@
+import matplotlib
+
 from . import np
 from . import sup
 from . import num
 from . import plt
 from . import njit
 from matplotlib.animation import FuncAnimation
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.patches import Circle
 from matplotlib import cm
 from matplotlib.colors import Normalize
 from . import sys
 from time import perf_counter
+import tkinter as tk
 
 ENABLE_JIT = sys.ENABLE_NJIT
 
+GLOBAL_ani = None
+GLOBAL_fig = None
+
+
+def get_screen_size():
+    root = tk.Tk()
+    root.withdraw()
+    width = root.winfo_screenwidth()
+    height = root.winfo_screenheight()
+    root.destroy()
+    return width, height
+
 
 class BatchManager:
-    def __init__(self, rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, r=1, d=1):
+    def __init__(self, rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, d_tube, r=1, d=1):
         self.rg_param = rg_param
         self.ry_param = ry_param
         self.w_param = w_param
@@ -22,6 +38,7 @@ class BatchManager:
         self.N_param = N_param
         self.K_param = K_param
         self.T_param = T_param
+        self.d_tube = d_tube
 
         self.d_radius = r / self.rg_param
         self.d_theta = ((2 * np.pi) / self.ry_param)
@@ -41,7 +58,7 @@ class BatchManager:
             w_param, w_param,
             v_param, N_param,
             self.diff_batch, self.adv_batch, self.cen_batch,
-            K_param
+            K_param, r=r, d=d,  d_tube=d_tube
         )
 
     def get_current_batch(self):
@@ -64,8 +81,21 @@ class BatchManager:
             self.w_param, self.w_param,
             self.v_param, self.N_param,
             diff_next, adv_next, cen_next,
-            self.K_param
+            self.K_param, d_tube=self.d_tube
         )
+
+        # diff_result = np.random.rand(self.K_param, self.rg_param, self.ry_param)
+        # adv_result = np.random.rand(self.K_param, self.rg_param, self.ry_param)
+        # cen_result = np.random.rand(self.K_param)
+        #
+        # assert diff_result.shape == (self.K_param, self.rg_param, self.ry_param)
+        # assert adv_result.shape == (self.K_param, self.rg_param, self.ry_param)
+        # assert cen_result.shape == (self.K_param,)
+
+        # self.diff_batch = diff_result.copy()
+        # self.adv_batch = adv_result.copy()
+        # self.cen_batch = cen_result.copy()
+
 
 @njit(nopython=ENABLE_JIT)
 def collect_stamps_for_animation(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer, center, K,
@@ -116,11 +146,12 @@ def collect_stamps_for_animation(rings, rays, a, b, v, tube_placements, diffusiv
 
     return diffusive_layer, advective_layer, center
 
+
 def animate_diffusion(
-        rg_param, ry_param, w_param, v_param, N_param, K_param, T_param,
+        rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, d_tube,
         steps_per_frame=10, interval_ms=10, color_scheme='viridis', epsilon=0.001
 ):
-    batch_mgr = BatchManager(rg_param, ry_param, w_param, v_param, N_param, K_param, T_param)
+    batch_mgr = BatchManager(rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, d_tube)
     diff_batch, adv_batch, cen_batch = batch_mgr.get_current_batch()
 
     frame_in_batch = 0
@@ -133,22 +164,37 @@ def animate_diffusion(
     R, Theta = np.meshgrid(r, theta)
     X, Y = R * np.cos(Theta), R * np.sin(Theta)
 
-    fig, ax = plt.subplots(figsize=(8, 8))
+    # screen_w, screen_h = get_screen_size()
+    # dpi = 100
+    # fig_w = int(0.8 * screen_w)
+    # fig_h = int(0.8 * screen_h)
+
+    # fig, ax = plt.subplots(figsize=(fig_w / dpi, fig_h / dpi), dpi=dpi)
+
+    fig, ax = plt.subplots(figsize=(10, 10))
+    canvas = FigureCanvas(fig)
+    # if matplotlib.get_backend() == 'TkAgg':
+    #     manager = plt.get_current_fig_manager()
+    #     x = int((screen_w) / 2)
+    #     y = int((screen_h)/ 2)
+    #     manager.window.wm_geometry(f"+{x}+{y}")
+
     cmap = cm.get_cmap(color_scheme, 512)
-    initial = np.vstack([ np.full((1, ry_param), cen_batch[0]), diff_batch[0]])
-    heatmap = ax.pcolormesh(X, Y, initial.T, shading='flat', cmap=cmap)
+    initial = np.vstack([np.full((1, ry_param), cen_batch[0]), diff_batch[0]])
+    heatmap = ax.pcolormesh(X, Y, initial.T, shading='flat', cmap=cmap, edgecolors='k', linewidth=0.01)
     ax.axis('off')
     sim_time = 0
 
     def update(frame):
         nonlocal diff_batch, cen_batch, frame_in_batch, heatmap, sim_time
 
+        #
         # Check if current batch is exhausted
         if frame_in_batch >= K_param:
             batch_mgr.compute_next_batch()
             diff_batch, _, cen_batch = batch_mgr.get_current_batch()
             frame_in_batch = 0
-            print(f"→ Loaded new batch at frame {frame}")
+            print(f"Loaded new batch at frame {frame}")
 
         # Get current density data
         diff = diff_batch[frame_in_batch]
@@ -161,7 +207,8 @@ def animate_diffusion(
         heatmap.remove()
 
         full_layer_T = full_layer.T
-        heatmap = ax.pcolormesh(X, Y, full_layer_T, shading='flat', cmap=cmap)
+        heatmap = ax.pcolormesh(X, Y, full_layer_T, shading='flat', cmap=cmap, edgecolors='k', linewidth=0.01)
+
         sim_time += steps_per_frame * batch_mgr.d_time
         ax.set_title(f"Simulation time: {sim_time:.4f}", fontsize=14)
 
@@ -179,14 +226,20 @@ def animate_diffusion(
         blit=False
     )
 
-    plt.tight_layout()
+    fig.set_tight_layout(True)
     plt.subplots_adjust(top=0.9)
-    plt.show()
 
-def run_realtime_simulation(rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, steps_per_frame=10, interval_ms=10):
+    canvas.ani = ani
+    canvas.ani_paused = False
+    canvas.fig = fig
+
+    return canvas
+
+
+def run_realtime_simulation(rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, d_tube, steps_per_frame=10, interval_ms=10):
 
     estimated_memory = K_param * rg_param * ry_param * 8
 
     print(f"Memory expenditure/footprint: {estimated_memory} bytes = {(estimated_memory / 10**7)}% of a GB")
 
-    animate_diffusion(rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, steps_per_frame=steps_per_frame, interval_ms=interval_ms)
+    animate_diffusion(rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, d_tube, steps_per_frame=steps_per_frame, interval_ms=interval_ms)

@@ -22,8 +22,8 @@ from project_src_package_2025.data_visualization import ani_evolution as evo
 
 def run_main():
 
-    rg_param = 32
-    ry_param = 32
+    rg_param = 64
+    ry_param = 64
     N_param = [0, 8, 16, 24]
     v_param = -10
     w_param = 10**1
@@ -31,7 +31,7 @@ def run_main():
     K_param = 10**3
 
     gui.run_app()
-    # evo.run_realtime_simulation(rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, steps_per_frame=50)
+    # evo.run_realtime_simulation(rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, steps_per_frame=100)
 
 
 if __name__ == "__main__":
