@@ -13,18 +13,10 @@ class MainWindow(QMainWindow):
 
         screen = QGuiApplication.primaryScreen()
         screen_geometry = screen.availableGeometry()
-        screen_width = screen_geometry.width()
-        screen_height = screen_geometry.height()
+        # screen_width = screen_geometry.width()
+        # screen_height = screen_geometry.height()
         self.control_panel = views.ControlPanel
-
-        width = int(screen_width * 0.8)
-        height = int(screen_height * 0.8)
-
-        self.resize(width, height)
-        self.move(
-            (screen_width - width) // 2,
-            (screen_height - height) // 2
-        )
+        self.setGeometry(screen_geometry)
 
         self.setWindowTitle("GUI version 1.0")
         # self.setFixedSize(2000, 1000)

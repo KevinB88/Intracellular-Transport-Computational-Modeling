@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton, QFormLayout,
     QLineEdit, QMessageBox, QCheckBox, QTextEdit, QGroupBox, QSpinBox, QDoubleSpinBox,
-    QSizePolicy, QSlider, QStackedWidget
+    QSizePolicy, QSlider, QStackedWidget, QTabWidget
 )
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -46,6 +46,22 @@ class ControlPanel(QWidget):
         self.advanced_toggle.stateChanged.connect(self.toggle_advanced_fields)
         self.advanced_widgets = []
 
+        # Central Display area; to swap between results and visualization
+
+        self.tab_widget = QTabWidget()
+
+        self.result_display_tab = QWidget()
+        self.result_layout = QVBoxLayout()
+        self.result_display_tab.setLayout(self.result_layout)
+
+        self.visualization_tab = QWidget()
+        self.visualization_layout = QVBoxLayout()
+        self.visualization_tab.setLayout(self.visualization_layout)
+
+        self.tab_widget.addTab(self.result_display_tab, "Results")
+        self.tab_widget.addTab(self.visualization_tab, "Visualization")
+        self.main_layout.addWidget(self.tab_widget)
+
         # History management
 
         self.history_dropdown = QComboBox()
@@ -84,6 +100,7 @@ class ControlPanel(QWidget):
         # Output display for MFPT and other information
         self.output_display = QTextEdit()
         self.output_display.setReadOnly(True)
+        self.output_display.setFixedHeight(1)
 
         self.mfpt_label = QLabel("MFPT: ")
         self.duration_label = QLabel("")
@@ -104,12 +121,13 @@ class ControlPanel(QWidget):
         self.left_panel.addWidget(self.output_display)
 
         self.png_preview_widget = output_display_widget.PNGPreviewWidget()
-        self.right_panel.addWidget(self.png_preview_widget)
-        # self.layout.addWidget(self.png_preview_widget)
+        # self.right_panel.addWidget(self.png_preview_widget)
+        self.result_layout.addWidget(self.png_preview_widget)
         self.png_preview_widget.hide()
 
         self.output_files_widget = output_display_widget.OutputFilesWidget()
-        self.right_panel.addWidget(self.output_files_widget)
+        # self.right_panel.addWidget(self.output_files_widget)
+        self.result_layout.addWidget(self.output_files_widget)
         self.output_files_widget.hide()
 
         self.restored_label = QLabel("")
@@ -144,7 +162,7 @@ class ControlPanel(QWidget):
         viz_layout.addWidget(viz_label)
         viz_layout.addWidget(self.visualization_select)
 
-        self.left_panel.addWidget(viz_group)
+        self.right_panel.addWidget(viz_group)
 
         self.visualization_mode = "Show Domain"
 
@@ -177,7 +195,7 @@ class ControlPanel(QWidget):
         self.domain_checkbox_group.setLayout(checkbox_layout)
 
         # Add this group to the left panel
-        self.left_panel.addWidget(self.domain_checkbox_group)
+        self.right_panel.addWidget(self.domain_checkbox_group)
 
         # --- Animation Mode UI ---
         self.animation_controls_group = QGroupBox("Animation Controls")
@@ -197,17 +215,32 @@ class ControlPanel(QWidget):
             lambda val: self.steps_label.setText(f"Steps per Frame: {val}")
         )
 
-        # Interval ms slider
+        # # Frames per second tick
+        # self.fps_slider.setTickInterval(10)
+        # self.fps_slider.stTickPosition(QSlider.TicksBwlow)
+        # self.tick_label_layout = QHBoxLayout()
+        # for fps in [10, 20, 30, 40, 50, 60]:
+        #     lbl = QLabel(str(fps))
+        #     lbl.setAlignment(Qt.AlignCenter)
+        #     self.tick_label_layout.addWidget(lbl)
+        # self.fps_slider.setToolTip("Controls animation speed: higher FPS = faster playback")
+        # self.fps_label = QLabel("Frames per second: 50")
+        #
+        # self.fps_slider.valueChanged.connect(
+        #     lambda val: self.fps_label.setText(f"Frames per Second: {val}")
+        # )
+
+        # Frames per second slider
         self.interval_slider = QSlider(Qt.Horizontal)
-        self.interval_slider.setMinimum(5)
-        self.interval_slider.setMaximum(100)
-        self.interval_slider.setValue(20)
+        self.interval_slider.setMinimum(10)
+        self.interval_slider.setMaximum(60)
+        self.interval_slider.setValue(50)
         self.interval_slider.setTickInterval(5)
         self.interval_slider.setTickPosition(QSlider.TicksBelow)
 
-        self.interval_label = QLabel("Interval (ms): 20")
+        self.interval_label = QLabel("Frames per second: 50")
         self.interval_slider.valueChanged.connect(
-            lambda val: self.interval_label.setText(f"Interval (ms) : {val}")
+            lambda val: self.interval_label.setText(f"Frames per Second: {val}")
         )
 
         # Launch button
@@ -226,7 +259,8 @@ class ControlPanel(QWidget):
         # Animation evolution display
         self.visualization_area = QStackedWidget()
         self.visualization_area.setMinimumSize(600, 600)
-        self.right_panel.addWidget(self.visualization_area)
+        # self.right_panel.addWidget(self.visualization_area)
+        self.visualization_layout.addWidget(self.visualization_area)
 
         # Animation evolution buttons
 
@@ -246,12 +280,13 @@ class ControlPanel(QWidget):
         anim_layout.addWidget(self.steps_slider)
         anim_layout.addSpacing(10)
         anim_layout.addWidget(self.interval_label)
+        # anim_layout.addWidget(self.fps_slider)
         anim_layout.addWidget(self.interval_slider)
         anim_layout.addSpacing(10)
         anim_layout.addWidget(self.launch_animation_button)
 
         self.animation_controls_group.setLayout(anim_layout)
-        self.left_panel.addWidget(self.animation_controls_group)
+        self.right_panel.addWidget(self.animation_controls_group)
 
     def pause_animation(self):
         canvas = self.current_canvas
@@ -294,7 +329,8 @@ class ControlPanel(QWidget):
             d_tube = float(self .param_inputs["d_tube"].text())
 
             steps_per_frame = self.steps_slider.value()
-            interval_ms = self.interval_slider.value()
+            fps = self.interval_slider.value()
+            interval_ms = int(1000 / fps)
             K_param = 1000
             color_scheme = 'viridis'
             canvas = evo.animate_diffusion(rg, ry, w, v, N, K_param,
