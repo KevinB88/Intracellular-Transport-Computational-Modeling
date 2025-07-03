@@ -289,8 +289,8 @@ class ControlPanel(QWidget):
         self.right_panel.addWidget(self.animation_controls_group)
 
     '''
-        For a future enqueue_job() method: 
-                
+        For a future enqueue_job() method:
+
     job = ComputationRecord(
     comp_type=self.comp_select.currentText(),
     params=inputs,
