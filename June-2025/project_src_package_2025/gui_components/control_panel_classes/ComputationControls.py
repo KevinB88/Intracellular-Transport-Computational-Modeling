@@ -42,7 +42,7 @@ class ComputationalControls(QWidget):
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
-        self.layout.addWidget("Select Computation: ")
+        self.layout.addWidget(QLabel("Select Computation: "))
         self.layout.addWidget(self.comp_select)
         self.layout.addLayout(self.param_form)
         self.layout.addWidget(self.advanced_toggle)

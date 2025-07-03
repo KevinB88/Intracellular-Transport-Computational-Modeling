@@ -1,10 +1,12 @@
-from . import QComboBox, QPushButton, QVBoxLayout, QMessageBox, QLabel
+from . import QComboBox, QPushButton, QVBoxLayout, QMessageBox, QLabel, QWidget
 from . import history_cache
 from . import computation_history_entry
 
 
-class HistoryManager:
+class HistoryManager(QWidget):
     def __init__(self, parent_panel):
+        super().__init__()
+
         self.panel = parent_panel
         self.dropdown = QComboBox()
         self.dropdown.addItem("Select Previous Computation: ")

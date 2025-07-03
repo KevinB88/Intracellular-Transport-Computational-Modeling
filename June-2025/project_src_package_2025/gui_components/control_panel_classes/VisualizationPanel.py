@@ -29,8 +29,8 @@ class VisualizationPanel(QWidget):
         self.visualization_layout = QVBoxLayout()
         self.visualization_tab.setLayout(self.visualization_layout)
 
-        self.domain_panel = DomainDisplayWidget(self.param_inputs)
-        self.animation_panel = AnimationDisplayWidget(self.param_inputs)
+        self.domain_panel = DomainDisplayWidget.DomainDisplayWidget(self.param_inputs)
+        self.animation_panel = AnimationDisplayWidget.AnimationDisplayWidget(self.param_inputs)
 
         # Cross-reference for mutual exclusion
         self.domain_panel.animation_panel = self.animation_panel
