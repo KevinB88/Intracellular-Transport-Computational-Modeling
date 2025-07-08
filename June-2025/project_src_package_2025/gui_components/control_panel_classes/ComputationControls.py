@@ -53,7 +53,6 @@ class ComputationalControls(QWidget):
         button_row.addWidget(self.launch_button)
         button_row.addWidget(self.enqueue_button)
         self.layout.addLayout(button_row)
-
         self.layout.addWidget(self.mfpt_label)
         self.layout.addWidget(self.output_display)
 
@@ -108,7 +107,21 @@ class ComputationalControls(QWidget):
         self.mfpt_label.setText("MFPT: ")
         self.duration_label.hide()
 
-        inputs = {param: field.text() for param, field in self.param_inputs.items()}
+        # Validate inputs
+        inputs = {}
+        missing_fields = []
+        for param, field in self.param_inputs.items():
+            value = field.text().strip()
+            if not value:
+                missing_fields.append(param)
+            else:
+                inputs[param] = value
+
+        if missing_fields:
+            QMessageBox.warning(self.panel, "Missing Input", f"Please fill in: {', '.join(missing_fields)}")
+            self.set_launch_color("error")
+            return
+
         comp_type = self.comp_select.currentText()
 
         status = "completed"
@@ -118,23 +131,25 @@ class ComputationalControls(QWidget):
         try:
             result = controller.run_selected_computation(comp_type, inputs)
 
-            if isinstance(result, dict):
-                if "MFPT" in result:
-                    self.mfpt_label.setText(f"MFPT: {result['MFPT']:.6f}")
-                    self.output_display.append(f"Computation returned MFPT = {result['MFPT']:.6f}\\n")
-                if "duration" in result:
-                    self.duration_label.setText(f"Duration: {result['duration']:.6f} seconds")
-                    self.duration_label.show()
+            if not isinstance(result, dict):
+                raise ValueError(f"Computation '{comp_type}' did not return a dictionary. Got: {type(result).__name__}")
 
-                if "output_dirs" in result:
-                    csv_paths, png_paths = aux_gui_funcs.extract_csv_and_png_paths(result["output_dirs"])
-                    self.panel.output_files_widget.update_display(csv_paths, png_paths)
-                    self.panel.png_preview_widget.update_png_list(png_paths)
-                    self.panel.output_files_widget.show()
-                    self.panel.png_preview_widget.show()
-                else:
-                    self.panel.output_files_widget.hide()
-                    self.panel.png_preview_widget.hide()
+            if "MFPT" in result:
+                self.mfpt_label.setText(f"MFPT: {result['MFPT']:.6f}")
+                self.output_display.append(f"Computation returned MFPT = {result['MFPT']:.6f}\n")
+            if "duration" in result:
+                self.duration_label.setText(f"Duration: {result['duration']:.6f} seconds")
+                self.duration_label.show()
+
+            if "output_dirs" in result:
+                csv_paths, png_paths = aux_gui_funcs.extract_csv_and_png_paths(result["output_dirs"])
+                self.panel.output_files_widget.update_display(csv_paths, png_paths)
+                self.panel.png_preview_widget.update_png_list(png_paths)
+                self.panel.output_files_widget.show()
+                self.panel.png_preview_widget.show()
+            else:
+                self.panel.output_files_widget.hide()
+                self.panel.png_preview_widget.hide()
 
             self.set_launch_color("success")
 

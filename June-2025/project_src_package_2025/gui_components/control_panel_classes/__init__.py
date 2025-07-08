@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import (
     QVBoxLayout, QLabel, QComboBox, QLineEdit, QPushButton, QFormLayout,
     QCheckBox, QTextEdit, QMessageBox, QWidget, QHBoxLayout, QGroupBox,
-    QSizePolicy, QSlider, QTabWidget
+    QSizePolicy, QSlider, QTabWidget, QStackedLayout
 )
 
 from PyQt5.QtGui import QColor, QPalette, QPixmap

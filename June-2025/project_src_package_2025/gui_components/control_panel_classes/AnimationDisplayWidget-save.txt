@@ -1,7 +1,8 @@
 from . import (QWidget, QVBoxLayout, QPushButton, QSlider,
-               QLabel, Qt, QMessageBox)
+               QLabel, Qt, QMessageBox, QSizePolicy)
 from . import FigureCanvas
 from . import plt
+from . import ast
 from . import evo
 import re
 
@@ -13,7 +14,7 @@ class AnimationDisplayWidget(QWidget):
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
-        # Controls
+        # FPS slider
         self.fps_label = QLabel("Frames per Second: 50")
         self.fps_slider = QSlider(Qt.Horizontal)
         self.fps_slider.setMinimum(5)
@@ -23,15 +24,17 @@ class AnimationDisplayWidget(QWidget):
         self.fps_slider.setTickPosition(QSlider.TicksBelow)
         self.fps_slider.valueChanged.connect(self.update_fps_label)
 
+        # Steps-per-frame slider
         self.steps_slider = QSlider(Qt.Horizontal)
         self.steps_slider.setMinimum(1)
         self.steps_slider.setMaximum(100)
         self.steps_slider.setValue(10)
         self.steps_slider.setTickInterval(5)
         self.steps_slider.setTickPosition(QSlider.TicksBelow)
-        self.steps_slider.valueChanged.connect(self.update_steps_label)
+        self.steps_slider.valueChanged.connect(self.update_slider_label)
         self.steps_label = QLabel("Steps per Frame: 10")
 
+        # Control buttons
         self.launch_button = QPushButton("Launch Animation")
         self.launch_button.clicked.connect(self.launch_animation)
 
@@ -50,36 +53,58 @@ class AnimationDisplayWidget(QWidget):
         # Layout
         self.layout.addWidget(self.fps_label)
         self.layout.addWidget(self.fps_slider)
-        self.layout.addWidget(self.steps_label)
         self.layout.addWidget(self.steps_slider)
+        self.layout.addWidget(self.steps_label)
         self.layout.addWidget(self.launch_button)
         self.layout.addWidget(self.pause_button)
         self.layout.addWidget(self.resume_button)
         self.layout.addWidget(self.clear_button)
 
-        # Animation state
         self.canvas = None
         self.anim = None
+        self.animation_active = False
 
     def update_fps_label(self):
-        self.fps_label.setText(f"Frames per Second: {self.fps_slider.value()}")
+        fps = self.fps_slider.value()
+        self.fps_label.setText(f"Frames per Second: {fps}")
 
-    def update_steps_label(self, value):
+    def update_slider_label(self, value):
         self.steps_label.setText(f"Steps per Frame: {value}")
 
     def launch_animation(self):
+        # self.clear_animation()
         try:
-            self.clear_animation()
+            if self.canvas is not None:
+                self.clear_animation()
             plt.close('all')
 
             fps = self.fps_slider.value()
             steps_per_frame = self.steps_slider.value()
             K_param = 1000
 
-            rings = int(self.param_inputs["rg_param"].text())
-            rays = int(self.param_inputs["ry_param"].text())
-            w_param = float(self.param_inputs["w_param"].text())
-            v_param = float(self.param_inputs["v_param"].text())
+            try:
+                rings = int(self.param_inputs["rg_param"].text())
+            except ValueError:
+                QMessageBox.warning(self, "Input Error", "Please enter a valid integer for rg_param.")
+                return
+
+            try:
+                rays = int(self.param_inputs["ry_param"].text())
+            except ValueError:
+                QMessageBox.warning(self, "Input Error", "Please enter a valid integer for ry_param.")
+                return
+
+            try:
+                w_param = float(self.param_inputs["w_param"].text())
+            except ValueError:
+                QMessageBox.warning(self, "Input Error", "Please enter a valid float for w_param")
+                return
+
+            try:
+                v_param = float(self.param_inputs["v_param"].text())
+            except ValueError:
+                QMessageBox.warning(self, "Input Error", "Please enter a valid float for v_param")
+
             N_param = self.param_inputs["N_param"].text()
             N_param = list(map(int, re.findall(r'\d+', N_param))) if N_param else []
             T_param = float(self.param_inputs["T_param"].text())
@@ -94,9 +119,13 @@ class AnimationDisplayWidget(QWidget):
 
             self.canvas = canvas
             self.anim = getattr(canvas, "ani", None)
-            if self.canvas:
-                self.layout.addWidget(self.canvas)
-                self.canvas.draw()
+            self.animation_active = True
+
+            self.canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+            # self.canvas.setMinimumHeight(400) # This is optional, prevents over-compression
+            self.canvas.setMinimumSize(600, 400)
+            self.layout.addWidget(self.canvas, alignment=Qt.AlignCenter)
+            self.canvas.draw()
 
             self.pause_button.setVisible(True)
             self.resume_button.setVisible(False)
@@ -106,37 +135,49 @@ class AnimationDisplayWidget(QWidget):
             QMessageBox.critical(self, "Error", f"Animation failed: {str(e)}")
 
     def pause_animation(self):
-        try:
-            if self.canvas and hasattr(self.canvas, "ani") and self.canvas.ani:
-                self.canvas.ani.event_source.stop()
+        if self.animation_active and self.canvas:
+            ani = getattr(self.canvas, "ani", None)
+            if ani and hasattr(ani, "event_source") and ani.event_source:
+                ani.event_source.stop()
                 self.pause_button.setVisible(False)
                 self.resume_button.setVisible(True)
-        except Exception as e:
-            QMessageBox.critical(self, "Pause Error", f"Could not pause animation: {str(e)}")
+        self.animation_active = False
 
     def resume_animation(self):
-        try:
-            if self.canvas and hasattr(self.canvas, "ani") and self.canvas.ani:
-                self.canvas.ani.event_source.start()
-                self.resume_button.setVisible(False)
-                self.pause_button.setVisible(True)
-        except Exception as e:
-            QMessageBox.critical(self, "Resume Error", f"Could not resume animation: {str(e)}")
+        if not self.canvas:
+            return
+        ani = getattr(self.canvas, "ani", None)
+        if ani and hasattr(ani, "event_source"):
+            ani.event_source.start()
+            self.animation_active = True
+            self.resume_button.setVisible(False)
+            self.pause_button.setVisible(True)
+        else:
+            QMessageBox.warning(self, "Warning", "No active animation to resume.")
+
+    def hide_animation_controls(self, hide=True):
+        """Show or hide the animation control buttons and canvas."""
+        self.pause_button.setVisible(not hide)
+        self.resume_button.setVisible(not hide)
+        self.clear_button.setVisible(not hide)
+
+        if self.canvas:
+            self.canvas.setVisible(not hide)
 
     def clear_animation(self):
-        try:
-            if self.canvas:
-                if hasattr(self.canvas, "ani") and self.canvas.ani:
-                    self.canvas.ani.event_source.stop()
-                    self.canvas.ani = None
 
-                self.layout.removeWidget(self.canvas)
-                self.canvas.setParent(None)
-                self.canvas.deleteLater()
-                self.canvas = None
+        if not self.canvas:
+            return
 
-            self.pause_button.setVisible(False)
-            self.resume_button.setVisible(False)
-            self.clear_button.setVisible(False)
-        except Exception as e:
-            QMessageBox.critical(self, "Clear Error", f"Could not clear animation: {str(e)}")
+        if hasattr(self.canvas, "ani") and self.canvas.ani:
+            self.canvas.ani.event_source.stop()
+            self.canvas.ani = None
+
+        self.layout.removeWidget(self.canvas)
+        self.canvas.setParent(None)
+        self.canvas.deleteLater()
+        self.canvas = None
+
+        self.hide_animation_controls(True)
+        self.animation_active = False
+

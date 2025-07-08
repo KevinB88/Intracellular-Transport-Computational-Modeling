@@ -102,7 +102,7 @@ class DomainDisplayWidget(QWidget):
         self._clear_canvas()
         self.close_button.setVisible(False)
         self.display_button.setText("Display Domain")
-        self.hide()
+        # self.hide()
 
     def pause_if_active(self):
         self.close_domain()

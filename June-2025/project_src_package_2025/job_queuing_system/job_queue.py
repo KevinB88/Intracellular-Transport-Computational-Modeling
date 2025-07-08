@@ -102,3 +102,6 @@ class JobQueue:
     def get_completed_jobs(self):
         with self.lock:
             return list(self.observation_list)
+
+
+global_queue = JobQueue()

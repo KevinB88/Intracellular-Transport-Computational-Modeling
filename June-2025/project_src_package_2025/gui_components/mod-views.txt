@@ -1,0 +1,72 @@
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTabWidget, QGroupBox
+
+from project_src_package_2025.gui_components.control_panel_classes import ComputationControls
+from project_src_package_2025.gui_components.control_panel_classes import HistoryManager
+from project_src_package_2025.gui_components.control_panel_classes import VisualizationPanel
+from project_src_package_2025.gui_components.control_panel_classes import OutputFilesWidget
+from project_src_package_2025.gui_components.control_panel_classes import PNGPreviewWidget
+from project_src_package_2025.gui_components.control_panel_classes import AnimationDisplayWidget
+from project_src_package_2025.gui_components.control_panel_classes import DomainDisplayWidget
+from . import parmas_config as params
+
+
+class ControlPanel(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.main_layout = QVBoxLayout()
+        self.setLayout(self.main_layout)
+        self.comp_schemas = params.PARAMETER_SCHEMAS
+
+        # instantiating computation controls
+        self.computation_controls = ComputationControls.ComputationalControls(parent_panel=self)
+        self.param_inputs = self.computation_controls.param_inputs
+
+        # --- create output preview widgets
+
+        self.png_preview_widget = PNGPreviewWidget.PNGPreviewWidget()
+        self.output_files_widget = OutputFilesWidget.OutputFilesWidget()
+
+        # --- create domain/animation displays and pass to VisualizationPanel
+        self.animation_display_widget = AnimationDisplayWidget.AnimationDisplayWidget(param_inputs=self.param_inputs)
+        self.domain_display_widget = DomainDisplayWidget.DomainDisplayWidget(param_inputs=self.param_inputs,
+                                                                             animation_panel=self.animation_display_widget)
+        self.visualization_panel = VisualizationPanel.VisualizationPanel(
+            domain_display_widget=self.domain_display_widget, animation_display_widget=self.animation_display_widget
+        )
+
+        self.tab_widget = QTabWidget()
+
+        # Tab 1 : Results tab
+        self.result_display_tab = QWidget()
+        self.result_layout = QVBoxLayout()
+        self.result_display_tab.setLayout(self.result_layout)
+        self.result_layout.addWidget(self.png_preview_widget)
+        self.result_layout.addWidget(self.output_files_widget)
+
+        # Tab 2: Visualization (swaps between domain display and animation)
+        self.visualization_tab = QWidget()
+        self.visualization_layout = QVBoxLayout()
+        self.visualization_tab.setLayout(self.visualization_layout)
+        self.visualization_layout.addWidget(self.visualization_panel)
+
+        self.tab_widget.addTab(self.result_display_tab, "Results")
+        self.tab_widget.addTab(self.visualization_tab, "Visualization")
+
+        self.main_layout.addWidget(self.tab_widget)
+
+        # --- Bottom: Computation controls and history
+        self.bottom_layout = QVBoxLayout()
+
+        self.history_manager = HistoryManager.HistoryManager(parent_panel=self)
+
+        self.bottom_layout.addWidget(self.computation_controls)
+        self.bottom_layout.addWidget(self.history_manager)
+
+        self.main_layout.addLayout(self.bottom_layout)
+
+    def get_visualization_panel(self):
+        return self.visualization_panel
+
+    def get_param_inputs(self):
+        return self.computation_controls.param_inputs

@@ -13,7 +13,7 @@ PARAMETER_SCHEMAS = {
             ("r", 1.0),
             ("d", 1.0),
             ("mass_checkpoint", int(1e6)),
-            ("d_tube", -1),
+            ("d_tube", 0),
             ("return_duration", False)
         ]
     },
@@ -28,7 +28,7 @@ PARAMETER_SCHEMAS = {
         "default": [
             ("mass_threshold", 0.01),
             ("mixed_config", False),
-            ("d_tube", -1)
+            ("d_tube", 0)
         ]
     },
     "Phi Angular Dependence": {
@@ -38,16 +38,16 @@ PARAMETER_SCHEMAS = {
             ("N_param", ""),
             ("v_param", ""),
             ("w_param", ""),
-            ("approach", "")
         ],
         "default": [
+            ("approach", 3),
             ("m_segment", 0.5),
             ("r", 1.0),
             ("d", 1.0),
             ("mass_retention_threshold", 0.01),
             ("time_point_container", "[1.0, 2.0, 3.0]"),
             ("mixed_config", False),
-            ("d_tube", -1),
+            ("d_tube", 0),
             ("save_png", True),
             ("show_plt", False)
         ]
@@ -70,7 +70,7 @@ PARAMETER_SCHEMAS = {
             ("save_png", True),
             ("show_plt", False),
             ("mixed_config", False),
-            ("d_tube", -1)
+            ("d_tube", 0)
         ]
     },
     "Mass Analysis": {
@@ -90,7 +90,7 @@ PARAMETER_SCHEMAS = {
             ("save_png", False),
             ("show_plt", True),
             ("mixed_config", False),
-            ("d_tube", -1),
+            ("d_tube", 0),
             ("collect_MFPT", False),
             ("collect_plots", True)
         ]

@@ -1,65 +1,62 @@
-from . import QWidget, QVBoxLayout, QTabWidget
-from . import DomainDisplayWidget
-from . import AnimationDisplayWidget
+from . import QWidget, QVBoxLayout, QTabWidget, QComboBox, QStackedLayout
 
 
 class VisualizationPanel(QWidget):
-    def __init__(self, param_inputs, png_preview_widget, output_files_widget, parent=None):
-        super().__init__(parent)
-        self.param_inputs = param_inputs
+    def __init__(self, domain_display_widget, animation_display_widget):
+        super().__init__()
+
+        self.domain_display_widget = domain_display_widget
+        self.animation_display_widget = animation_display_widget
+
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
-        # Create Tab Widget
-        self.tab_widget = QTabWidget()
-        self.layout.addWidget(self.tab_widget)
+        # Dropdown to choose between domain and animation
+        self.view_selector = QComboBox()
+        self.view_selector.addItems(["Domain Display", "Animation"])
+        self.view_selector.currentIndexChanged.connect(self.switch_view)
+        self.layout.addWidget(self.view_selector)
 
-        # --- Tab 1: Results ---
-        self.result_display_tab = QWidget()
-        self.result_layout = QVBoxLayout()
-        self.result_display_tab.setLayout(self.result_layout)
-        self.result_layout.addWidget(png_preview_widget)
-        self.result_layout.addWidget(output_files_widget)
-        png_preview_widget.hide()
-        output_files_widget.hide()
-        self.tab_widget.addTab(self.result_display_tab, "Results")
+        # Stack layout for both visualizations
+        self.view_stack = QStackedLayout()
+        self.view_stack.addWidget(self.domain_display_widget)
+        self.view_stack.addWidget(self.animation_display_widget)
+        self.layout.addLayout(self.view_stack)
 
-        # --- Tab 2: Visualization (Domain/Animation) ---
-        self.visualization_tab = QWidget()
-        self.visualization_layout = QVBoxLayout()
-        self.visualization_tab.setLayout(self.visualization_layout)
-
-        self.domain_panel = DomainDisplayWidget.DomainDisplayWidget(self.param_inputs)
-        self.animation_panel = AnimationDisplayWidget.AnimationDisplayWidget(self.param_inputs)
-
-        # Cross-reference for mutual exclusion
-        self.domain_panel.animation_panel = self.animation_panel
-        self.animation_panel.setParent(self)
-        self.animation_panel.domain_panel = self.domain_panel
-
-        self.visualization_layout.addWidget(self.domain_panel)
-        self.visualization_layout.addWidget(self.animation_panel)
-
-        # Start with both hidden
-        self.domain_panel.hide()
-        self.animation_panel.hide()
-
-        self.tab_widget.addTab(self.visualization_tab, "Visualization")
+    def switch_view(self, index):
+        if index == 0:
+            self.show_domain_display()
+        elif index == 1:
+            self.show_animation_display()
 
     def show_domain_display(self):
-        """Show domain display and hide animation."""
-        self.domain_panel.show()
-        self.animation_panel.pause_animation()
-        self.animation_panel.hide()
+        self.view_stack.setCurrentIndex(0)
+
+        # Attempt to pause animation if possible
+        if hasattr(self.animation_display_widget, "pause_animation"):
+            try:
+                self.animation_display_widget.clear_animation()
+            except Exception:
+                pass
+
+        self.domain_display_widget.show()
 
     def show_animation_display(self):
-        """Show animation display and hide domain."""
-        self.domain_panel.pause_if_active()
-        self.domain_panel.hide()
-        self.animation_panel.show()
+        self.view_stack.setCurrentIndex(1)
+        self.domain_display_widget.hide()
+        self.animation_display_widget.show()
 
-    def reset(self):
-        """Hide both displays and clear animation."""
-        self.domain_panel.hide()
-        self.animation_panel.clear_animation()
-        self.animation_panel.hide()
+    def pause_animation(self):
+        if hasattr(self.animation_display_widget, "pause_animation"):
+            try:
+                self.animation_display_widget.pause_animation()
+            except Exception:
+                pass
+
+    def stop_animation(self):
+        if hasattr(self.animation_display_widget, "clear_animation"):
+            try:
+                self.animation_display_widget.clear_animation()
+            except Exception:
+                pass
+        self.animation_display_widget.hide()
