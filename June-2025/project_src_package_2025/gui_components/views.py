@@ -611,10 +611,47 @@ class ControlPanel(QWidget):
         self.png_preview_widget.update_png_list(entry.png_files or [])
         self.png_preview_widget.show()
 
-    def handle_display_domain(self):
+    # def handle_display_domain(self):
+    #
+    #     try:
+    #         plt.close('all')
+    #
+    #         rings = int(self.param_inputs["rg_param"].text())
+    #         rays = int(self.param_inputs["ry_param"].text())
+    #         d_tube = float(self.param_inputs["d_tube"].text())
+    #
+    #         try:
+    #             microtubules_input = self.param_inputs["N_param"].text()
+    #             parsed = ast.literal_eval(microtubules_input)
+    #             microtubules = list(parsed) if isinstance(parsed, (list, tuple)) else [int(parsed)]
+    #         except (ValueError, SyntaxError):
+    #             print("[Error] Invalid microtubule input. Please enter a list like [0,1,2] or comma-separated values.")
+    #             microtubules = []
+    #
+    #         display_extract = self.display_extract_checkbox.isChecked()
+    #         toggle_border = self.toggle_border_checkbox.isChecked()
+    #
+    #         fig = ani.display_domain_grid(
+    #             rings=rings,
+    #             rays=rays,
+    #             microtubules=microtubules,
+    #             d_tube=d_tube,
+    #             display_extract=display_extract,
+    #             toggle_border=toggle_border
+    #         )
+    #
+    #         self.display_matplotlib_figure(fig)
+    #
+    #         self.close_domain_button.show()
+    #         self.display_domain_button.setText("Update Domain")
+    #
+    #         # self.close_domain_button.show()
+    #     except Exception as e:
+    #         print(f"[Error] Failed to display domain grid: {e}")
 
+    def handle_display_domain(self):
         try:
-            plt.close('all')
+            self.clear_animation()  # Automatically stop animation if active
 
             rings = int(self.param_inputs["rg_param"].text())
             rays = int(self.param_inputs["ry_param"].text())
@@ -631,6 +668,7 @@ class ControlPanel(QWidget):
             display_extract = self.display_extract_checkbox.isChecked()
             toggle_border = self.toggle_border_checkbox.isChecked()
 
+            # Get domain figure
             fig = ani.display_domain_grid(
                 rings=rings,
                 rays=rays,
@@ -640,12 +678,20 @@ class ControlPanel(QWidget):
                 toggle_border=toggle_border
             )
 
-            self.display_matplotlib_figure(fig)
+            # Clear previous canvas if any
+            if hasattr(self, 'current_canvas') and self.current_canvas:
+                self.visualization_area.removeWidget(self.current_canvas)
+                self.current_canvas.setParent(None)
+
+            # Add new domain canvas
+            canvas = FigureCanvas(fig)
+            self.current_canvas = canvas
+            self.visualization_area.addWidget(canvas)
+            self.visualization_area.setCurrentWidget(canvas)
 
             self.close_domain_button.show()
             self.display_domain_button.setText("Update Domain")
 
-            # self.close_domain_button.show()
         except Exception as e:
             print(f"[Error] Failed to display domain grid: {e}")
 

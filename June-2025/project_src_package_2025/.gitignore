@@ -122,3 +122,4 @@ profile_default/
 ipython_config.py
 
 gui_components/saved_state.json
+/saved_queue_jobs.json
