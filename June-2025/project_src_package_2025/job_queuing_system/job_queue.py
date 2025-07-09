@@ -107,5 +107,18 @@ class JobQueue:
         self.jobs = [job for job in self.jobs if job.job_id != job_to_remove.job_id]
         self.save()
 
+    def getComputationType(self, target_job):
+
+        result_job = None
+        for job in self.jobs:
+            if job.job_id == target_job.job_id:
+                result_job = target_job
+        return result_job.comp_type
+
+    @staticmethod
+    def getID(job):
+        # job_ID = [job for job in self.jobs if job.job_id == job_input.job_id]
+        return job.job_id
+
 
 global_queue = JobQueue()

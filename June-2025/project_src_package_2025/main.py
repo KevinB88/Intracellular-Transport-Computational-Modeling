@@ -31,7 +31,7 @@ def run_main():
     # K_param = 10**3
 
     gui.run_app()
-    # evo.run_realtime_simulation(rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, steps_per_frame=100)
+    # launch.output_time_until_mass_depletion(1, 1, [0], 0, 0, 1)
 
 
 if __name__ == "__main__":

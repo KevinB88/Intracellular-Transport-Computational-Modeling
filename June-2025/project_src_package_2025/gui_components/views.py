@@ -27,7 +27,17 @@ from . import evo
 import re
 import ast
 
+# loading spinner animation
+from PyQt5.QtGui import QMovie
+from PyQt5.QtWidgets import QLabel
+
+
+from datetime import datetime
+
 import matplotlib.pyplot as plt
+
+from multiprocessing import Process, Queue
+from PyQt5.QtCore import QTimer
 
 
 class ToggleSelectListWidget(QListWidget):
@@ -58,6 +68,16 @@ class ToggleSelectListWidget(QListWidget):
 class ControlPanel(QWidget):
     def __init__(self, main_window, parent=None):
         super().__init__(parent)
+        self.jit_timer = None
+        self.jit_compile_process = None
+        self.job_timer = None
+        self.job_process = None
+        self.job_queue = None
+        self.current_job = None
+        self.pending_jobs = None
+        self.mp_process = None
+        self.poll_timer = None
+        self.mp_queue = None
         self.current_canvas = None
         self.main_window = main_window
 
@@ -104,9 +124,9 @@ class ControlPanel(QWidget):
         self.reset_params_button.clicked.connect(self.clear_parameter_fields)
         self.left_panel.addWidget(self.reset_params_button)
 
-        self.clear_button = QPushButton("Clear History")
-        self.clear_button.clicked.connect(self.clear_history)
-        self.left_panel.addWidget(self.clear_button)
+        self.clear_hist_button = QPushButton("Clear History")
+        self.clear_hist_button.clicked.connect(self.clear_history)
+        self.left_panel.addWidget(self.clear_hist_button)
 
         self.right_panel = QVBoxLayout()
 
@@ -128,18 +148,28 @@ class ControlPanel(QWidget):
         # Output display for MFPT and other information
         self.output_display = QTextEdit()
         self.output_display.setReadOnly(True)
-        self.output_display.setFixedHeight(1)
+        # self.output_display.setFixedHeight(1)
 
-        self.mfpt_label = QLabel("MFPT: ")
-        self.duration_label = QLabel("")
-        self.duration_label.hide()
+        # self.mfpt_label = QLabel("MFPT: ")
+        # self.duration_label = QLabel("")
+        # self.duration_label.hide()
 
         # Launch button with status color
 
         button_row = QHBoxLayout()
+        #
+        # initializing the spinner
+        self.spinner_label = QLabel()
+        self.spinner_label.setVisible(False)
+
+        spinner_location = "gui_components/visual_materials/gifs/spinner_100x100.gif"
+
+        self.spinner_movie = QMovie(spinner_location)
+        self.spinner_label.setMovie(self.spinner_movie)
 
         self.launch_button = QPushButton("Launch")
-        self.launch_button.clicked.connect(self.run_computation)
+        self.launch_button.clicked.connect(self.run_computation_mp)
+        # self.launch_button.clicked.connect(self.run_computation)
         self.set_launch_color("idle")
 
         self.enqueue_button = QPushButton("+")
@@ -148,9 +178,10 @@ class ControlPanel(QWidget):
 
         self.run_queue_button = QPushButton("Execute Queue")
         self.run_queue_button.setToolTip("Start running enqueued computations")
-        self.run_queue_button.clicked.connect(self.run_job_queue)
+        self.run_queue_button.clicked.connect(self.run_job_queue_mp)
 
         button_row.addWidget(self.launch_button)
+        button_row.addWidget(self.spinner_label)
         button_row.addWidget(self.enqueue_button)
         button_row.addWidget(self.run_queue_button)
 
@@ -203,8 +234,8 @@ class ControlPanel(QWidget):
         self.left_panel.addLayout(self.param_form)
         self.left_panel.addWidget(self.advanced_toggle)
         self.left_panel.addWidget(self.launch_button)
-        self.left_panel.addWidget(self.mfpt_label)
-        self.left_panel.addWidget(self.output_display)
+        # self.left_panel.addWidget(self.mfpt_label)
+        self.right_panel.addWidget(self.output_display)
 
         self.png_preview_widget = output_display_widget.PNGPreviewWidget()
         # self.right_panel.addWidget(self.png_preview_widget)
@@ -293,7 +324,7 @@ class ControlPanel(QWidget):
         # --- Animation Mode UI ---
         self.animation_controls_group = QGroupBox("Animation Controls")
         self.animation_controls_group.setVisible(False)
-        anim_layout = QVBoxLayout()
+        self.anim_layout = QVBoxLayout()
 
         # Steps per frame slider
         self.steps_slider = QSlider(Qt.Horizontal)
@@ -346,26 +377,27 @@ class ControlPanel(QWidget):
         self.pause_button.setEnabled(True)
         self.pause_button.clicked.connect(self.pause_animation)
 
-        self.clear_button = QPushButton("Clear Animation")
-        self.clear_button.setEnabled(True)
-        self.clear_button.clicked.connect(self.clear_animation)
+        self.clear_ani_button = QPushButton("Clear Animation")
+        self.clear_ani_button.setEnabled(True)
+        self.clear_ani_button.clicked.connect(self.clear_animation)
 
-        anim_layout.addWidget(self.pause_button)
-        anim_layout.addWidget(self.clear_button)
+        # print("Dropdown count:", self.history_dropdown.count())
+
+        self.anim_layout.addWidget(self.pause_button)
+        self.anim_layout.addWidget(self.clear_ani_button)
 
         # add to layout
-        anim_layout.addWidget(self.steps_label)
-        anim_layout.addWidget(self.steps_slider)
-        anim_layout.addSpacing(10)
-        anim_layout.addWidget(self.interval_label)
+        self.anim_layout.addWidget(self.steps_label)
+        self.anim_layout.addWidget(self.steps_slider)
+        self.anim_layout.addSpacing(10)
+        self.anim_layout.addWidget(self.interval_label)
         # anim_layout.addWidget(self.fps_slider)
-        anim_layout.addWidget(self.interval_slider)
-        anim_layout.addSpacing(10)
-        anim_layout.addWidget(self.launch_animation_button)
+        self.anim_layout.addWidget(self.interval_slider)
+        self.anim_layout.addSpacing(10)
+        self.anim_layout.addWidget(self.launch_animation_button)
 
-        self.animation_controls_group.setLayout(anim_layout)
-        self.animation_controls_group.setContentsMargins(0, 861, 0, 0)
-
+        self.animation_controls_group.setLayout(self.anim_layout)
+        # self.animation_controls_group.setContentsMargins(0, 861, 0, 0)
 
         # <**> right panel
         # self.right_panel.addWidget(self.animation_controls_group)
@@ -377,9 +409,10 @@ class ControlPanel(QWidget):
         self.update_history_dropdown_visibility()
         self.update_queue_execute_button_visibility()
 
-    '''
+        # experimental feature
+        # self.initiate_JIT_compilation()
 
-    
+    '''
         For a future enqueue_job() method:
 
     job = ComputationRecord(
@@ -389,6 +422,33 @@ class ControlPanel(QWidget):
     time_for_execution=0
 )
     '''
+    def initiate_JIT_compilation(self):
+        self.launch_button.setEnabled(False)
+        self.enqueue_button.setEnabled(False)
+        self.run_queue_button.setEnabled(False)
+        self.launch_animation_button.setEnabled(False)
+
+        self.output_display.append("Initiating JIT numba compilation...")
+        self.output_display.append("Computational options will be temporarily disabled.")
+        
+        self.jit_compile_process = controller.initiate_compilation()
+        
+        self.jit_timer = QTimer()
+        self.jit_timer.timeout.connect(self.check_jit_compilation_done)
+        self.jit_timer.start(200)
+
+    def check_jit_compilation_done(self):
+        if self.jit_compile_process is not None and not self.jit_compile_process.is_alive():
+            self.jit_timer.stop()
+            self.jit_compile_process = None
+
+            self.output_display.append("JIT numba compilation successfully executed.")
+            self.output_display.append("Computational options are now enabled for usage.")
+
+            self.launch_button.setEnabled(True)
+            self.enqueue_button.setEnabled(True)
+            self.run_queue_button.setEnabled(True)
+            self.launch_animation_button.setEnabled(True)
 
     @staticmethod
     def get_widget_center_global(widget):
@@ -396,7 +456,6 @@ class ControlPanel(QWidget):
         center_local = geom.center()
         center_global = widget.mapToGlobal(center_local)
         return {"Center of widget in global coorindates: ": center_global}
-
 
     @staticmethod
     def get_widget_corners_global(widget):
@@ -425,8 +484,25 @@ class ControlPanel(QWidget):
         self.run_queue_button.setVisible(has_jobs)
 
     def update_history_dropdown_visibility(self):
-        has_history = self.history_dropdown.count() > 1
-        self.history_dropdown.setVisible(has_history)
+        count = self.history_dropdown.count()
+        has_real_items = count > 1  # Or adjust depending on placeholder logic
+        # print(has_real_items)
+
+        self.history_dropdown.setVisible(has_real_items)
+        self.clear_hist_button.setVisible(has_real_items)
+
+    # def update_history_dropdown_visibility(self):
+    #     has_history = self.history_dropdown.count() > 1
+    #
+    #     self.history_dropdown.setVisible(has_history)
+    #
+    #     if has_history:
+    #         if self.clear_button not in [self.anim_layout.itemAt(i).widget() for i in range(self.anim_layout.count())]:
+    #             self.anim_layout.addWidget(self.clear_button)
+    #         self.clear_button.show()
+    #     else:
+    #         self.anim_layout.removeWidget(self.clear_button)
+    #         self.clear_button.hide()
 
     def update_queue_controls_visibility(self):
         has_jobs = self.queue_list_widget.count() > 0
@@ -574,7 +650,7 @@ class ControlPanel(QWidget):
         palette = self.launch_button.palette()
         color = QColor("lightgray")
         if state == "running":
-            color = QColor("lightblue")
+            color = QColor("green")
         elif state == "success":
             color = QColor("lightgreen")
         elif state == "error":
@@ -585,10 +661,123 @@ class ControlPanel(QWidget):
         self.launch_button.setPalette(palette)
         self.launch_button.update()
 
+    @staticmethod
+    def compute_and_send(queue, computation_name, param_dict):
+        try:
+            result = controller.run_selected_computation(computation_name, param_dict)
+            queue.put({"status": "ok", "result": result})
+        except Exception as e:
+            queue.put({"status": "error", "message": str(e)})
+
+    @staticmethod
+    def produce_timestamp():
+        timestamp = datetime.now().strftime("%I:%M %p %m/%d/%Y")
+        timestamp = timestamp.replace(" 0", " ").replace("/0", "/")
+        return timestamp
+
+    def check_for_computation_results(self, computation_name):
+        if not self.mp_queue.empty():
+            response = self.mp_queue.get()
+            self.poll_timer.stop()
+            self.mp_process.join()
+
+            if response["status"] == "ok":
+
+                self.output_display.append(f"Computation {computation_name} executed successfully.  [{self.produce_timestamp()}]")
+                self.process_result(response["result"])
+            else:
+                QMessageBox.critical(self, "Error", response["message"])
+                self.output_display.append(f"Computation {computation_name} failed.     [{self.produce_timestamp()}]")
+                self.set_launch_color("error")
+            self.launch_button.setEnabled(True)
+            self.spinner_movie.stop()
+            self.spinner_label.setVisible(False)
+
+    def run_computation_mp(self):
+        self.set_launch_color("running")
+        # self.output_display.clear()
+        # self.mfpt_label.setText("MFPT: ")
+        # self.duration_label.hide()
+        self.launch_button.setEnabled(False)
+        self.spinner_label.setVisible(True)
+        self.spinner_movie.start()
+
+        try:
+            inputs = {param: field.text() for param, field in self.param_inputs.items()}
+            print(inputs)
+            if not any(inputs.values()):
+                raise ValueError("No input parameters were provided.")
+
+            computation_name = self.comp_select.currentText()
+            if not computation_name:
+                raise ValueError("No computation type selected.")
+
+            self.output_display.append(f"Launching computation: {computation_name}...       [{self.produce_timestamp()}]")
+
+            self.mp_queue = Queue()
+            self.mp_process = Process(target=self.compute_and_send, args=(self.mp_queue, computation_name, inputs))
+            self.mp_process.start()
+
+            # Start polling for results
+            self.poll_timer = QTimer()
+            self.poll_timer.timeout.connect(lambda: self.check_for_computation_results(computation_name))
+            self.poll_timer.start(100)
+        except Exception as e:
+
+            self.set_launch_color("error")
+            self.output_display.append(f"Computation {computation_name} failed.     [{self.produce_timestamp()}]")
+            QMessageBox.critical(self, "Input Error", str(e))
+            self.spinner_label.setVisible(False)
+            self.spinner_movie.stop()
+            self.launch_button.setEnabled(True)
+
+    def process_result(self, result):
+        self.set_launch_color("success")
+
+        if "MFPT" in result:
+            # self.mfpt_label.setText(f"MFPT: {result['MFPT']:.6f}")
+            self.output_display.append(f"Computation returned MFPT = {result['MFPT']:.6f}       [{self.produce_timestamp()}]")
+
+        if "duration" in result:
+            self.output_display.append(f"Dimensionless time duration: {result['duration']:.6f}      [{self.produce_timestamp()}]")
+            # self.duration_label.setText(f"Duration: {result['duration']:.6f}")
+            # self.duration_label.show()
+
+        csv_paths = []
+        png_paths = []
+
+        if "output_dirs" in result:
+            csv_paths, png_paths = aux_gui_funcs.extract_csv_and_png_paths(result["output_dirs"])
+            if csv_paths or png_paths:
+                self.output_files_widget.update_display(csv_paths, png_paths)
+                self.output_files_widget.show()
+                self.png_preview_widget.update_png_list(png_paths)
+                self.png_preview_widget.show()
+            else:
+                self.output_files_widget.hide()
+                self.png_preview_widget.hide()
+        else:
+            self.output_files_widget.hide()
+
+        record = computation_history_entry.ComputationRecord(
+            comp_type=self.comp_select.currentText(),
+            params={param: field.text() for param, field in self.param_inputs.items()},
+            mfpt=result.get("MFPT"),
+            duration=result.get("duration"),
+            csv_files=csv_paths,
+            png_files=png_paths,
+            status="completed",
+            error_msg=None
+        )
+
+        history_cache.cache.add_entry(record)
+        self.history_dropdown.addItem(record.display_name())
+        self.update_history_dropdown_visibility()
+
     def run_computation(self):
         self.set_launch_color("running")
         self.output_display.clear()
-        self.mfpt_label.setText("MFPT: ")
+        # self.mfpt_label.setText("MFPT: ")
         self.duration_label.hide()
 
         try:
@@ -598,7 +787,7 @@ class ControlPanel(QWidget):
 
             if isinstance(result, dict):
                 if "MFPT" in result:
-                    self.mfpt_label.setText(f"MFPT: {result['MFPT']:.6f}")
+                    # self.mfpt_label.setText(f"MFPT: {result['MFPT']:.6f}")
                     self.output_display.append(f"Computation returned MFPT = {result['MFPT']:.6f}\n")
                 if "duration" in result:
                     self.duration_label.setText(f"Duration: {result['duration']:.6f} seconds")
@@ -653,17 +842,11 @@ class ControlPanel(QWidget):
             self.set_launch_color("error")
 
     def load_entry(self, entry):
-        # Update labels
-        if entry.mfpt is not None:
-            self.mfpt_label.setText(f"MFPT: {entry.mfpt:.6f}")
-        else:
-            self.mfpt_label.setText("MFPT: ")
 
         if entry.duration is not None:
-            self.duration_label.setText(f"Duration: {entry.duration:.6f} seconds")
-            self.duration_label.show()
-        else:
-            self.duration_label.hide()
+            # self.duration_label.setText(f"Duration: {entry.duration:.6f}")
+            self.output_display.append(f"<RESTORED> Dimensionless time: {entry.duration:.6f}    [{self.produce_timestamp()}]")
+            # self.duration_label.show()
 
         # Update output files
         self.output_files_widget.update_display(entry.csv_files or [], entry.png_files or [])
@@ -700,7 +883,7 @@ class ControlPanel(QWidget):
 
     def clear_parameter_fields(self):
         self.update_parameter_fields(self.comp_select.currentText())
-        self.mfpt_label.setText("MFPT: ")
+        # self.mfpt_label.setText("MFPT: ")
         self.output_display.clear()
 
     def clear_displayed_results(self):
@@ -720,13 +903,10 @@ class ControlPanel(QWidget):
         self.set_computation(entry.comp_type)
         self.set_parameters(entry.params)
 
-        if entry.mfpt is not None:
-            self.mfpt_label.setText(f"MFPT: {entry.mfpt:.6f}")
         if entry.duration is not None:
-            self.duration_label.setText(f"Duration: {entry.duration:.6f} seconds")
-            self.duration_label.show()
-        else:
-            self.duration_label.hide()
+            # self.duration_label.setText(f"Duration: {entry.duration:.6f} seconds")
+            self.output_display.append(
+                f"<RESTORED> Dimensionless time: {entry.duration:.6f}     [{self.produce_timestamp()}]")
 
         self.output_files_widget.update_display(entry.csv_files or [], entry.png_files or [])
         self.output_files_widget.show()
@@ -836,7 +1016,7 @@ class ControlPanel(QWidget):
         )
 
         job_queue.global_queue.enqueue(job)
-        self.output_display.append(f"Job enqueued: {job.display_name()}")
+        self.output_display.append(f"Job enqueued: {job.display_name()}     [{self.produce_timestamp()}]")
         # self.queue_list_widget.addItem(job.display_name())
 
         item = QListWidgetItem(job.display_name())
@@ -845,13 +1025,120 @@ class ControlPanel(QWidget):
         self.update_queue_controls_visibility()
         self.update_queue_execute_button_visibility()
 
+    def run_job_queue_mp(self):
+        self.pending_jobs = job_queue.global_queue.get_jobs()
+        if not self.pending_jobs:
+            QMessageBox.information(self, "Job Queue", "No jobs in the queue")
+            return
+        self.output_display.append(f"Starting {len(self.pending_jobs)} queued job(s) ...        [{self.produce_timestamp()}]")
+        self.queue_list_widget.clear()
+        self.run_next_job()
+
+    def run_next_job(self):
+
+        if not self.pending_jobs:
+            self.output_display.append(f"Job queue finished.     [{self.produce_timestamp()}]")
+            job_queue.global_queue.clear_queue()
+            self.update_history_dropdown_visibility()
+            return
+
+        self.spinner_label.setVisible(True)
+        self.spinner_movie.start()
+
+        self.current_job = self.pending_jobs.pop(0)
+        job = self.current_job
+
+        self.output_display.append(f"Running: {job.display_name()}      [{self.produce_timestamp()}]")
+        self.set_launch_color("running")
+        # self.duration_label.hide()
+        # self.mfpt_label.setText("MFPT: ")
+        self.output_display.repaint()
+
+        self.job_queue = Queue()
+        self.job_process = Process(target=self.compute_and_send, args=(self.job_queue, job.comp_type, job.params))
+        self.job_process.start()
+        
+        self.job_timer = QTimer()
+        self.job_timer.timeout.connect(self.check_job_result)
+        self.job_timer.start(100)
+
+    def check_job_result(self):
+        if not self.job_queue.empty():
+            self.job_timer.stop()
+            response = self.job_queue.get()
+            self.job_process.join()
+
+            if response["status"] == "ok":
+                self.handle_completed_job(response["result"])
+            else:
+                self.handle_failed_job(response["message"])
+
+    def handle_completed_job(self, result):
+        job = self.current_job
+        job.status = "completed"
+        job.error_msg = None
+
+        job.mfpt = result.get("MFPT")
+        job.duration = result.get("duration")
+
+        output_dirs = result.get("output_dirs")
+        if output_dirs:
+            # self.output_display.append("Content stored")
+            job.csv_files, job.png_files = aux_gui_funcs.extract_csv_and_png_paths(output_dirs)
+
+        if job.mfpt:
+            self.output_display.append(f"Computation returned MFPT = {job.mfpt:.6f}     [{self.produce_timestamp()}]")
+
+        if job.duration:
+            self.output_display.append(
+                f"Dimensionless time: {job.duration}:.6f     [{self.produce_timestamp()}]")
+
+        if job.csv_files or job.png_files:
+            self.output_files_widget.update_display(job.csv_files, job.png_files)
+            self.output_files_widget.show()
+            self.png_preview_widget.update_png_list(job.png_files)
+            self.png_preview_widget.show()
+        else:
+            self.output_files_widget.hide()
+            self.png_preview_widget.hide()
+
+        self.output_display.append(f"Job: {job_queue.global_queue.getComputationType(job)} executed successfully.       [{self.produce_timestamp()}]")
+
+        # Record and clean up
+        self.set_launch_color("success")
+        history_cache.cache.add_entry(job)
+        self.history_dropdown.addItem(job.display_name())
+        self.remove_visual_job(job)
+        self.spinner_label.setVisible(False)
+        self.spinner_movie.stop()
+        self.run_next_job()
+
+    def handle_failed_job(self, error_msg):
+        job = self.current_job
+        job.status = "failed"
+        job.error_msg = error_msg
+
+        self.set_launch_color("error")
+        self.output_display.append(f"Job failed: {error_msg}        [{self.produce_timestamp()}]")
+        QMessageBox.critical(self, "Job Failed", f"Job {job.display_name()} failed:\n{error_msg}")
+
+        history_cache.cache.add_entry(job)
+        self.history_dropdown.addItem(job.display_name())
+        self.remove_visual_job(job)
+
+        self.spinner_label.setVisible(False)
+        self.spinner_movie.stop()
+        self.run_next_job()
+
     def run_job_queue(self):
         jobs = job_queue.global_queue.get_jobs()
         if not jobs:
             QMessageBox.information(self, "Job Queue", "No jobs in the queue.")
             return
 
-        self.output_display.append(f"Starting {len(jobs)} queued job(s)...\n")
+        self.output_display.append(f"Starting {len(jobs)} queued job(s)...      [{self.produce_timestamp()}]")
+        self.spinner_label.setVisible(True)
+        self.spinner_movie.start()
 
         while jobs:
             job = jobs.pop(0)
@@ -863,8 +1150,6 @@ class ControlPanel(QWidget):
 
                 job.mfpt = result.get("MFPT")
                 job.duration = result.get("duration")
-                # job.csv_files = result.get("csv_files", [])
-                # job.png_files = result.get("png_files", [])
                 job.status = "completed"
                 job.error_msg = None
 
@@ -875,10 +1160,12 @@ class ControlPanel(QWidget):
                 # Update display like in run_computation()
                 if job.mfpt:
                     self.mfpt_label.setText(f"MFPT: {job.mfpt:.6f}")
-                    self.output_display.append(f"Computation returned MFPT = {job.mfpt:.6f}\n")
+                    self.output_display.append(f"Computation returned MFPT = {job.mfpt:.6f}         [{self.produce_timestamp()}]")
                 if job.duration:
-                    self.duration_label.setText(f"Duration: {job.duration:.6f} seconds")
-                    self.duration_label.show()
+                    # self.duration_label.setText(f"Duration: {job.duration:.6f} seconds")
+                    self.output_display.append(
+                        f"Dimensionless time: {job.duration}:.6f     [{self.produce_timestamp()}]")
+                    # self.duration_label.show()
 
                 if job.csv_files or job.png_files:
                     self.output_files_widget.update_display(job.csv_files, job.png_files)
@@ -893,17 +1180,20 @@ class ControlPanel(QWidget):
                 job.status = "failed"
                 job.error_msg = str(e)
                 QMessageBox.critical(self, "Error", f"Job {job.display_name()} failed:\n{str(e)}")
-                self.output_display.append(f"Job failed: {str(e)}")
+                self.output_display.append(f"Job failed: {str(e)}       [{self.produce_timestamp()}]")
 
             # Save and archive job
             history_cache.cache.add_entry(job)
             self.history_dropdown.addItem(job.display_name())
             self.remove_visual_job(job)
+            self.spinner_label.setVisible(False)
+            self.spinner_movie.stop()
 
         # Clear queue after finishing
         job_queue.global_queue.clear_queue()
-        self.output_display.append("Job queue finished.\n")
+        self.output_display.append(f"Job queue finished.     [{self.produce_timestamp()}]")
         self.queue_list_widget.clear()
+        self.update_history_dropdown_visibility()
 
     def remove_visual_job(self, job):
         for i in range(self.queue_list_widget.count()):
@@ -973,11 +1263,10 @@ class ControlPanel(QWidget):
             return
 
         job = item.data(Qt.UserRole)
-
-        # Remove from internal queue + disk
-        job_queue.global_queue.remove(job)
-
+        # print(job_queue.global_queue.getComputationType(job))
+        self.output_display.append(f"Removed job: '{job_queue.global_queue.getComputationType(job)}' from queue.      [{self.produce_timestamp()}]")
         # Remove from GUI
+        job_queue.global_queue.remove(job)
         self.queue_list_widget.takeItem(self.queue_list_widget.currentRow())
         self.update_queue_controls_visibility()
         self.update_queue_execute_button_visibility()
@@ -990,6 +1279,7 @@ class ControlPanel(QWidget):
         self.queue_list_widget.clear()
         self.update_queue_controls_visibility()
         self.update_queue_execute_button_visibility()
+        self.output_display.clear()
 
 
 

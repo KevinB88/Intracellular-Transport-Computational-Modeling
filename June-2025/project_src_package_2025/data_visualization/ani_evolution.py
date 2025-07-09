@@ -243,4 +243,4 @@ def run_realtime_simulation(rg_param, ry_param, w_param, v_param, N_param, K_par
 
     print(f"Memory expenditure/footprint: {estimated_memory} bytes = {(estimated_memory / 10**7)}% of a GB")
 
-    animate_diffusion(rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, d_tube, steps_per_frame=steps_per_frame, interval_ms=interval_ms)
+    animate_diffusion(rg_param, ry_param, w_param, -1*v_param, N_param, K_param, T_param, d_tube, steps_per_frame=steps_per_frame, interval_ms=interval_ms)

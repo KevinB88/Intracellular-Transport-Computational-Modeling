@@ -84,7 +84,7 @@ def solve_mfpt_(rg_param, ry_param, N_param, v_param, w_param, T_param, r=1.0, d
             input(f"Select d_tube within the range: [0, {max_d_tube}] to avoid DL extraction region overlap: "))
     diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
     MFPT, duration = mfpt_comp.comp_mfpt_by_time_rect(rg_param, ry_param, w_param, w_param,
-                                                      v_param, N_param, diff_layer, adv_layer, T_param,
+                                                      v_param*-1, N_param, diff_layer, adv_layer, T_param,
                                                       mass_checkpoint=mass_checkpoint, r=r, d=d, d_tube=d_tube)
     if return_duration:
         return MFPT, duration
@@ -153,7 +153,7 @@ def output_time_until_mass_depletion(rg_param, ry_param, N_param, v_param, w_par
                 input(f"Select d_tube within the range: (0, {max_d_tube}] to avoid DL extraction region overlap: "))
 
     duration = ant.comp_until_mass_depletion(rg_param, ry_param, w_param, w_param,
-                                             v_param, N_param, diff_layer, adv_layer,
+                                             v_param*-1, N_param, diff_layer, adv_layer,
                                              mass_retention_threshold=mass_threshold, mixed_config=mixed_config, d_tube=d_tube)
     return duration
 
@@ -187,7 +187,7 @@ def collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach=
         while d_tube <= 0 or d_tube > max_d_tube:
             d_tube = float(input(f"Select d_tube within the range: (0, {max_d_tube}] to avoid DL extraction region overlap: "))
 
-    ant.comp_diffusive_angle_snapshots(rg_param, ry_param, w_param, w_param, v_param, N_param,
+    ant.comp_diffusive_angle_snapshots(rg_param, ry_param, w_param, w_param, v_param*-1, N_param,
                                        diff_layer, adv_layer, phi_v_theta_container, approach, m_segment=m_segment, r=r,
                                        d=d,
                                        mass_retention_threshold=mass_retention_threshold,
@@ -234,7 +234,7 @@ def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fi
             d_tube = float(
                 input(f"Select d_tube within the range: (0, {max_d_tube}] to avoid DL extraction region overlap: "))
 
-    ant.comp_diffusive_rad_snapshots(rg_param, ry_param, w_param, w_param, v_param, N_param, diff_layer, adv_layer,
+    ant.comp_diffusive_rad_snapshots(rg_param, ry_param, w_param, w_param, v_param*-1, N_param, diff_layer, adv_layer,
                                      fixed_angle, phi_rad_container, rho_rad_container, time_point_container, r=r, d=d,
                                      mass_retention_threshold=mass_retention_threshold, mass_checkpoint=mass_checkpoint,
                                      mixed_config=mixed_config)
@@ -300,7 +300,7 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
         while d_tube < 0 or d_tube > max_d_tube:
             d_tube = float(input(f"Select d_tube within the range: [0, {max_d_tube}] to avoid DL extraction region overlap: "))
 
-    ant.comp_mass_analysis_respect_to_time(rg_param, ry_param, w_param, w_param, v_param, T_param, N_param, diff_layer,
+    ant.comp_mass_analysis_respect_to_time(rg_param, ry_param, w_param, w_param, v_param*-1, T_param, N_param, diff_layer,
                                            adv_layer, diffusive_mass_container, advective_mass_container,
                                            advective_over_total_container, advective_over_initial_container,
                                            total_mass_container, collection_width, mass_checkpoint, r, d,
@@ -410,6 +410,8 @@ def heatmap_production(rg_param, ry_param, w_param, v_param, N_param, filepath=f
                        save_png=True, show_plot=True, compute_MFPT=True, verbose=False, output_csv=True, rect_config=False,
                        d_tube=-1, r=1.0, d=1.0, mass_retention_threshold=0.01, mass_checkpoint=10**6, color_scheme='viridis',
                        toggle_border=False, display_extraction=True, approach=2):
+    v_param *= -1
+
     ani.generate_heatmaps(rg_param=rg_param, ry_param=ry_param, w_param=w_param, v_param=v_param, N_param=N_param, approach=approach,
                           filepath=filepath, time_point_container=time_point_container, save_png=save_png, show_plot=show_plot, compute_mfpt=compute_MFPT,
                           verbose=verbose, output_csv=output_csv, rect_config=rect_config, d_tube=d_tube, r=r, d=d, mass_retention_threshold=mass_retention_threshold,

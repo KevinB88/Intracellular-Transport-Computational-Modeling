@@ -3,6 +3,7 @@
 import ast
 import os
 from . import launch
+from multiprocessing import Process
 
 
 COMPUTATION_FUNCTIONS = {
@@ -81,3 +82,21 @@ def run_selected_computation(computation_name, param_dict):
 
     # --- Fallback: return as-is ---
     return result
+
+
+def _dummy_compile_run():
+    try:
+        launch.solve_mfpt_(1,1,[0], 0, 0, 0, d_tube=0)
+        launch.output_time_until_mass_depletion(1, 1, [0], 0, 0, d_tube=0, mass_threshold=1)
+        # a = launch.collect_phi_ang_dep(1, 1, [0], 0, 0, approach=3, m_segment=0, time_point_container=[0], d_tube=0)
+        # b = launch.collect_density_rad_depend(1, 1, [0], 0, 0, 0, [0], d_tube=0)
+        c = launch.collect_mass_analysis(1, 1,[0],0,0,0,1, d_tube=0, save_png=False, show_plt=False, collect_plots=False)
+        print("[Numba Compilation] Compilation complete.")
+    except Exception as e:
+        print(f"[Numba Compilation] Warning: {e}")
+
+
+def initiate_compilation():
+    p = Process(target=_dummy_compile_run)
+    p.start()
+    return p

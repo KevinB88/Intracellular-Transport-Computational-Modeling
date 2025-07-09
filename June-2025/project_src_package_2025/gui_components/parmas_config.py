@@ -81,18 +81,18 @@ PARAMETER_SCHEMAS = {
             ("v_param", ""),
             ("w_param", ""),
             ("T_param", ""),
-            ("collection_width", "")
         ],
         "default": [
             ("r", 1.0),
             ("d", 1.0),
             ("mass_checkpoint", int(1e6)),
-            ("save_png", False),
-            ("show_plt", True),
+            ("save_png", True),
+            ("show_plt", False),
             ("mixed_config", False),
             ("d_tube", 0),
             ("collect_MFPT", False),
-            ("collect_plots", True)
+            ("collect_plots", True),
+            ("collection_width", 10)
         ]
     }
 }
