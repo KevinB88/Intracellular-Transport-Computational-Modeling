@@ -1,7 +1,8 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton, QFormLayout,
     QLineEdit, QMessageBox, QCheckBox, QTextEdit, QGroupBox, QSpinBox, QDoubleSpinBox,
-    QSizePolicy, QSlider, QStackedWidget, QTabWidget
+    QSizePolicy, QSlider, QStackedWidget, QTabWidget, QListWidget, QListWidgetItem, QDialogButtonBox,
+    QDialog
 )
 
 from project_src_package_2025.job_queuing_system import job_queue
@@ -27,6 +28,31 @@ import re
 import ast
 
 import matplotlib.pyplot as plt
+
+
+class ToggleSelectListWidget(QListWidget):
+    def mousePressEvent(self, event):
+        item = self.itemAt(event.pos())
+        current_item = self.currentItem()
+
+        if item and item == current_item:
+            self.clearSelection()
+            self.clearFocus()
+            # self.parent().toggle_move_buttons_visibility()
+        else:
+            super().mousePressEvent(event)
+
+        self.parent().toggle_move_buttons_visibility()
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            self.clearSelection()
+            self.clearFocus()
+            # self.parent().toggle_move_buttons_visibility()
+        else:
+            super().keyPressEvent(event)
+
+        self.parent().toggle_move_buttons_visibility()
 
 
 class ControlPanel(QWidget):
@@ -129,6 +155,47 @@ class ControlPanel(QWidget):
         button_row.addWidget(self.run_queue_button)
 
         self.left_panel.addLayout(button_row)
+
+        # === Job Queue Display Panel ===
+        self.queue_list_label = QLabel("Queued Jobs:")
+        self.queue_list_widget = ToggleSelectListWidget()
+        self.queue_list_widget.setFixedWidth(300)  # adjust size as needed
+        self.queue_list_widget.itemSelectionChanged.connect(self.toggle_move_buttons_visibility)
+
+        for job in job_queue.global_queue.jobs:
+            item = QListWidgetItem(job.display_name())
+            item.setData(Qt.UserRole, job)
+            self.queue_list_widget.addItem(item)
+
+        queue_panel = QVBoxLayout()
+        queue_panel.addWidget(self.queue_list_label)
+        queue_panel.addWidget(self.queue_list_widget)
+
+        self.main_layout.addLayout(queue_panel)
+
+        # Buttons for job manipulation
+        self.edit_job_button = QPushButton("Edit Job")
+        self.move_up_button = QPushButton("Move Up")
+        self.move_down_button = QPushButton("Move Down")
+        self.remove_job_button = QPushButton("Remove Job")
+        self.clear_queue_button = QPushButton("Clear Queue")
+
+        # Connect buttons
+        self.edit_job_button.clicked.connect(self.edit_selected_job)
+        self.move_up_button.clicked.connect(self.move_selected_job_up)
+        self.move_down_button.clicked.connect(self.move_selected_job_down)
+        self.remove_job_button.clicked.connect(self.remove_selected_job)
+        self.clear_queue_button.clicked.connect(self.clear_entire_queue)
+
+        # Add to layout
+        queue_button_layout = QHBoxLayout()
+        queue_button_layout.addWidget(self.edit_job_button)
+        queue_button_layout.addWidget(self.move_up_button)
+        queue_button_layout.addWidget(self.move_down_button)
+        queue_button_layout.addWidget(self.remove_job_button)
+        queue_button_layout.addWidget(self.clear_queue_button)
+
+        queue_panel.addLayout(queue_button_layout)
 
         # Assemble layout
         self.left_panel.addWidget(self.comp_label)
@@ -234,21 +301,6 @@ class ControlPanel(QWidget):
             lambda val: self.steps_label.setText(f"Steps per Frame: {val}")
         )
 
-        # # Frames per second tick
-        # self.fps_slider.setTickInterval(10)
-        # self.fps_slider.stTickPosition(QSlider.TicksBwlow)
-        # self.tick_label_layout = QHBoxLayout()
-        # for fps in [10, 20, 30, 40, 50, 60]:
-        #     lbl = QLabel(str(fps))
-        #     lbl.setAlignment(Qt.AlignCenter)
-        #     self.tick_label_layout.addWidget(lbl)
-        # self.fps_slider.setToolTip("Controls animation speed: higher FPS = faster playback")
-        # self.fps_label = QLabel("Frames per second: 50")
-        #
-        # self.fps_slider.valueChanged.connect(
-        #     lambda val: self.fps_label.setText(f"Frames per Second: {val}")
-        # )
-
         # Frames per second slider
         self.interval_slider = QSlider(Qt.Horizontal)
         self.interval_slider.setMinimum(10)
@@ -307,6 +359,12 @@ class ControlPanel(QWidget):
         self.animation_controls_group.setLayout(anim_layout)
         self.right_panel.addWidget(self.animation_controls_group)
 
+        # for move button vsibility
+        self.toggle_move_buttons_visibility()
+        self.update_queue_controls_visibility()
+        self.update_history_dropdown_visibility()
+        self.update_queue_execute_button_visibility()
+
     '''
         For a future enqueue_job() method:
 
@@ -317,6 +375,26 @@ class ControlPanel(QWidget):
     time_for_execution=0
 )
     '''
+
+    def update_queue_execute_button_visibility(self):
+        has_jobs = self.queue_list_widget.count() > 0
+        self.run_queue_button.setVisible(has_jobs)
+
+    def update_history_dropdown_visibility(self):
+        has_history = self.history_dropdown.count() > 1
+        self.history_dropdown.setVisible(has_history)
+
+    def update_queue_controls_visibility(self):
+        has_jobs = self.queue_list_widget.count() > 0
+        self.clear_queue_button.setVisible(has_jobs)
+
+    def toggle_move_buttons_visibility(self):
+        selected = len(self.queue_list_widget.selectedItems()) > 0
+
+        self.move_up_button.setVisible(selected)
+        self.move_down_button.setVisible(selected)
+        self.remove_job_button.setVisible(selected)
+        self.edit_job_button.setVisible(selected)
 
     def pause_animation(self):
         canvas = self.current_canvas
@@ -524,6 +602,7 @@ class ControlPanel(QWidget):
 
             history_cache.cache.add_entry(record)
             self.history_dropdown.addItem(record.display_name())
+            self.update_history_dropdown_visibility()
 
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
@@ -573,6 +652,7 @@ class ControlPanel(QWidget):
             self.history_dropdown.addItem("Select Previous Computation: ")
             self.clear_displayed_results()
             self.clear_parameter_fields()
+        self.update_history_dropdown_visibility()
 
     def clear_parameter_fields(self):
         self.update_parameter_fields(self.comp_select.currentText())
@@ -610,44 +690,7 @@ class ControlPanel(QWidget):
         self.show_restored_message(entry)
         self.png_preview_widget.update_png_list(entry.png_files or [])
         self.png_preview_widget.show()
-
-    # def handle_display_domain(self):
-    #
-    #     try:
-    #         plt.close('all')
-    #
-    #         rings = int(self.param_inputs["rg_param"].text())
-    #         rays = int(self.param_inputs["ry_param"].text())
-    #         d_tube = float(self.param_inputs["d_tube"].text())
-    #
-    #         try:
-    #             microtubules_input = self.param_inputs["N_param"].text()
-    #             parsed = ast.literal_eval(microtubules_input)
-    #             microtubules = list(parsed) if isinstance(parsed, (list, tuple)) else [int(parsed)]
-    #         except (ValueError, SyntaxError):
-    #             print("[Error] Invalid microtubule input. Please enter a list like [0,1,2] or comma-separated values.")
-    #             microtubules = []
-    #
-    #         display_extract = self.display_extract_checkbox.isChecked()
-    #         toggle_border = self.toggle_border_checkbox.isChecked()
-    #
-    #         fig = ani.display_domain_grid(
-    #             rings=rings,
-    #             rays=rays,
-    #             microtubules=microtubules,
-    #             d_tube=d_tube,
-    #             display_extract=display_extract,
-    #             toggle_border=toggle_border
-    #         )
-    #
-    #         self.display_matplotlib_figure(fig)
-    #
-    #         self.close_domain_button.show()
-    #         self.display_domain_button.setText("Update Domain")
-    #
-    #         # self.close_domain_button.show()
-    #     except Exception as e:
-    #         print(f"[Error] Failed to display domain grid: {e}")
+        self.update_history_dropdown_visibility()
 
     def handle_display_domain(self):
         try:
@@ -750,6 +793,13 @@ class ControlPanel(QWidget):
 
         job_queue.global_queue.enqueue(job)
         self.output_display.append(f"Job enqueued: {job.display_name()}")
+        # self.queue_list_widget.addItem(job.display_name())
+
+        item = QListWidgetItem(job.display_name())
+        item.setData(Qt.UserRole, job)
+        self.queue_list_widget.addItem(item)
+        self.update_queue_controls_visibility()
+        self.update_queue_execute_button_visibility()
 
     def run_job_queue(self):
         jobs = job_queue.global_queue.get_jobs()
@@ -804,10 +854,102 @@ class ControlPanel(QWidget):
             # Save and archive job
             history_cache.cache.add_entry(job)
             self.history_dropdown.addItem(job.display_name())
+            self.remove_visual_job(job)
 
         # Clear queue after finishing
         job_queue.global_queue.clear_queue()
         self.output_display.append("Job queue finished.\n")
+        self.queue_list_widget.clear()
+
+    def remove_visual_job(self, job):
+        for i in range(self.queue_list_widget.count()):
+            item = self.queue_list_widget.item(i)
+            if item.data(Qt.UserRole) == job:
+                self.queue_list_widget.takeItem(i)
+                break
+
+    def edit_selected_job(self):
+        item = self.queue_list_widget.currentItem()
+        if not item:
+            return
+
+        job = item.data(Qt.UserRole)
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Edit Job Parameters")
+        layout = QFormLayout(dialog)
+
+        fields = {}
+        for key, val in job.params.items():
+            line = QLineEdit(str(val))
+            layout.addRow(QLabel(key), line)
+            fields[ key ] = line
+
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        layout.addWidget(button_box)
+
+        def on_accept():
+            for key in job.params:
+                job.params[ key ] = fields[ key ].text()
+            item.setText(job.display_name())  # Update label if needed
+            dialog.accept()
+
+        button_box.accepted.connect(on_accept)
+        button_box.rejected.connect(dialog.reject)
+
+        dialog.exec_()
+
+    def move_selected_job_up(self):
+        row = self.queue_list_widget.currentRow()
+        if row <= 0:
+            return
+
+        item = self.queue_list_widget.takeItem(row)
+        self.queue_list_widget.insertItem(row - 1, item)
+        self.queue_list_widget.setCurrentRow(row - 1)
+
+        job_queue.global_queue.jobs[ row ], job_queue.global_queue.jobs[ row - 1 ] = \
+            job_queue.global_queue.jobs[ row - 1 ], job_queue.global_queue.jobs[ row ]
+
+    def move_selected_job_down(self):
+        row = self.queue_list_widget.currentRow()
+        if row < 0 or row >= self.queue_list_widget.count() - 1:
+            return
+
+        item = self.queue_list_widget.takeItem(row)
+        self.queue_list_widget.insertItem(row + 1, item)
+        self.queue_list_widget.setCurrentRow(row + 1)
+
+        job_queue.global_queue.jobs[ row ], job_queue.global_queue.jobs[ row + 1 ] = \
+            job_queue.global_queue.jobs[ row + 1 ], job_queue.global_queue.jobs[ row ]
+
+    def remove_selected_job(self):
+        item = self.queue_list_widget.currentItem()
+        if not item:
+            return
+
+        job = item.data(Qt.UserRole)
+
+        # Remove from internal queue + disk
+        job_queue.global_queue.remove(job)
+
+        # Remove from GUI
+        self.queue_list_widget.takeItem(self.queue_list_widget.currentRow())
+        self.update_queue_controls_visibility()
+        self.update_queue_execute_button_visibility()
+
+    def clear_entire_queue(self):
+        # Clear job queue
+        job_queue.global_queue.clear_queue()
+
+        # Clear GUI
+        self.queue_list_widget.clear()
+        self.update_queue_controls_visibility()
+        self.update_queue_execute_button_visibility()
+
+
+
+
 
 
 

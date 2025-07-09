@@ -103,5 +103,9 @@ class JobQueue:
         with self.lock:
             return list(self.observation_list)
 
+    def remove(self, job_to_remove):
+        self.jobs = [job for job in self.jobs if job.job_id != job_to_remove.job_id]
+        self.save()
+
 
 global_queue = JobQueue()

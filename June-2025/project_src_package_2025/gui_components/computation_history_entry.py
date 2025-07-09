@@ -1,9 +1,10 @@
 import datetime
-
+import uuid
 
 class ComputationRecord:
     def __init__(self, comp_type, params, mfpt=None, duration=None, csv_files=None, png_files=None,
                  time_for_execution=0, status="pending", error_msg=None):
+        self.job_id = str(uuid.uuid4())
         self.comp_type = comp_type
         self.params = params
         self.mfpt = mfpt
