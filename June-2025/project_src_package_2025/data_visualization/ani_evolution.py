@@ -180,8 +180,9 @@ def animate_diffusion(
     #     manager.window.wm_geometry(f"+{x}+{y}")
 
     cmap = cm.get_cmap(color_scheme, 512)
+    norm = Normalize(vmin=0, vmax=1)
     initial = np.vstack([np.full((1, ry_param), cen_batch[0]), diff_batch[0]])
-    heatmap = ax.pcolormesh(X, Y, initial.T, shading='flat', cmap=cmap, edgecolors='k', linewidth=0.01)
+    heatmap = ax.pcolormesh(X, Y, initial.T, shading='flat', cmap=cmap, edgecolors='k', linewidth=0.01, norm=norm)
     ax.axis('off')
     sim_time = 0
 
@@ -207,7 +208,7 @@ def animate_diffusion(
         heatmap.remove()
 
         full_layer_T = full_layer.T
-        heatmap = ax.pcolormesh(X, Y, full_layer_T, shading='flat', cmap=cmap, edgecolors='k', linewidth=0.01)
+        heatmap = ax.pcolormesh(X, Y, full_layer_T, shading='flat', cmap=cmap, edgecolors='k', linewidth=0.01, norm=norm)
 
         sim_time += steps_per_frame * batch_mgr.d_time
         ax.set_title(f"Simulation time: {sim_time:.4f}", fontsize=14)

@@ -159,7 +159,7 @@ def output_time_until_mass_depletion(rg_param, ry_param, N_param, v_param, w_par
 
 
 # produces a csv containing Phi versus Theta data relative to the specified approach
-def collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach, m_segment=0.5,
+def collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach=3, m_segment=0.5,
                         r=1, d=1, mass_retention_threshold=0.01, time_point_container=None, verbose=False,
                         save_png=True, show_plt=False,
                         mixed_config=False, d_tube=-1):

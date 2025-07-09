@@ -248,7 +248,8 @@ class ControlPanel(QWidget):
         viz_layout.addWidget(viz_label)
         viz_layout.addWidget(self.visualization_select)
 
-        self.right_panel.addWidget(viz_group)
+        # self.right_panel.addWidget(viz_group)
+        self.visualization_layout.addWidget(viz_group)
 
         self.visualization_mode = "Show Domain"
 
@@ -266,7 +267,7 @@ class ControlPanel(QWidget):
         checkbox_layout.addWidget(self.display_extract_checkbox)
         checkbox_layout.addWidget(self.toggle_border_checkbox)
 
-        checkbox_layout.addSpacing(20)
+        # checkbox_layout.addSpacing(20)
 
         self.display_domain_button = QPushButton("Preview Domain")
         self.display_domain_button.clicked.connect(self.handle_display_domain)
@@ -279,9 +280,15 @@ class ControlPanel(QWidget):
         checkbox_layout.addWidget(self.close_domain_button)
 
         self.domain_checkbox_group.setLayout(checkbox_layout)
+        center = self.get_widget_center_global(self.domain_checkbox_group)
+        print(center)
+        dims = self.get_widget_dimensions(self.domain_checkbox_group)
+        print(dims)
 
-        # Add this group to the left panel
-        self.right_panel.addWidget(self.domain_checkbox_group)
+        # Add this group to the right panel
+        # self.right_panel.addWidget(self.domain_checkbox_group)
+        self.visualization_layout.addWidget(self.domain_checkbox_group)
+        # self.visualization_layout.setContentsMargins(0, 861, 0, 0)
 
         # --- Animation Mode UI ---
         self.animation_controls_group = QGroupBox("Animation Controls")
@@ -357,15 +364,22 @@ class ControlPanel(QWidget):
         anim_layout.addWidget(self.launch_animation_button)
 
         self.animation_controls_group.setLayout(anim_layout)
-        self.right_panel.addWidget(self.animation_controls_group)
+        self.animation_controls_group.setContentsMargins(0, 861, 0, 0)
 
-        # for move button vsibility
+
+        # <**> right panel
+        # self.right_panel.addWidget(self.animation_controls_group)
+        self.visualization_layout.addWidget(self.animation_controls_group)
+
+        # for move button visibility
         self.toggle_move_buttons_visibility()
         self.update_queue_controls_visibility()
         self.update_history_dropdown_visibility()
         self.update_queue_execute_button_visibility()
 
     '''
+
+    
         For a future enqueue_job() method:
 
     job = ComputationRecord(
@@ -375,6 +389,36 @@ class ControlPanel(QWidget):
     time_for_execution=0
 )
     '''
+
+    @staticmethod
+    def get_widget_center_global(widget):
+        geom = widget.geometry()
+        center_local = geom.center()
+        center_global = widget.mapToGlobal(center_local)
+        return {"Center of widget in global coorindates: ": center_global}
+
+
+    @staticmethod
+    def get_widget_corners_global(widget):
+        rect = widget.rect()
+
+        top_left = widget.mapToGlobal(rect.topLeft())
+        top_right = widget.mapToGlobal(rect.topRight())
+        bottom_left = widget.mapToGlobal(rect.bottomLeft())
+        bottom_right = widget.mapToGlobal(rect.bottomRight())
+
+        return {
+            "top_left": top_left,
+            "top_right": top_right,
+            "bottom_left": bottom_left,
+            "bottom_right": bottom_right
+        }
+
+    @staticmethod
+    def get_widget_dimensions(widget):
+        width = widget.width()
+        height = widget.height()
+        return {"width:": width, "height": height}
 
     def update_queue_execute_button_visibility(self):
         has_jobs = self.queue_list_widget.count() > 0
