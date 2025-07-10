@@ -24,6 +24,8 @@ from . import history_cache
 from . import ani
 from . import evo
 
+import time
+
 import re
 import ast
 
@@ -68,6 +70,7 @@ class ToggleSelectListWidget(QListWidget):
 class ControlPanel(QWidget):
     def __init__(self, main_window, parent=None):
         super().__init__(parent)
+        self.ani_queue = None
         self.jit_timer = None
         self.jit_compile_process = None
         self.job_timer = None
@@ -311,10 +314,10 @@ class ControlPanel(QWidget):
         checkbox_layout.addWidget(self.close_domain_button)
 
         self.domain_checkbox_group.setLayout(checkbox_layout)
-        center = self.get_widget_center_global(self.domain_checkbox_group)
-        print(center)
-        dims = self.get_widget_dimensions(self.domain_checkbox_group)
-        print(dims)
+        # center = self.get_widget_center_global(self.domain_checkbox_group)
+        # print(center)
+        # dims = self.get_widget_dimensions(self.domain_checkbox_group)
+        # print(dims)
 
         # Add this group to the right panel
         # self.right_panel.addWidget(self.domain_checkbox_group)
@@ -363,6 +366,7 @@ class ControlPanel(QWidget):
             if key in self.param_inputs:
                 self.param_inputs[key].textChanged.connect(self.validate_animation)
 
+        # self.launch_animation_button.clicked.connect(self.handle_launch_animation)
         self.launch_animation_button.clicked.connect(self.handle_launch_animation)
 
         # Animation evolution display
@@ -565,6 +569,51 @@ class ControlPanel(QWidget):
                                   T, d_tube, steps_per_frame=steps_per_frame,
                                   interval_ms=interval_ms,
                                   color_scheme=color_scheme)
+            if hasattr(self, 'current_canvas') and self.current_canvas:
+                self.visualization_area.removeWidget(self.current_canvas)
+                self.current_canvas.setParent(None)
+
+            self.current_canvas = canvas
+            self.visualization_area.addWidget(canvas)
+            self.visualization_area.setCurrentWidget(canvas)
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to launch animation: \n{str(e)}")
+
+    def handle_launch_animation_mp(self):
+        try:
+            rg = int(self.param_inputs["rg_param"].text())
+            ry = int(self.param_inputs["ry_param"].text())
+            w = float(self.param_inputs["w_param"].text())
+            v = float(self.param_inputs["v_param"].text())
+            N_raw = self.param_inputs["N_param"].text()
+            N = list(map(int, re.findall(r'\d+', N_raw))) if N_raw else []
+            T = float(self.param_inputs["T_param"].text())
+            d_tube = float(self.param_inputs["d_tube"].text())
+            K_param = 10000
+
+            # Step 2: Start background process
+            self.ani_queue = Queue()
+            self.ani_process = Process(
+                target=evo.compute_batches_in_background,
+                args=(rg, ry, w, v, N, K_param, T, d_tube, self.ani_queue)
+            )
+            self.ani_process.start()
+
+            # Before calling animate_diffusion_mp
+            start_time = time.time()
+            while self.ani_queue.empty() and time.time() - start_time < 1.0:
+                time.sleep(0.01)  # 10 ms
+
+            # Step 3: Launch canvas connected to queue
+            canvas = evo.animate_diffusion_mp(
+                rg, ry, w, v, N, K_param, T, d_tube,
+                steps_per_frame=self.steps_slider.value(),
+                interval_ms=int(1000 / self.interval_slider.value()),
+                result_queue=self.ani_queue
+            )
+
+            # Step 4: Display canvas
             if hasattr(self, 'current_canvas') and self.current_canvas:
                 self.visualization_area.removeWidget(self.current_canvas)
                 self.current_canvas.setParent(None)

@@ -1,9 +1,9 @@
 import sys
 import os
 import numpy as np
+from time import perf_counter
 from datetime import datetime
 from contextlib import redirect_stdout
-
 from data_visualization import animation_functions as ani, plot_functions as plt
 from computational_tools import analysis_tools as an
 from computational_tools import struct_init as struct
@@ -13,25 +13,15 @@ from auxiliary_tools import format_conversion as form
 from system_configuration import file_paths as fp
 from launch_functions import launch
 from computational_tools import time_analysis as tim
-
-from time import perf_counter
-
 from project_src_package_2025.gui_components import main_gui as gui
 from project_src_package_2025.data_visualization import ani_evolution as evo
+
+# from . import gui, datetime, os, fp, sys, redirect_stdout
 
 
 def run_main():
 
-    # rg_param = 64
-    # ry_param = 64
-    # N_param = [0, 8, 16, 24]
-    # v_param = -10
-    # w_param = 10**1
-    # T_param = 0.1
-    # K_param = 10**3
-
     gui.run_app()
-    # launch.output_time_until_mass_depletion(1, 1, [0], 0, 0, 1)
 
 
 if __name__ == "__main__":
@@ -59,14 +49,3 @@ if __name__ == "__main__":
         tee = Tee(sys.stdout, f)
         with redirect_stdout(tee):
             run_main()
-
-    # ani.display_domain_grid(32, 32, [0, 8, 16, 24], 0,
-    #                         toggle_border=True)
-
-    # 16x16
-    # 0.3009290248430992    original transfer
-    # 0.3009290248430992    new transfer
-
-    # 32x32
-    # 0.27894174382314735   original transfer
-    # 0.27894174382314735   new transfer
