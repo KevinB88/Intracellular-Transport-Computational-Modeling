@@ -4,6 +4,9 @@ from . import mfpt_comp, sup, datetime, tb, fp, mp, config, partial, ant, np, os
 import time as clk
 import math
 
+from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QMessageBox
+
+
 '''
     ind_param:  independent parameter: the value that remains static across all MFPT solutions
     dep_param:  dependent parameter(s) : value that is being tested for MFPT dependence (contained within a set)
@@ -79,9 +82,6 @@ def solve_mfpt_(rg_param, ry_param, N_param, v_param, w_param, T_param, r=1.0, d
     j_max_lim = sup.j_max_bef_overlap(ry_param, N_param)
     max_d_tube = sup.solve_d_rect(r, ry_param, rg_param, j_max_lim, 0)
 
-    while d_tube < 0 or d_tube > max_d_tube:
-        d_tube = float(
-            input(f"Select d_tube within the range: [0, {max_d_tube}] to avoid DL extraction region overlap: "))
     diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
     MFPT, duration = mfpt_comp.comp_mfpt_by_time_rect(rg_param, ry_param, w_param, w_param,
                                                       v_param*-1, N_param, diff_layer, adv_layer, T_param,
@@ -148,10 +148,6 @@ def output_time_until_mass_depletion(rg_param, ry_param, N_param, v_param, w_par
         j_max_lim = sup.j_max_bef_overlap(ry_param, N_param)
         max_d_tube = sup.solve_d_rect(1, ry_param, rg_param, j_max_lim, 0)
 
-        while d_tube <= 0 or d_tube > max_d_tube:
-            d_tube = float(
-                input(f"Select d_tube within the range: (0, {max_d_tube}] to avoid DL extraction region overlap: "))
-
     duration = ant.comp_until_mass_depletion(rg_param, ry_param, w_param, w_param,
                                              v_param*-1, N_param, diff_layer, adv_layer,
                                              mass_retention_threshold=mass_threshold, mixed_config=mixed_config, d_tube=d_tube)
@@ -183,9 +179,6 @@ def collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach=
         # This variable denotes the maximum j_max value with respect to microtubule configuration on the first ring
         j_max_lim = sup.j_max_bef_overlap(ry_param, N_param)
         max_d_tube = sup.solve_d_rect(r, ry_param, rg_param, j_max_lim, 0)
-
-        while d_tube <= 0 or d_tube > max_d_tube:
-            d_tube = float(input(f"Select d_tube within the range: (0, {max_d_tube}] to avoid DL extraction region overlap: "))
 
     ant.comp_diffusive_angle_snapshots(rg_param, ry_param, w_param, w_param, v_param*-1, N_param,
                                        diff_layer, adv_layer, phi_v_theta_container, approach, m_segment=m_segment, r=r,
@@ -229,10 +222,6 @@ def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fi
         # This variable denotes the maximum j_max value with respect to microtubule configuration on the first ring
         j_max_lim = sup.j_max_bef_overlap(ry_param, N_param)
         max_d_tube = sup.solve_d_rect(r, ry_param, rg_param, j_max_lim, 0)
-
-        while d_tube <= 0 or d_tube > max_d_tube:
-            d_tube = float(
-                input(f"Select d_tube within the range: (0, {max_d_tube}] to avoid DL extraction region overlap: "))
 
     ant.comp_diffusive_rad_snapshots(rg_param, ry_param, w_param, w_param, v_param*-1, N_param, diff_layer, adv_layer,
                                      fixed_angle, phi_rad_container, rho_rad_container, time_point_container, r=r, d=d,
@@ -296,9 +285,6 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
         # This variable denotes the maximum j_max value with respect to microtubule configuration on the first ring
         j_max_lim = sup.j_max_bef_overlap(ry_param, N_param)
         max_d_tube = sup.solve_d_rect(r, ry_param, rg_param, j_max_lim, 0)
-
-        while d_tube < 0 or d_tube > max_d_tube:
-            d_tube = float(input(f"Select d_tube within the range: [0, {max_d_tube}] to avoid DL extraction region overlap: "))
 
     ant.comp_mass_analysis_respect_to_time(rg_param, ry_param, w_param, w_param, v_param*-1, T_param, N_param, diff_layer,
                                            adv_layer, diffusive_mass_container, advective_mass_container,

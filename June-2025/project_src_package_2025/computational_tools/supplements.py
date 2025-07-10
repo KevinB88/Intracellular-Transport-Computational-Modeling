@@ -21,6 +21,12 @@ def solve_d_rect(r, rings, rays, j_max, m):
     return (j_max + 0.5) * (m + 1) * d_radius * d_theta
 
 
+def solve_d_rect_no_JIT(r, rings, rays, j_max, m):
+    d_radius = r / rings
+    d_theta = ((2 * math.pi) / rays)
+    return (j_max + 0.5) * (m + 1) * d_radius * d_theta
+
+
 def j_max_domain_list(ry_param, rg_param, N_param, r=1, overlap=False, d_tube=-1, ceil=True):
 
     d_radius = r / rg_param
@@ -52,6 +58,23 @@ def j_max_domain_list(ry_param, rg_param, N_param, r=1, overlap=False, d_tube=-1
 # Decides the max j_max to prevent overlap in the domain\
 @njit(nopython=ENABLE_JIT)
 def j_max_bef_overlap(N, Microtubules):
+    min_range = N
+    r = len(Microtubules)
+    for n in range(r):
+        # current microtubule
+        c_n = Microtubules[n]
+        # right-most microtubule
+        r_n = Microtubules[(n+1) % r]
+        # left-most microtubule
+        l_n = Microtubules[(n-1) % r]
+        min_range = min(min_range, abs(c_n - r_n - 1) % N)
+        min_range = min(min_range, abs(c_n - l_n - 1) % N)
+    # print(min_range)
+    return min_range // 2
+    # note if this function returns 0, there exists at least one overlapping region
+
+
+def j_max_bef_overlap_no_JIT(N, Microtubules):
     min_range = N
     r = len(Microtubules)
     for n in range(r):

@@ -57,7 +57,7 @@ class MainWindow(QMainWindow):
         screen = QGuiApplication.primaryScreen()
         screen_geometry = screen.availableGeometry()
         self.setGeometry(screen_geometry)
-        self.setWindowTitle("GUI version 1.1")
+        self.setWindowTitle("GUI version 1.2")
 
         self.layout = QVBoxLayout()
         self.control_panel = views.ControlPanel(self)

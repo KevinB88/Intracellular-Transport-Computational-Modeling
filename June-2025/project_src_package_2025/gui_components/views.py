@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (
 )
 
 from project_src_package_2025.job_queuing_system import job_queue
+from project_src_package_2025.computational_tools import supplements as sup
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
@@ -82,6 +83,7 @@ class ControlPanel(QWidget):
         self.poll_timer = None
         self.mp_queue = None
         self.current_canvas = None
+        self._d_tube_validation_msg_index = None
         self.main_window = main_window
 
         self.main_layout = QHBoxLayout()
@@ -415,6 +417,7 @@ class ControlPanel(QWidget):
 
         # experimental feature
         # self.initiate_JIT_compilation()
+        self.setup_d_tube_live_check()
 
     '''
         For a future enqueue_job() method:
@@ -426,6 +429,89 @@ class ControlPanel(QWidget):
     time_for_execution=0
 )
     '''
+
+    def setup_d_tube_live_check(self):
+        if "d_tube" not in self.param_inputs:
+            return
+
+        d_tube_input = self.param_inputs["d_tube"]
+        d_tube_input.textChanged.connect(self.validate_d_tube_range)
+
+    def _set_d_tube_validation_message(self, message: str):
+        cursor = self.output_display.textCursor()
+        document = self.output_display.document()
+
+        if self._d_tube_validation_msg_index is not None:
+            # Move to the saved block and replace it
+            block = document.findBlockByNumber(self._d_tube_validation_msg_index)
+            cursor.setPosition(block.position())
+            cursor.select(cursor.LineUnderCursor)
+            cursor.removeSelectedText()
+            cursor.insertText(message)
+        else:
+            # Append normally and record the index
+            self.output_display.append(message)
+            self._d_tube_validation_msg_index = document.blockCount() - 1
+
+    def validate_d_tube_range(self):
+        # Ensure all required fields are present and not empty
+        required_keys = ["rg_param", "ry_param", "N_param", "d_tube"]
+        for key in required_keys:
+            if key not in self.param_inputs:
+                return
+            if not self.param_inputs[key].text().strip():
+                return  # Avoid evaluating until user has entered something
+
+        # Validate that all values are parseable
+        try:
+            d_tube = float(self.param_inputs["d_tube"].text())
+            rg = int(self.param_inputs["rg_param"].text())
+            ry = int(self.param_inputs["ry_param"].text())
+            N_raw = self.param_inputs["N_param"].text().strip()
+            if not N_raw:
+                return  # Wait until N_param is filled
+            N = list(map(int, re.findall(r"\d+", N_raw)))
+            if not N:
+                return  # Wait until N_param has valid integers
+        except ValueError:
+            return  # Mid-input or invalid: wait
+
+        # Respect mixed_config if and only if it is part of the current computation schema
+        current_comp = self.comp_select.currentText()
+        schema = parmas_config.PARAMETER_SCHEMAS.get(current_comp)
+        if schema is None:
+            return
+        default_params = dict(schema.get("default", []))
+
+        # Try safe evaluation of max_d_tube
+        try:
+            j_max_lim = sup.j_max_bef_overlap_no_JIT(ry, N)
+            max_d_tube = sup.solve_d_rect_no_JIT(1, ry, rg, j_max_lim, 0)
+        except Exception as e:
+            # self.output_display.append(f"[Validation Error] Internal calculation failed: {e}")
+            self._set_d_tube_validation_message(f"[Validation Error] Internal calculation failed: {e}")
+            self._set_computation_controls_enabled(False)
+            return
+
+        # Final range check
+        if 0 <= d_tube <= max_d_tube:
+            # self.output_display.append(f"[Validation] d_tube = {d_tube} is valid (max allowed: {max_d_tube:.4f})")
+            self._set_d_tube_validation_message(f"[Validation] d_tube = {d_tube} is valid (max allowed: {max_d_tube - 10**-6:.6f})")
+            self._set_computation_controls_enabled(True)
+        else:
+            # self.output_display.append(
+            #     f"[Validation] d_tube = {d_tube} is invalid! Must be in range (0, {max_d_tube:.4f})"
+            # )
+            self._set_d_tube_validation_message(f"[Validation] d_tube = {d_tube} is invalid! Must be in range (0, {max_d_tube:.4f})")
+            self._set_computation_controls_enabled(False)
+
+    def _set_computation_controls_enabled(self, enabled):
+        self.launch_button.setEnabled(enabled)
+        self.enqueue_button.setEnabled(enabled)
+        self.run_queue_button.setEnabled(enabled)
+        self.display_domain_button.setEnabled(enabled)
+        self.launch_animation_button.setEnabled(enabled)
+
     def initiate_JIT_compilation(self):
         self.launch_button.setEnabled(False)
         self.enqueue_button.setEnabled(False)
@@ -688,6 +774,8 @@ class ControlPanel(QWidget):
             input_field.setVisible(False)
             self.param_form.addRow(label, input_field)
             self.advanced_widgets.append((label, input_field))
+
+        self.setup_d_tube_live_check()
 
     def toggle_advanced_fields(self, state):
         show = state == Qt.Checked
