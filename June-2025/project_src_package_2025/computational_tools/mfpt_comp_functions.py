@@ -6,6 +6,7 @@ from numba import int64
 
 
 ENABLE_JIT = sys_config.ENABLE_NJIT
+ENABLE_CACHE = sys_config.ENABLE_NUMBA_CACHING
 
 
 
@@ -28,7 +29,7 @@ ENABLE_JIT = sys_config.ENABLE_NJIT
 '''
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def comp_mfpt_by_mass_loss(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer,
                            mass_checkpoint=10 ** 6, r=1.0, d=1.0, mass_retention_threshold=0.01):
     """
@@ -144,7 +145,7 @@ def comp_mfpt_by_mass_loss(rings, rays, a, b, v, tube_placements, diffusive_laye
 
 # using the rectangular modification for DL update
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def comp_mfpt_by_mass_loss_rect(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer,
                                 mass_checkpoint=10 ** 6, r=1.0, d=1.0, mass_retention_threshold=0.01,
                                 mixed_config=False, d_tube=-1):
@@ -312,7 +313,7 @@ def comp_mfpt_by_mass_loss_rect(rings, rays, a, b, v, tube_placements, diffusive
     return m_f_p_t, duration
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def comp_mfpt_by_time_rect(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer, T,
                            mass_checkpoint=10**6, r=1.0, d=1.0, d_tube=-1):
 

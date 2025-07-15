@@ -1,9 +1,10 @@
 from . import math, njit, sys_config
 
 ENABLE_JIT = sys_config.ENABLE_NJIT
+ENABLE_CACHE = sys_config.ENABLE_NUMBA_CACHING
 
 
-@njit(npython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def convert_K_to_T(RG, RY, K):
     dR = 1 / RG
     dT = 2 * math.pi / RY
@@ -11,14 +12,14 @@ def convert_K_to_T(RG, RY, K):
     return K * dK
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def update_layer_inplace(layer_target, layer_source, N, M):
     for i in range(M):
         for j in range(N):
             layer_target[i][j] = layer_source[i][j]
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def u_density(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, mt_pos, a, b, tube_placements):
     """
 
@@ -64,7 +65,7 @@ def u_density(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, mt_p
 
 # This function will be called when the solver iterates onto the appropriate patch (i.e, the patch within the diffusive-to-advective extraction range)
 # microtubules (marked by indices in the tube_placements container) are centered within the diffusive-to-advective range
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def u_density_mixed(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, mt_pos, a, b):
     """
 
@@ -108,7 +109,7 @@ def u_density_mixed(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho
     return current_density - component_a - component_b - component_c
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def u_density_rect(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, mt_pos, a, b, d_tube):
     """
 
@@ -156,7 +157,7 @@ def u_density_rect(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho,
     return current_density - component_a - component_b - component_c
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def u_density_rect_v2(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, a, b, d_tube, dict_list):
     """
 
@@ -203,7 +204,7 @@ def u_density_rect_v2(phi, k, m, n, d_radius, d_theta, d_time, central, rings, r
     return current_density - component_a - component_b - component_c
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def u_tube(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta):
     """
 
@@ -243,7 +244,7 @@ def u_tube(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta):
     # return rho[k][m][n] - ((j_r - j_l) / d_radius) * d_time + (a * phi[k][m][n] * (m+1) * d_radius * d_theta) * d_time - b * rho[k][m][n] * d_time
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def u_tube_mixed(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, mx_cn_rrange):
     """
 
@@ -284,7 +285,7 @@ def u_tube_mixed(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, mx_cn_rr
     return component_a + component_b - component_c
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def u_tube_rect(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, d_tube):
     """
 
@@ -327,7 +328,7 @@ def u_tube_rect(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, d_tube):
     return component_a + component_b - component_c
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def u_center(phi, k, d_radius, d_theta, d_time, curr_central, rho, tube_placements, v):
     """
     Calculates the particle density in the central patch.
@@ -361,7 +362,7 @@ def u_center(phi, k, d_radius, d_theta, d_time, curr_central, rho, tube_placemen
     return diffusive_sum + advective_sum
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def calc_mass(phi, rho, k, d_radius, d_theta, curr_central, rings, rays, tube_placements):
     """
     Calculates mass across the whole domain.
@@ -394,7 +395,7 @@ def calc_mass(phi, rho, k, d_radius, d_theta, curr_central, rings, rays, tube_pl
     return (curr_central * math.pi * d_radius * d_radius) + diffusive_mass + advective_mass
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def calc_mass_diff(phi, k, d_radius, d_theta, curr_central, rings, rays):
     diffusive_mass = 0
     for m in range(rings):
@@ -404,7 +405,7 @@ def calc_mass_diff(phi, k, d_radius, d_theta, curr_central, rings, rays):
     return (curr_central * math.pi * d_radius * d_radius) + diffusive_mass
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def calc_mass_adv(rho, k, d_radius, d_theta, rings, tube_placements):
     advective_mass = 0
     for i in range(len(tube_placements)):
@@ -415,7 +416,7 @@ def calc_mass_adv(rho, k, d_radius, d_theta, rings, tube_placements):
     return advective_mass
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def calc_loss_mass_j_r_r(phi, k, d_radius, d_theta, rings, rays):
     """
     Calculates the amount of mass exiting the last ring of patches in the domain using radial currents.
@@ -436,7 +437,7 @@ def calc_loss_mass_j_r_r(phi, k, d_radius, d_theta, rings, rays):
     return total_sum
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def calc_mass_v_time_derivative(mass_container, d_time):
     """
     Calculates the derivative of mass as a function of time, m'(t), using
@@ -452,7 +453,7 @@ def calc_mass_v_time_derivative(mass_container, d_time):
     return array
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def j_r_r(phi, k, m, n, d_radius, rings):
     """
 
@@ -477,7 +478,7 @@ def j_r_r(phi, k, m, n, d_radius, rings):
     return -1 * ((next_ring - curr_ring) / d_radius)
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def j_l_r(phi, k, m, n, d_radius, central):
     """
 
@@ -502,7 +503,7 @@ def j_l_r(phi, k, m, n, d_radius, central):
     return -1 * ((curr_ring - prev_ring) / d_radius)
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def j_r_t(phi, k, m, n, d_radius, d_theta):
     """
     Calculates the rightwards angular current
@@ -522,7 +523,7 @@ def j_r_t(phi, k, m, n, d_radius, d_theta):
     return -1 * (phi[k][m][(n+1) % b] - phi[k][m][n]) / ((m+1) * d_radius * d_theta)
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def j_l_t(phi, k, m, n, d_radius, d_theta):
     """
        Calculates the leftwards angular current

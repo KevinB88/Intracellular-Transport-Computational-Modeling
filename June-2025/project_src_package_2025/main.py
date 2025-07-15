@@ -17,18 +17,31 @@ from project_src_package_2025.gui_components import main_gui as gui
 from project_src_package_2025.data_visualization import ani_evolution as evo
 
 # from . import gui, datetime, os, fp, sys, redirect_stdout
+from multiprocessing import freeze_support
+
+"""
+Main entry point for the PyQt5 GUI application.
+Includes output redirection and multiprocessing freeze support.
+"""
 
 
 def run_main():
 
+    freeze_support()
     gui.run_app()
 
 
 if __name__ == "__main__":
 
+    """
+    Log content produced by the terminal from relevant executions. 
+    """
+
     today_str = datetime.now().strftime("%Y-%m-%d")
 
     log_dir = os.path.join(os.getcwd(), fp.rect_logs)
+
+    os.makedirs(log_dir,  exist_ok=True)
 
     output_filename = os.path.join(log_dir, f"output_{today_str}.txt")
 

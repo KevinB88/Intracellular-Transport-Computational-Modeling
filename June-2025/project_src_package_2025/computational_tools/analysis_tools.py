@@ -3,11 +3,11 @@ from numba.typed import List
 from numba import int64
 
 
-
 ENABLE_JIT = sys_config.ENABLE_NJIT
+ENABLE_CACHE = sys_config.ENABLE_NUMBA_CACHING
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def comp_mass_loss_glb_pk(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer, r=1.0, d=1.0,
                           mass_retention_threshold=0.01):
     """
@@ -116,7 +116,7 @@ def comp_mass_loss_glb_pk(rings, rays, a, b, v, tube_placements, diffusive_layer
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 # Collecting a snapshot of the domain at a specified stamp, which can be used in heat map plots
 def comp_diffusive_snapshots(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer,
                              domain_snapshot_container, domain_center_container, sim_time_container, approach, r=1.0,
@@ -300,7 +300,7 @@ def comp_diffusive_snapshots(rings, rays, a, b, v, tube_placements, diffusive_la
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def comp_until_mass_depletion(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer, r=1.0, d=1.0,
                               mass_retention_threshold=0.01, mixed_config=False, d_tube=-1):
     if ENABLE_JIT:
@@ -417,7 +417,7 @@ def comp_until_mass_depletion(rings, rays, a, b, v, tube_placements, diffusive_l
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 # Collecting a snapshot of density across angles (labeled as discrete positions from 0 to N) on a ring (position specified via params)
 def comp_diffusive_angle_snapshots(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer,
                                    phi_v_theta_snapshot_container, approach, m_segment=0.5, r=1.0, d=1.0,
@@ -593,7 +593,7 @@ def comp_diffusive_angle_snapshots(rings, rays, a, b, v, tube_placements, diffus
             phi_v_theta_snapshot_container[i] = diffusive_layer[0][i * 2]
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements, diffusive_layer, advective_layer,
                                        diff_mass, adv_mass, adv_over_total, adv_over_initial,
                                        total_mass,
@@ -746,7 +746,7 @@ def comp_mass_analysis_respect_to_time(rings, rays, a, b, v, T, tube_placements,
         print('MFPT: ', MFPT)
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 # Collecting density across the diffusive and advective layers with respect to radius
 # The 'fixed_angle' parameter must be provided as an integer denoting the angle/positioning on the discretized domain
 def comp_diffusive_rad_snapshots(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer,

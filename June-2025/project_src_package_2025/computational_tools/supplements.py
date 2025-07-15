@@ -6,6 +6,7 @@ from numba import int64
 import math
 
 ENABLE_JIT = sys_config.ENABLE_NJIT
+ENABLE_CACHE = sys_config.ENABLE_NUMBA_CACHING
 
 
 def initialize_layers(rg_param, ry_param):
@@ -14,7 +15,7 @@ def initialize_layers(rg_param, ry_param):
     return diffusive_layer, advective_layer
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def solve_d_rect(r, rings, rays, j_max, m):
     d_radius = r / rings
     d_theta = ((2 * math.pi) / rays)
@@ -56,7 +57,7 @@ def j_max_domain_list(ry_param, rg_param, N_param, r=1, overlap=False, d_tube=-1
 
 
 # Decides the max j_max to prevent overlap in the domain\
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def j_max_bef_overlap(N, Microtubules):
     min_range = N
     r = len(Microtubules)
@@ -91,7 +92,7 @@ def j_max_bef_overlap_no_JIT(N, Microtubules):
     # note if this function returns 0, there exists at least one overlapping region
 
 
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def dict_gen(keys, values):
     d = Dict.empty(
         key_type=int64,
@@ -113,7 +114,7 @@ def dict_gen(keys, values):
 
 
 # collect ranges of centers across a modular ring and flatten them into a single container
-@njit(nopython=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def mod_range_flat(centers, radius, ring_len, sorted=False):
     N = ring_len
     total_len = int(len(centers) * (2 * radius + 1))

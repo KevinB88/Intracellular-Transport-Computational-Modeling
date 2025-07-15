@@ -56,7 +56,7 @@ def _launch_time_analysis_MFPT(RG, RY, V, W, T, N_List, dTUBE=0.0, SingleStep=Fa
         print("Mean time: ", mean_time)
 
 
-@njit(nopython=ENABLE_JIT, fastmath=True)
+@njit(nopython=ENABLE_JIT, fastmath=True, cache=True)
 def _time_analysis_MFPT_iter(RG, RY, K, A, B, V, dK, dR, dT, CENTER, diff_layer, adv_layer, N_list, d_list, dTUBE=0.0,
                              MassCheckpoint=10 ** 6):
     # d_list = List()
