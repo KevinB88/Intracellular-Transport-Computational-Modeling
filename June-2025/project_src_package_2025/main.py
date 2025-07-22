@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from contextlib import redirect_stdout
 from project_src_package_2025.gui_components import main_gui as gui
+from project_src_package_2025.launch_functions import launch
 from multiprocessing import freeze_support
 from pathlib import Path
 
@@ -21,9 +22,18 @@ else:
 
 freeze_support()
 
+
 def run_main():
 
-    gui.run_app()
+    rg_param = 16
+    ry_param = 16
+    v_param = 10.0
+    w_param = 100.0
+    N_param = [0, 4, 8, 12]
+    T_param = 1.0
+
+    # gui.run_app()
+    launch.launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_param)
 
 
 if __name__ == "__main__":

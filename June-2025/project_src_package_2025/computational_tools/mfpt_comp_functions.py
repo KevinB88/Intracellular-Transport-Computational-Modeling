@@ -411,8 +411,8 @@ def comp_mfpt_by_time_rect(rings, rays, a, b, v, tube_placements, diffusive_laye
         phi_center = num.u_center(diffusive_layer, 0, d_radius, d_theta, d_time, phi_center,
                                   advective_layer, tube_placements, v)
 
-        diffusive_layer[0] = diffusive_layer[1]
-        advective_layer[0] = advective_layer[1]
+        # diffusive_layer[0] = diffusive_layer[1]
+        # advective_layer[0] = advective_layer[1]
         # transfer updated density info from the next step to the current
         num.update_layer_inplace(diffusive_layer[0], diffusive_layer[1], rays, rings)
         num.update_layer_inplace(advective_layer[0], advective_layer[1], rays, rings)

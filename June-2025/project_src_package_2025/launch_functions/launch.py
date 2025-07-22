@@ -1,11 +1,10 @@
 import pandas as pd
 
-from . import mfpt_comp, sup, datetime, tb, fp, mp, config, partial, ant, np, os, plt, ani
+from . import mfpt_comp, sup, datetime, tb, fp, mp, config, partial, ant, np, os, plt, ani, num, super
 import time as clk
 import math
 
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QMessageBox
-
 
 '''
     ind_param:  independent parameter: the value that remains static across all MFPT solutions
@@ -57,11 +56,11 @@ def parallel_process_mfpt(N_list, rg_param, ry_param, dep_type, ind_type, dep_pa
 
     for n in range(len(N_list)):
         with mp.Pool(processes=core_count) as pool:
-            mfpt_results = pool.map(partial(solve_mfpt_multi_process, N_list[ n ],
+            mfpt_results = pool.map(partial(solve_mfpt_multi_process, N_list[n],
                                             rg_param, ry_param, dep_type, dep_param), ind_list)
         print(mfpt_results)
         tb.produce_csv_from_xy(mfpt_results, dep_type, "MFPT", data_filepath,
-                               f'MFPT_Results_N={len(N_list[ n ])}_{ind_type}={dep_param}_')
+                               f'MFPT_Results_N={len(N_list[n])}_{ind_type}={dep_param}_')
 
 
 # Will require further inspection
@@ -78,13 +77,14 @@ def solve_mfpt(rg_param, ry_param, N_param, v_param, w_param, r=1.0, d=1.0, mass
         return mfpt
 
 
-def solve_mfpt_(rg_param, ry_param, N_param, v_param, w_param, T_param, r=1.0, d=1.0, mass_checkpoint=10**6, d_tube=-1, return_duration=False):
+def solve_mfpt_(rg_param, ry_param, N_param, v_param, w_param, T_param, r=1.0, d=1.0, mass_checkpoint=10 ** 6,
+                d_tube=-1, return_duration=False):
     j_max_lim = sup.j_max_bef_overlap(ry_param, N_param)
     max_d_tube = sup.solve_d_rect(r, ry_param, rg_param, j_max_lim, 0)
 
     diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
     MFPT, duration = mfpt_comp.comp_mfpt_by_time_rect(rg_param, ry_param, w_param, w_param,
-                                                      v_param*-1, N_param, diff_layer, adv_layer, T_param,
+                                                      v_param * -1, N_param, diff_layer, adv_layer, T_param,
                                                       mass_checkpoint=mass_checkpoint, r=r, d=d, d_tube=d_tube)
     if return_duration:
         return MFPT, duration
@@ -95,8 +95,8 @@ def solve_mfpt_(rg_param, ry_param, N_param, v_param, w_param, T_param, r=1.0, d
 # MFPT as a function of W saturation analysis
 
 # under construction
-def mfpt_of_W_sat_analysis(domain_list, N_param_list, v_param, w_param_list,  T_param, r=1.0, d=1.0, mass_checkpoint=10**6, d_tube=-1):
-
+def mfpt_of_W_sat_analysis(domain_list, N_param_list, v_param, w_param_list, T_param, r=1.0, d=1.0,
+                           mass_checkpoint=10 ** 6, d_tube=-1):
     '''
     Produces a visualization for a saturation of analysis as MFPT as a function of W (switching rate a=b) for varying domain sizes)
     In addition, this current implementation only functions for a single microtubule configuration.
@@ -134,13 +134,14 @@ def mfpt_of_W_sat_analysis(domain_list, N_param_list, v_param, w_param_list,  T_
         # append this pointer to a list of csv data files
     # Configure a plot to display the saturation of results by overlapping the results contained in the list of csv data files.
 
+
 '''
     Configure a launch function to produce an analysis on MFPT as a function of W for varying amounts of N 
 '''
 
 
-def output_time_until_mass_depletion(rg_param, ry_param, N_param, v_param, w_param, mass_threshold=0.01, mixed_config=False, d_tube=-1):
-
+def output_time_until_mass_depletion(rg_param, ry_param, N_param, v_param, w_param, mass_threshold=0.01,
+                                     mixed_config=False, d_tube=-1):
     diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
 
     if mixed_config:
@@ -149,8 +150,9 @@ def output_time_until_mass_depletion(rg_param, ry_param, N_param, v_param, w_par
         max_d_tube = sup.solve_d_rect(1, ry_param, rg_param, j_max_lim, 0)
 
     duration = ant.comp_until_mass_depletion(rg_param, ry_param, w_param, w_param,
-                                             v_param*-1, N_param, diff_layer, adv_layer,
-                                             mass_retention_threshold=mass_threshold, mixed_config=mixed_config, d_tube=d_tube)
+                                             v_param * -1, N_param, diff_layer, adv_layer,
+                                             mass_retention_threshold=mass_threshold, mixed_config=mixed_config,
+                                             d_tube=d_tube)
     return duration
 
 
@@ -180,11 +182,12 @@ def collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach=
         j_max_lim = sup.j_max_bef_overlap(ry_param, N_param)
         max_d_tube = sup.solve_d_rect(r, ry_param, rg_param, j_max_lim, 0)
 
-    ant.comp_diffusive_angle_snapshots(rg_param, ry_param, w_param, w_param, v_param*-1, N_param,
+    ant.comp_diffusive_angle_snapshots(rg_param, ry_param, w_param, w_param, v_param * -1, N_param,
                                        diff_layer, adv_layer, phi_v_theta_container, approach, m_segment=m_segment, r=r,
                                        d=d,
                                        mass_retention_threshold=mass_retention_threshold,
-                                       time_point_container=time_point_container, mixed_config=mixed_config, d_tube=d_tube)
+                                       time_point_container=time_point_container, mixed_config=mixed_config,
+                                       d_tube=d_tube)
 
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 
@@ -223,7 +226,7 @@ def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fi
         j_max_lim = sup.j_max_bef_overlap(ry_param, N_param)
         max_d_tube = sup.solve_d_rect(r, ry_param, rg_param, j_max_lim, 0)
 
-    ant.comp_diffusive_rad_snapshots(rg_param, ry_param, w_param, w_param, v_param*-1, N_param, diff_layer, adv_layer,
+    ant.comp_diffusive_rad_snapshots(rg_param, ry_param, w_param, w_param, v_param * -1, N_param, diff_layer, adv_layer,
                                      fixed_angle, phi_rad_container, rho_rad_container, time_point_container, r=r, d=d,
                                      mass_retention_threshold=mass_retention_threshold, mass_checkpoint=mass_checkpoint,
                                      mixed_config=mixed_config)
@@ -262,7 +265,8 @@ def collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, fi
 
 
 def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param, collection_width, r=1.0, d=1.0,
-                          mass_checkpoint=10 ** 6, save_png=False, show_plt=True, mixed_config=False, d_tube=-1, collect_MFPT=False, collect_plots=True):
+                          mass_checkpoint=10 ** 6, save_png=False, show_plt=True, mixed_config=False, d_tube=-1,
+                          collect_MFPT=False, collect_plots=True):
     d_radius = r / rg_param
     d_theta = ((2 * math.pi) / ry_param)
     d_time = (0.1 * min(d_radius * d_radius, d_theta * d_theta * d_radius * d_radius)) / (2 * d)
@@ -286,7 +290,8 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
         j_max_lim = sup.j_max_bef_overlap(ry_param, N_param)
         max_d_tube = sup.solve_d_rect(r, ry_param, rg_param, j_max_lim, 0)
 
-    ant.comp_mass_analysis_respect_to_time(rg_param, ry_param, w_param, w_param, v_param*-1, T_param, N_param, diff_layer,
+    ant.comp_mass_analysis_respect_to_time(rg_param, ry_param, w_param, w_param, v_param * -1, T_param, N_param,
+                                           diff_layer,
                                            adv_layer, diffusive_mass_container, advective_mass_container,
                                            advective_over_total_container, advective_over_initial_container,
                                            total_mass_container, collection_width, mass_checkpoint, r, d,
@@ -310,7 +315,8 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
         diff_output = output_location
         df = pd.DataFrame(diffusive_mass_container)
         df.to_csv(output_location, header=False, index=False)
-        plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "diffusive_mass",
+        plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param,
+                               "diffusive_mass",
                                data_filepath, save_png, show_plt)
         print()
 
@@ -330,7 +336,8 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
         adv_output = output_location
         df = pd.DataFrame(advective_mass_container)
         df.to_csv(output_location, header=False, index=False)
-        plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "advective_mass",
+        plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param,
+                               "advective_mass",
                                data_filepath, save_png, show_plt)
 
         print()
@@ -392,16 +399,23 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
         print('Plots have not been printed because "collect_plots" has been set to False.')
 
 
-def heatmap_production(rg_param, ry_param, w_param, v_param, N_param, filepath=fp.heatmap_output, time_point_container=None,
-                       save_png=True, show_plot=True, compute_MFPT=True, verbose=False, output_csv=True, rect_config=False,
-                       d_tube=-1, r=1.0, d=1.0, mass_retention_threshold=0.01, mass_checkpoint=10**6, color_scheme='viridis',
+def heatmap_production(rg_param, ry_param, w_param, v_param, N_param, filepath=fp.heatmap_output,
+                       time_point_container=None,
+                       save_png=True, show_plot=True, compute_MFPT=True, verbose=False, output_csv=True,
+                       rect_config=False,
+                       d_tube=-1, r=1.0, d=1.0, mass_retention_threshold=0.01, mass_checkpoint=10 ** 6,
+                       color_scheme='viridis',
                        toggle_border=False, display_extraction=True, approach=2):
     v_param *= -1
 
-    ani.generate_heatmaps(rg_param=rg_param, ry_param=ry_param, w_param=w_param, v_param=v_param, N_param=N_param, approach=approach,
-                          filepath=filepath, time_point_container=time_point_container, save_png=save_png, show_plot=show_plot, compute_mfpt=compute_MFPT,
-                          verbose=verbose, output_csv=output_csv, rect_config=rect_config, d_tube=d_tube, r=r, d=d, mass_retention_threshold=mass_retention_threshold,
-                          mass_checkpoint=mass_checkpoint, color_scheme=color_scheme, toggle_border=toggle_border, display_extraction=display_extraction)
+    ani.generate_heatmaps(rg_param=rg_param, ry_param=ry_param, w_param=w_param, v_param=v_param, N_param=N_param,
+                          approach=approach,
+                          filepath=filepath, time_point_container=time_point_container, save_png=save_png,
+                          show_plot=show_plot, compute_mfpt=compute_MFPT,
+                          verbose=verbose, output_csv=output_csv, rect_config=rect_config, d_tube=d_tube, r=r, d=d,
+                          mass_retention_threshold=mass_retention_threshold,
+                          mass_checkpoint=mass_checkpoint, color_scheme=color_scheme, toggle_border=toggle_border,
+                          display_extraction=display_extraction)
 
     '''
         If approach 2 is selected, only run the diffusive snapshot collection function until the last/maximum time point in the time-point container.
@@ -409,3 +423,69 @@ def heatmap_production(rg_param, ry_param, w_param, v_param, N_param, filepath=f
     '''
 
 
+def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d_tube=0, Timestamp_List=None,
+                        MA_collection_factor=5, MA_collection_factor_limit=10 ** 3,
+                        D=1.0, domain_radius=1.0, mass_checkpoint=10 ** 6, T_fixed_ring_seg=0.5, R_fixed_angle=-1):
+
+    T_param = float(T_param)
+
+    if Timestamp_List is None:
+        # Default timestamps
+        Timestamp_List = [T_param * 0.25, T_param * 0.5, T_param * 0.75, T_param]
+
+    dT = num.compute_dT(rg_param, ry_param, domain_radius=domain_radius, D=D)
+    T_param += dT
+    Timestamp_enum = len(Timestamp_List)
+
+    # Initialize mass analysis time series collection containers
+
+    K = T_param / dT
+    relative_k = math.floor(K / MA_collection_factor)
+
+    MA_DL_timeseries = np.zeros([relative_k], dtype=np.float64)
+    MA_AL_timeseries = np.zeros([relative_k], dtype=np.float64)
+    MA_TM_timeseries = np.zeros([relative_k], dtype=np.float64)
+    MA_ALoT_timeseries = np.zeros([relative_k], dtype=np.float64)
+    MA_ALoI_timeseries = np.zeros([relative_k], dtype=np.float64)
+
+    # Initialize Phi v. Theta diffusive layer snapshot container
+
+    PvT_DL_snapshots = np.zeros((Timestamp_enum, ry_param), dtype=np.float64)
+
+    # Initialize Density v. Radius snapshot containers
+
+    PvR_DL_snapshots = np.zeros((Timestamp_enum, rg_param + 1), dtype=np.float64)
+    RvR_DL_snapshots = np.zeros((Timestamp_enum, rg_param), dtype=np.float64)
+
+    # Prepare for heatmap collection
+
+    j_max_list = []
+    j_max_lim = sup.j_max_bef_overlap(ry_param, N_LIST)
+    max_d_tube = sup.solve_d_rect(domain_radius, ry_param, rg_param, j_max_lim, 0)
+
+    if d_tube < 0 or d_tube > max_d_tube:
+        d_tube = max_d_tube
+
+    dRad = domain_radius / rg_param
+    dThe = (2 * np.pi) / ry_param
+
+    for m in range(rg_param):
+        j_max = np.ceil((d_tube / ((m + 1) * dRad * dThe)) - 0.5)
+        j_max_list.append(j_max)
+
+    HM_DL_snapshots = np.zeros((Timestamp_enum, rg_param, ry_param), dtype=np.float64)
+    HM_C_snapshots = np.zeros([Timestamp_enum], dtype=np.float64)
+    MFPT_snapshots = np.zeros([Timestamp_enum], dtype=np.float64)
+
+    # Initialize layers
+    D_LAYER, A_LAYER = sup.initialize_layers(rg_param, ry_param)
+
+    # Release the Kraken.. (execute super_comp_type_I)
+    super.super_comp_type_I(rg_param, ry_param, w_param, w_param, T_param, v_param, N_LIST, D_LAYER, A_LAYER,
+                            Timestamp_List, HM_DL_snapshots, HM_C_snapshots, PvT_DL_snapshots, T_fixed_ring_seg,
+                            MA_DL_timeseries, MA_AL_timeseries, MA_ALoI_timeseries, MA_ALoT_timeseries,
+                            MA_TM_timeseries,
+                            MA_collection_factor, PvR_DL_snapshots, RvR_DL_snapshots, R_fixed_angle, MFPT_snapshots,
+                            d_tube, D, domain_radius, mass_checkpoint, MA_collection_factor_limit)
+
+    # Process results: Produce CSVs, PNGs (plots and heatmaps)

@@ -536,21 +536,21 @@ def comp_diffusive_angle_snapshots(rings, rays, a, b, v, tube_placements, diffus
                 raise ValueError(
                     "Provide time point container which should consist of 4 points: 2 bounds for the early bound, and 2 for the late bound.")
             if time_point_container[0] < k * d_time < time_point_container[1] and early_flag:
-                phi_v_theta_snapshot_container[0] = diffusive_layer[0][math.floor(m * m_segment)]
+                phi_v_theta_snapshot_container[0] = diffusive_layer[0][math.floor(rings * m_segment)]
                 early_flag = False
             elif time_point_container[2] < k * d_time < time_point_container[3]:
-                phi_v_theta_snapshot_container[1] = diffusive_layer[0][math.floor(m * m_segment)]
+                phi_v_theta_snapshot_container[1] = diffusive_layer[0][math.floor(rings * m_segment)]
                 break
         elif approach == 2:
 
             if 0.675 < mass_retained < 0.68:
-                phi_v_theta_snapshot_container[0] = diffusive_layer[0][math.floor(m * m_segment)]
+                phi_v_theta_snapshot_container[0] = diffusive_layer[0][math.floor(rings * m_segment)]
             elif 0.45 < mass_retained < 0.46:
-                phi_v_theta_snapshot_container[1] = diffusive_layer[0][math.floor(m * m_segment)]
+                phi_v_theta_snapshot_container[1] = diffusive_layer[0][math.floor(rings * m_segment)]
             elif 0.225 < mass_retained < 0.26:
-                phi_v_theta_snapshot_container[2] = diffusive_layer[0][math.floor(m * m_segment)]
+                phi_v_theta_snapshot_container[2] = diffusive_layer[0][math.floor(rings * m_segment)]
             elif 0.015 < mass_retained < 0.02:
-                phi_v_theta_snapshot_container[3] = diffusive_layer[0][math.floor(m * m_segment)]
+                phi_v_theta_snapshot_container[3] = diffusive_layer[0][math.floor(rings * m_segment)]
                 break
         elif approach == 3:
             # approach 3, collects density profiles across angles at specified time points within the time_point_container.
@@ -564,7 +564,7 @@ def comp_diffusive_angle_snapshots(rings, rays, a, b, v, tube_placements, diffus
                 return
 
             if time_point - epsilon < k * d_time < time_point + epsilon:
-                phi_v_theta_snapshot_container[i] = diffusive_layer[0][math.floor(m * m_segment)]
+                phi_v_theta_snapshot_container[i] = diffusive_layer[0][math.floor(rings * m_segment)]
                 i = i + 1
             # labeling this as approach #3, collecting at each individual time point within the container.
             # if the current time point is between an interval (T*k - epsilon, T*k + epsilon) then we collect.

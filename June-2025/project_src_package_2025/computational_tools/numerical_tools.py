@@ -1,13 +1,21 @@
-from . import math, njit, sys_config
+from . import njit, sys_config, np
 
 ENABLE_JIT = sys_config.ENABLE_NJIT
 ENABLE_CACHE = sys_config.ENABLE_NUMBA_CACHING
 
 
 @njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+def compute_dT(rg_param, ry_param, domain_radius=1.0, D=1.0):
+    dRad = domain_radius / rg_param
+    dThe = (2 * np.pi) / ry_param
+    dT = (0.1 * min(dRad ** 2, dThe ** 2 * dRad ** 2)) / (2 * D)
+    return dT
+
+
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def convert_K_to_T(RG, RY, K):
     dR = 1 / RG
-    dT = 2 * math.pi / RY
+    dT = 2 * np.pi / RY
     dK = (0.1 * (min(dR ** 2, dT ** 2 * dR ** 2))) * 0.5
     return K * dK
 
@@ -135,7 +143,7 @@ def u_density_rect(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho,
     :return: particle density at a position (m,n) on the diffusive layer
     """
 
-    j_max = math.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
+    j_max = np.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
 
     current_density = phi[k][m][n]
 
@@ -183,7 +191,7 @@ def u_density_rect_v2(phi, k, m, n, d_radius, d_theta, d_time, central, rings, r
     :return: particle density at a position (m,n) on the diffusive layer
     """
 
-    j_max = math.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
+    j_max = np.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
 
     current_density = phi[k][m][n]
 
@@ -316,7 +324,7 @@ def u_tube_rect(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, d_tube):
 
     N = len(phi[k][m])
 
-    j_max = math.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
+    j_max = np.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
 
     component_b = 0
     for j in range(-j_max, j_max + 1):
@@ -349,7 +357,7 @@ def u_center(phi, k, d_radius, d_theta, d_time, curr_central, rho, tube_placemen
     for n in range(len(phi[0][0])):
         total_sum += j_l_r(phi, k, 0, n, d_radius, curr_central)
 
-    total_sum *= (d_theta * d_time) / (math.pi * d_radius)
+    total_sum *= (d_theta * d_time) / (np.pi * d_radius)
     diffusive_sum = curr_central - total_sum
 
     advective_sum = 0
@@ -357,7 +365,7 @@ def u_center(phi, k, d_radius, d_theta, d_time, curr_central, rho, tube_placemen
     for i in range(len(tube_placements)):
         angle = tube_placements[i]
         j_l = rho[k][0][angle] * v
-        advective_sum += (abs(j_l) * d_time) / (math.pi * d_radius * d_radius)
+        advective_sum += (abs(j_l) * d_time) / (np.pi * d_radius * d_radius)
 
     return diffusive_sum + advective_sum
 
@@ -392,7 +400,7 @@ def calc_mass(phi, rho, k, d_radius, d_theta, curr_central, rings, rays, tube_pl
         for m in range(rings):
             advective_mass += rho[k][m][angle] * d_radius
 
-    return (curr_central * math.pi * d_radius * d_radius) + diffusive_mass + advective_mass
+    return (curr_central * np.pi * d_radius * d_radius) + diffusive_mass + advective_mass
 
 
 @njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
@@ -402,7 +410,7 @@ def calc_mass_diff(phi, k, d_radius, d_theta, curr_central, rings, rays):
         for n in range(rays):
             diffusive_mass += phi[k][m][n] * (m + 1)
     diffusive_mass *= (d_radius * d_radius) * d_theta
-    return (curr_central * math.pi * d_radius * d_radius) + diffusive_mass
+    return (curr_central * np.pi * d_radius * d_radius) + diffusive_mass
 
 
 @njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
