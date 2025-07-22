@@ -192,6 +192,7 @@ def produce_heatmap_tool_rect(diffusive_layer, diffusive_layer_center, toggle_bo
     plt.figure(figsize=(8, 10))
     cmap = cm.get_cmap(color_scheme, 512)
     norm = Normalize(vmin=full_diffusive_layer.min(), vmax=full_diffusive_layer.max())
+    # norm = Normalize(vmin=0, vmax=1)
 
     if toggle_border:
         heatmap = plt.pcolormesh(X, Y, full_diffusive_layer.T, shading='flat', cmap=cmap, norm=norm, edgecolors='k',

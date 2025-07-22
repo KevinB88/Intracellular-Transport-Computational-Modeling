@@ -12,7 +12,7 @@ from matplotlib import cm
 from matplotlib.colors import Normalize
 from . import sys
 from time import perf_counter
-import tkinter as tk
+# import tkinter as tk
 from multiprocessing import Queue
 from PyQt5.QtCore import QTimer
 from collections import deque
@@ -25,13 +25,13 @@ GLOBAL_ani = None
 GLOBAL_fig = None
 
 
-def get_screen_size():
-    root = tk.Tk()
-    root.withdraw()
-    width = root.winfo_screenwidth()
-    height = root.winfo_screenheight()
-    root.destroy()
-    return width, height
+# def get_screen_size():
+#     root = tk.Tk()
+#     root.withdraw()
+#     width = root.winfo_screenwidth()
+#     height = root.winfo_screenheight()
+#     root.destroy()
+#     return width, height
 
 
 class BatchManager:
@@ -132,7 +132,6 @@ def compute_batches_in_background(rg, ry, w, v, N, K_param, T, d_tube, result_qu
         result_queue.put((diff_batch, adv_batch, cen_batch))
 
     result_queue.put("DONE")
-
 
 
 @njit(nopython=ENABLE_JIT)
@@ -256,6 +255,7 @@ def animate_diffusion(
             ani.event_source.stop()
 
         frame_in_batch += steps_per_frame
+        # plt.show()
         return [heatmap]
 
     ani = FuncAnimation(

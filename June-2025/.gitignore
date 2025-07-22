@@ -110,7 +110,7 @@ cachegrind.out.*
 
 # Output and temp data
 
-data_output/**/*
+project_src_package_2025/data_output/heatmaps/2025-07-15-16-58-11_polar_config/density_snapshot_#0_V=1_W=100_N=4_D=16x16_.csv
 !data_output/
 !data_output/**/
 !data_output/**/.gitkeep
@@ -121,5 +121,13 @@ data_output/**/*
 profile_default/
 ipython_config.py
 
-gui_components/saved_state.json
-/saved_queue_jobs.json
+project_src_package_2025/saved_queue_jobs.json
+project_src_package_2025/gui_components/saved_state.json
+
+/build
+/dist
+/Biophysics_app_1.0.egg-info
+/setup.py
+
+/Makefile
+/MANIFEST.in

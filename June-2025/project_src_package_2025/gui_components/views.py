@@ -42,6 +42,14 @@ import matplotlib.pyplot as plt
 from multiprocessing import Process, Queue
 from PyQt5.QtCore import QTimer
 
+import sys
+from pathlib import Path
+
+if getattr(sys, 'frozen', False):
+    base_dir = Path(getattr(sys, '_MEIPASS', Path(sys.executable).parent))
+    python_lib_dir = base_dir / 'lib' / 'python3.9'
+    sys.path.insert(0, str(python_lib_dir))
+
 
 class ToggleSelectListWidget(QListWidget):
     def mousePressEvent(self, event):

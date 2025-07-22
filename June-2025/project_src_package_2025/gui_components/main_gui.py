@@ -80,8 +80,13 @@ class MainWindow(QMainWindow):
 def run_app():
     app = QApplication(sys.argv)
 
-    with open(fp.styles_location, "r") as file:
-        app.setStyleSheet(file.read())
+    from importlib import resources
+
+    style_data = resources.files('project_src_package_2025.gui_components.styles') \
+        .joinpath('style.qss') \
+        .read_text()
+
+    app.setStyleSheet(style_data)
 
     window = MainWindow()
     window.show()
