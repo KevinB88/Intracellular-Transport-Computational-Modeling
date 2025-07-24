@@ -6,9 +6,11 @@ from project_src_package_2025.gui_components import main_gui as gui
 from project_src_package_2025.launch_functions import launch
 from project_src_package_2025.auxiliary_tools import validity_checks as val
 from project_src_package_2025.system_configuration import file_paths as fp
+from project_src_package_2025.computational_tools import analysis_tools as ant
+from project_src_package_2025.computational_tools import supplements as sup
 from multiprocessing import freeze_support
 from pathlib import Path
-
+import numpy as np
 
 if getattr(sys, 'frozen', False):
     base_dir = Path(sys._MEIPASS) if hasattr(sys, '_MEIPASS') else Path(os.path.dirname(sys.executable))
@@ -33,31 +35,11 @@ def run_main():
     w_param = 100.0
     N_param = [0, 4, 8, 12]
     T_param = 1.0
+    T_points = [0.25, 0.5, 0.75]
 
     # gui.run_app()
-    # launch.launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_param)
-    # launch.collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param, 5, save_png=True, show_plt=False)
-
-    adv_super = "N:\\QueensCollege2025\\research\\computational_biophysics\\remote-clone\\June-2025\\project_src_package_2025\\data_output\\mass_analysis_results\\advective\\08-20_PM_07-22-2025\\MA_AL.csv"
-    adv_og = "N:\\QueensCollege2025\\research\\computational_biophysics\\remote-clone\\June-2025\\project_src_package_2025\\data_output\\mass_analysis_results\\advective\\2025-07-22-20-20-15-original-config\\advective_mass_analysis_V=10.0_W=100.0_16x16_.csv"
-
-    diff_super = "N:\\QueensCollege2025\\research\\computational_biophysics\\remote-clone\\June-2025\\project_src_package_2025\\data_output\\mass_analysis_results\\diffusive\\08-20_PM_07-22-2025\\MA_DL.csv"
-    diff_og = "N:\\QueensCollege2025\\research\\computational_biophysics\\remote-clone\\June-2025\\project_src_package_2025\\data_output\\mass_analysis_results\\diffusive\\2025-07-22-20-20-15-original-config\\diffusive_mass_analysis_V=10.0_W=100.0_16x16_.csv"
-
-    total_super = "N:\\QueensCollege2025\\research\\computational_biophysics\\remote-clone\\June-2025\\project_src_package_2025\\data_output\\mass_analysis_results\\total\\08-20_PM_07-22-2025\\MA_total.csv"
-    total_og = "N:\\QueensCollege2025\\research\\computational_biophysics\\remote-clone\\June-2025\\project_src_package_2025\\data_output\\mass_analysis_results\\total\\08-20_PM_07-22-2025\\MA_total.csv"
-
-    adv_o_total_super = "N:\\QueensCollege2025\\research\\computational_biophysics\\remote-clone\\June-2025\\project_src_package_2025\\data_output\\mass_analysis_results\\advective_over_total\\08-20_PM_07-22-2025\\MA_AL_running_total.csv"
-    adv_o_total_og = "N:\\QueensCollege2025\\research\\computational_biophysics\\remote-clone\\June-2025\\project_src_package_2025\\data_output\\mass_analysis_results\\advective_over_total\\2025-07-22-20-20-15\\advective_over_total_mass_analysis_V=10.0_W=100.0_16x16_.csv"
-
-    adv_o_initial_super = "N:\\QueensCollege2025\\research\\computational_biophysics\\remote-clone\\June-2025\\project_src_package_2025\\data_output\\mass_analysis_results\\advective_over_initial\\08-20_PM_07-22-2025\\MA_AL_initial_total.csv"
-    adv_o_initial_og = "N:\\QueensCollege2025\\research\\computational_biophysics\\remote-clone\\June-2025\\project_src_package_2025\\data_output\\mass_analysis_results\\advective_over_initial\\2025-07-22-20-20-16\\advective_over_initial_mass_analysis_V=10.0_W=100.0_16x16_.csv"
-
-    val.validate_contents(adv_super, adv_og)
-    val.validate_contents(diff_super, diff_og)
-    val.validate_contents(total_super, total_og)
-    val.validate_contents(adv_o_total_super, adv_o_total_og)
-    val.validate_contents(adv_o_initial_super, adv_o_initial_og)
+    # launch.launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_param, Timestamp_List=T_points, d_tube=0)
+    # launch.heatmap_production(rg_param, ry_param, w_param, v_param, N_param, time_point_container=T_points, d_tube=0, show_plot=False, rect_config=True, compute_MFPT=True)
 
     # Include simulation time onto mass analysis csv
     # Clarify which methods are robust and which are experimental/require extensive testing

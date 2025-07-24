@@ -182,7 +182,9 @@ def collect_phi_ang_dep(rg_param, ry_param, N_param, v_param, w_param, approach=
         j_max_lim = sup.j_max_bef_overlap(ry_param, N_param)
         max_d_tube = sup.solve_d_rect(r, ry_param, rg_param, j_max_lim, 0)
 
-    ant.comp_diffusive_angle_snapshots(rg_param, ry_param, w_param, w_param, v_param * -1, N_param,
+    v_param *= -1
+
+    ant.comp_diffusive_angle_snapshots(rg_param, ry_param, w_param, w_param, v_param, N_param,
                                        diff_layer, adv_layer, phi_v_theta_container, approach, m_segment=m_segment, r=r,
                                        d=d,
                                        mass_retention_threshold=mass_retention_threshold,
@@ -406,7 +408,6 @@ def heatmap_production(rg_param, ry_param, w_param, v_param, N_param, filepath=f
                        d_tube=-1, r=1.0, d=1.0, mass_retention_threshold=0.01, mass_checkpoint=10 ** 6,
                        color_scheme='viridis',
                        toggle_border=False, display_extraction=True, approach=2):
-    v_param *= -1
 
     ani.generate_heatmaps(rg_param=rg_param, ry_param=ry_param, w_param=w_param, v_param=v_param, N_param=N_param,
                           approach=approach,
@@ -425,13 +426,19 @@ def heatmap_production(rg_param, ry_param, w_param, v_param, N_param, filepath=f
 
 def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d_tube=0, Timestamp_List=None,
                         MA_collection_factor=5, MA_collection_factor_limit=10 ** 3,
-                        D=1.0, domain_radius=1.0, mass_checkpoint=10 ** 6, T_fixed_ring_seg=0.5, R_fixed_angle=-1, save_png=True, save_csv=True, show_plt=False):
+                        D=1.0, domain_radius=1.0, mass_checkpoint=10 ** 6, T_fixed_ring_seg=0.5, R_fixed_angle=-1,
+                        save_png=True, save_csv=True, show_plt=False, heat_plot_border=False, heatplot_colorscheme='viridis',
+                        display_extraction=True):
 
     T_param = float(T_param)
 
     if Timestamp_List is None:
         # Default timestamps
         Timestamp_List = [T_param * 0.25, T_param * 0.5, T_param * 0.75, T_param]
+
+    for t in range(len(Timestamp_List)):
+        if Timestamp_List[t] < 0.0 or Timestamp_List[t] > T_param:
+            raise ValueError(f"Timestamp-point: {Timestamp_List[t]} falls outside of the legal timestamp-point range: [0, {T_param} (T_param) ] (T_param = your input solution time duration)")
 
     dT = num.compute_dT(rg_param, ry_param, domain_radius=domain_radius, D=D)
     T_param += dT
@@ -455,7 +462,7 @@ def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d
     # Initialize Density v. Radius snapshot containers
 
     PvR_DL_snapshots = np.zeros((Timestamp_enum, rg_param + 1), dtype=np.float64)
-    RvR_DL_snapshots = np.zeros((Timestamp_enum, rg_param), dtype=np.float64)
+    RvR_AL_snapshots = np.zeros((Timestamp_enum, rg_param), dtype=np.float64)
 
     # Prepare for heatmap collection
 
@@ -470,7 +477,7 @@ def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d
     dThe = (2 * np.pi) / ry_param
 
     for m in range(rg_param):
-        j_max = np.ceil((d_tube / ((m + 1) * dRad * dThe)) - 0.5)
+        j_max = int(np.ceil((d_tube / ((m + 1) * dRad * dThe)) - 0.5))
         j_max_list.append(j_max)
 
     HM_DL_snapshots = np.zeros((Timestamp_enum, rg_param, ry_param), dtype=np.float64)
@@ -485,7 +492,7 @@ def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d
                             Timestamp_List, HM_DL_snapshots, HM_C_snapshots, PvT_DL_snapshots, T_fixed_ring_seg,
                             MA_DL_timeseries, MA_AL_timeseries, MA_ALoI_timeseries, MA_ALoT_timeseries,
                             MA_TM_timeseries,
-                            MA_collection_factor, PvR_DL_snapshots, RvR_DL_snapshots, R_fixed_angle, MFPT_snapshots,
+                            MA_collection_factor, PvR_DL_snapshots, RvR_AL_snapshots, R_fixed_angle, MFPT_snapshots,
                             d_tube, D, domain_radius, mass_checkpoint, MA_collection_factor_limit)
 
     # Process results: Produce CSVs, PNGs (plots and heatmaps) (log results to filepath_log<timestamp>.txt)
@@ -495,60 +502,124 @@ def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d
     # Processing results for Mass-Analysis
 
     # Diffusive mass analysis
+
+    # timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
+    # data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_diffusive, timestamp))
+    # filename = f"MA_DL.csv"
+    # output_location = os.path.join(data_filepath, filename)
+    #
+    # df = pd.DataFrame(MA_DL_timeseries)
+    # df.to_csv(output_location, header=False, index=False)
+    # plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
+    #                        "DL", "DL", data_filepath, save_png, show_plt)
+    #
+    # # Advective mass analysis
+    # timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
+    # data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective, timestamp))
+    # filename = f"MA_AL.csv"
+    # output_location = os.path.join(data_filepath, filename)
+    #
+    # df = pd.DataFrame(MA_AL_timeseries)
+    # df.to_csv(output_location, header=False, index=False)
+    # plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
+    #                        "AL", "AL", data_filepath, save_png, show_plt)
+    #
+    # # Total mass analysis
+    # timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
+    # data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_total, timestamp))
+    # filename = f"MA_total.csv"
+    # output_location = os.path.join(data_filepath, filename)
+    #
+    # df = pd.DataFrame(MA_TM_timeseries)
+    # df.to_csv(output_location, header=False, index=False)
+    # plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
+    #                        "Total", "Total", data_filepath, save_png, show_plt)
+    #
+    # # Advective/running total mass analysis
+    # timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
+    # data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective_over_total, timestamp))
+    # filename = f"MA_AL_running_total.csv"
+    # output_location = os.path.join(data_filepath, filename)
+    #
+    # df = pd.DataFrame(MA_ALoT_timeseries)
+    # df.to_csv(output_location, header=False, index=False)
+    # plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
+    #                        "AL/running total", "Al_running_total", data_filepath, save_png, show_plt)
+    #
+    # # Advective/initial total mass analysis
+    # timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
+    # data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective_over_initial, timestamp))
+    # filename = f"MA_AL_initial_total.csv"
+    # output_location = os.path.join(data_filepath, filename)
+    #
+    # df = pd.DataFrame(MA_AL_timeseries)
+    # df.to_csv(output_location, header=False, index=False)
+    # plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
+    #                        "AL/initial total", "AL_initial_total", data_filepath, save_png, show_plt)
+
+    # Processing results for Phi v. Theta
+    # PvT_DL_snapshots = np.zeros((Timestamp_enum, ry_param), dtype=np.float64)
+
+    # timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
+    # data_filepath = os.path.abspath(tb.create_directory(fp.phi_v_theta_output, timestamp))
+    # filename = "PvT_Dl.csv"
+    # output_location = os.path.join(data_filepath, filename)
+    # df = pd.DataFrame(PvT_DL_snapshots)
+    # df.to_csv(output_location, header=False, index=False)
+    #
+    # clk.sleep(1)
+    # plt.plot_phi_v_theta(output_location, v_param, w_param, N_LIST, 3, T_fixed_ring_seg,
+    #                      data_filepath, save_png=save_png, show_plt=show_plt, time_point_container=Timestamp_List)
+    #
+
+    # Processing results for Phi v. Radius & Rho v. Radius
+    # PvR_DL_snapshots = np.zeros((Timestamp_enum, rg_param + 1), dtype=np.float64)
+
     timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
-    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_diffusive, timestamp))
-    filename = f"MA_DL.csv"
+    data_filepath = os.path.abspath(tb.create_directory(fp.radial_dependence_phi, timestamp))
+    filename = "PvR_DL_snapshots.csv"
     output_location = os.path.join(data_filepath, filename)
-
-    df = pd.DataFrame(MA_DL_timeseries)
+    df = pd.DataFrame(PvR_DL_snapshots)
     df.to_csv(output_location, header=False, index=False)
-    plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
-                           "DL", "DL", data_filepath, save_png, show_plt)
+    plt.plot_dense_v_rad("Phi", output_location, v_param, w_param,
+                         len(N_LIST), rg_param, ry_param, R_fixed_angle, Timestamp_List,
+                         data_filepath, save_png=save_png, show_plt=show_plt)
 
-    # Advective mass analysis
+    # RvR_AL_snapshots = np.zeros((Timestamp_enum, rg_param), dtype=np.float64)
+
     timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
-    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective, timestamp))
-    filename = f"MA_AL.csv"
+    data_filepath = os.path.abspath(tb.create_directory(fp.radial_dependence_rho, timestamp))
+    filename = "RvR_AL_snapshots.csv"
     output_location = os.path.join(data_filepath, filename)
-
-    df = pd.DataFrame(MA_AL_timeseries)
+    df = pd.DataFrame(RvR_AL_snapshots)
     df.to_csv(output_location, header=False, index=False)
-    plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
-                           "AL", "AL", data_filepath, save_png, show_plt)
+    plt.plot_dense_v_rad("Rho", output_location, v_param, w_param,
+                         len(N_LIST), rg_param, ry_param, R_fixed_angle, Timestamp_List,
+                         data_filepath, save_png=save_png, show_plt=show_plt)
 
-    # Total mass analysis
+    # Processing static heat-plots
+
     timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
-    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_total, timestamp))
-    filename = f"MA_total.csv"
-    output_location = os.path.join(data_filepath, filename)
+    data_filepath = tb.create_directory(fp.heatmap_output, timestamp)
 
-    df = pd.DataFrame(MA_TM_timeseries)
-    df.to_csv(output_location, header=False, index=False)
-    plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
-                           "Total", "Total", data_filepath, save_png, show_plt)
+    for t in range(len(Timestamp_List)):
+        MFPT = MFPT_snapshots[t]
+        curr_DL_snapshot = HM_DL_snapshots[t]
+        curr_C_snapshot = HM_C_snapshots[t]
+        time_point = Timestamp_List[t]
 
-    # Advective/running total mass analysis
-    timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
-    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective_over_total, timestamp))
-    filename = f"MA_AL_running_total.csv"
-    output_location = os.path.join(data_filepath, filename)
+        csv_filename = f"HM_DL_snapshot_T={time_point}.csv"
+        output_csv_loc = os.path.join(data_filepath, csv_filename)
+        df = pd.DataFrame(curr_DL_snapshot)
+        df.to_csv(output_csv_loc, header=False, index=False)
 
-    df = pd.DataFrame(MA_ALoT_timeseries)
-    df.to_csv(output_location, header=False, index=False)
-    plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
-                           "AL/running total", "Al_running_total", data_filepath, save_png, show_plt)
-
-    # Advective/initial total mass analysis
-    timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
-    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective_over_initial, timestamp))
-    filename = f"MA_AL_initial_total.csv"
-    output_location = os.path.join(data_filepath, filename)
-
-    df = pd.DataFrame(MA_AL_timeseries)
-    df.to_csv(output_location, header=False, index=False)
-    plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
-                           "AL/initial total", "AL_initial_total", data_filepath, save_png, show_plt)
-
+        ani.produce_heatmap_tool_rect(curr_DL_snapshot, curr_C_snapshot,
+                                      heat_plot_border, w_param, v_param,
+                                      len(N_LIST), data_filepath, heatplot_colorscheme, save_png,
+                                      show_plt, pane=t, MFPT=MFPT, duration=True, time_point=time_point, approach=2,
+                                      extraction_angle_list=N_LIST, boundary_of_extraction_list=j_max_list,
+                                      display_extraction=display_extraction, )
+        clk.sleep(1)
 
 
 

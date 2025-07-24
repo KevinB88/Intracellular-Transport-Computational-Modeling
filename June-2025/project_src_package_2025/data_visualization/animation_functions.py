@@ -13,6 +13,7 @@ def generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2,
                       d_tube=-1, r=1.0, d=1.0, mass_retention_threshold=0.01, mass_checkpoint=10 ** 6,
                       color_scheme='viridis',
                       toggle_border=False, display_extraction=True):
+
     j_max_list = []
     if rect_config:
         j_max_lim = sup.j_max_bef_overlap(ry_param, N_param)
@@ -26,7 +27,7 @@ def generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2,
         d_theta = ((2 * math.pi) / ry_param)
 
         for m in range(rg_param):
-            j_max = math.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
+            j_max = int(np.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5))
             j_max_list.append(j_max)
 
     duration = False
@@ -48,7 +49,7 @@ def generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2,
     mfpt_container = np.zeros([panes], dtype=np.float64)
     diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
 
-    ant.comp_diffusive_snapshots(rg_param, ry_param, w_param, w_param, v_param, N_param, diff_layer, adv_layer,
+    ant.comp_diffusive_snapshots(rg_param, ry_param, w_param, w_param, v_param * -1, N_param, diff_layer, adv_layer,
                                  domain_snapshot_container,
                                  domain_center_snapshot_container, sim_time_container, approach, r=r, d=d,
                                  mass_retention_threshold=mass_retention_threshold,

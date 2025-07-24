@@ -73,7 +73,7 @@ def super_comp_type_I(rg_param, ry_param, switch_param_a, switch_param_b, T_para
         T_fixed_ring_seg = 0.5
 
     if R_fixed_angle < 0 or R_fixed_angle > ry_param - 1:
-        print("R_fixed_ring_seg automatically adjusted to legal range.")
+        print("R_fixed_angle automatically adjusted to legal range.")
         R_fixed_angle = N_LIST[0]
 
     if MA_collection_factor < 1 or MA_collection_factor > MA_collection_factor_limit:
