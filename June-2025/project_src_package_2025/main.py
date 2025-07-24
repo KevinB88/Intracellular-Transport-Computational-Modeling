@@ -37,9 +37,8 @@ def run_main():
     T_param = 1.0
     T_points = [0.25, 0.5, 0.75]
 
-    # gui.run_app()
+    gui.run_app()
     # launch.launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_param, Timestamp_List=T_points, d_tube=0)
-    # launch.heatmap_production(rg_param, ry_param, w_param, v_param, N_param, time_point_container=T_points, d_tube=0, show_plot=False, rect_config=True, compute_MFPT=True)
 
     # Include simulation time onto mass analysis csv
     # Clarify which methods are robust and which are experimental/require extensive testing
@@ -49,7 +48,6 @@ def run_main():
         
         -Remain on standby for results from Ankush (so that I can compare my PDE results with)
         -Fix up the heatplot video, and performance with multiprocessing capabilities (running the GUI on one process, and launching the animation on another)  
-        -Complete development on the super function 
         -Complete development of the software package 
         -Test new calc_mass() from numerical_tools.py
         -Develop a function to automate a results comparison (by comparing csvs automatically) 

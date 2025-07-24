@@ -503,77 +503,74 @@ def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d
 
     # Diffusive mass analysis
 
-    # timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
-    # data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_diffusive, timestamp))
-    # filename = f"MA_DL.csv"
-    # output_location = os.path.join(data_filepath, filename)
-    #
-    # df = pd.DataFrame(MA_DL_timeseries)
-    # df.to_csv(output_location, header=False, index=False)
-    # plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
-    #                        "DL", "DL", data_filepath, save_png, show_plt)
-    #
-    # # Advective mass analysis
-    # timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
-    # data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective, timestamp))
-    # filename = f"MA_AL.csv"
-    # output_location = os.path.join(data_filepath, filename)
-    #
-    # df = pd.DataFrame(MA_AL_timeseries)
-    # df.to_csv(output_location, header=False, index=False)
-    # plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
-    #                        "AL", "AL", data_filepath, save_png, show_plt)
-    #
-    # # Total mass analysis
-    # timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
-    # data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_total, timestamp))
-    # filename = f"MA_total.csv"
-    # output_location = os.path.join(data_filepath, filename)
-    #
-    # df = pd.DataFrame(MA_TM_timeseries)
-    # df.to_csv(output_location, header=False, index=False)
-    # plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
-    #                        "Total", "Total", data_filepath, save_png, show_plt)
-    #
-    # # Advective/running total mass analysis
-    # timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
-    # data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective_over_total, timestamp))
-    # filename = f"MA_AL_running_total.csv"
-    # output_location = os.path.join(data_filepath, filename)
-    #
-    # df = pd.DataFrame(MA_ALoT_timeseries)
-    # df.to_csv(output_location, header=False, index=False)
-    # plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
-    #                        "AL/running total", "Al_running_total", data_filepath, save_png, show_plt)
-    #
-    # # Advective/initial total mass analysis
-    # timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
-    # data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective_over_initial, timestamp))
-    # filename = f"MA_AL_initial_total.csv"
-    # output_location = os.path.join(data_filepath, filename)
-    #
-    # df = pd.DataFrame(MA_AL_timeseries)
-    # df.to_csv(output_location, header=False, index=False)
-    # plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
-    #                        "AL/initial total", "AL_initial_total", data_filepath, save_png, show_plt)
+    timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
+    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_diffusive, timestamp))
+    filename = f"MA_DL.csv"
+    output_location = os.path.join(data_filepath, filename)
+
+    df = pd.DataFrame(MA_DL_timeseries)
+    df.to_csv(output_location, header=False, index=False)
+    plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
+                           "DL", "DL", data_filepath, save_png, show_plt)
+
+    # Advective mass analysis
+    timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
+    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective, timestamp))
+    filename = f"MA_AL.csv"
+    output_location = os.path.join(data_filepath, filename)
+
+    df = pd.DataFrame(MA_AL_timeseries)
+    df.to_csv(output_location, header=False, index=False)
+    plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
+                           "AL", "AL", data_filepath, save_png, show_plt)
+
+    # Total mass analysis
+    timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
+    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_total, timestamp))
+    filename = f"MA_total.csv"
+    output_location = os.path.join(data_filepath, filename)
+
+    df = pd.DataFrame(MA_TM_timeseries)
+    df.to_csv(output_location, header=False, index=False)
+    plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
+                           "Total", "Total", data_filepath, save_png, show_plt)
+
+    # Advective/running total mass analysis
+    timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
+    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective_over_total, timestamp))
+    filename = f"MA_AL_running_total.csv"
+    output_location = os.path.join(data_filepath, filename)
+
+    df = pd.DataFrame(MA_ALoT_timeseries)
+    df.to_csv(output_location, header=False, index=False)
+    plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
+                           "AL/running total", "Al_running_total", data_filepath, save_png, show_plt)
+
+    # Advective/initial total mass analysis
+    timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
+    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective_over_initial, timestamp))
+    filename = f"MA_AL_initial_total.csv"
+    output_location = os.path.join(data_filepath, filename)
+
+    df = pd.DataFrame(MA_AL_timeseries)
+    df.to_csv(output_location, header=False, index=False)
+    plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
+                           "AL/initial total", "AL_initial_total", data_filepath, save_png, show_plt)
 
     # Processing results for Phi v. Theta
-    # PvT_DL_snapshots = np.zeros((Timestamp_enum, ry_param), dtype=np.float64)
 
-    # timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
-    # data_filepath = os.path.abspath(tb.create_directory(fp.phi_v_theta_output, timestamp))
-    # filename = "PvT_Dl.csv"
-    # output_location = os.path.join(data_filepath, filename)
-    # df = pd.DataFrame(PvT_DL_snapshots)
-    # df.to_csv(output_location, header=False, index=False)
-    #
-    # clk.sleep(1)
-    # plt.plot_phi_v_theta(output_location, v_param, w_param, N_LIST, 3, T_fixed_ring_seg,
-    #                      data_filepath, save_png=save_png, show_plt=show_plt, time_point_container=Timestamp_List)
-    #
+    timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
+    data_filepath = os.path.abspath(tb.create_directory(fp.phi_v_theta_output, timestamp))
+    filename = "PvT_Dl.csv"
+    output_location = os.path.join(data_filepath, filename)
+    df = pd.DataFrame(PvT_DL_snapshots)
+    df.to_csv(output_location, header=False, index=False)
+
+    clk.sleep(1)
+    plt.plot_phi_v_theta(output_location, v_param, w_param, N_LIST, 3, T_fixed_ring_seg,
+                         data_filepath, save_png=save_png, show_plt=show_plt, time_point_container=Timestamp_List)
 
     # Processing results for Phi v. Radius & Rho v. Radius
-    # PvR_DL_snapshots = np.zeros((Timestamp_enum, rg_param + 1), dtype=np.float64)
 
     timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
     data_filepath = os.path.abspath(tb.create_directory(fp.radial_dependence_phi, timestamp))
@@ -620,6 +617,22 @@ def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d
                                       extraction_angle_list=N_LIST, boundary_of_extraction_list=j_max_list,
                                       display_extraction=display_extraction, )
         clk.sleep(1)
+
+    csv_filename = f"HM_C_snapshot.csv"
+
+    column_labels = ['T', 'Phi(center)']
+
+    data_dict = {
+        column_labels[0]: Timestamp_List,
+        column_labels[1]: HM_C_snapshots
+    }
+
+    output_csv_loc = os.path.join(data_filepath, csv_filename)
+    df = pd.DataFrame(data_dict)
+    df.to_csv(output_csv_loc, index=False)
+
+    print("Successfully completed super-function. View results in project_src_package_2025/data_output.")
+
 
 
 

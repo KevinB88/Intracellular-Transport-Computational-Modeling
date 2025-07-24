@@ -684,7 +684,7 @@ class ControlPanel(QWidget):
             N = list(map(int, re.findall(r'\d+', N_raw))) if N_raw else []
             T = float(self.param_inputs["T_param"].text())
             d_tube = float(self.param_inputs["d_tube"].text())
-            K_param = 10000
+            K_param = 1000
 
             # Step 2: Start background process
             self.ani_queue = Queue()

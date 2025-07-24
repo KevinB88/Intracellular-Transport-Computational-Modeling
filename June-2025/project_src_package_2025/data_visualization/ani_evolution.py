@@ -184,6 +184,56 @@ def collect_stamps_for_animation(rings, rays, a, b, v, tube_placements, diffusiv
     return diffusive_layer, advective_layer, center
 
 
+@njit(nopython=ENABLE_JIT)
+def collect_stamps_for_animation_test(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer, PvT_DL_snapshotsm, Timestamp_List, center, K,
+                                 r=1.0, d=1.0, d_tube=-1, T_fixed_ring_seg=0.5):
+    d_radius = r / rings
+    d_theta = ((2 * np.pi) / rays)
+    d_time = (0.1 * min(d_radius * d_radius, d_theta * d_theta * d_radius * d_radius)) / (2 * d)
+
+    d_list = []
+
+    if d_tube < 0:
+        d_tube = sup.solve_d_rect(1, rings, rays, sup.j_max_bef_overlap(rays, tube_placements), 0)
+
+    for m in range(rings):
+        j_max = np.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
+        keys = sup.mod_range_flat(tube_placements, j_max, rays, False)
+        dict_ = sup.dict_gen(keys, tube_placements)
+        d_list.append(dict_)
+
+    for k in range(K - 1):
+        m = 0
+        aIdx = 0
+
+        while m < rings:
+            n = 0
+            while n < rays:
+                if m == rings - 1:
+                    diffusive_layer[k + 1][m][n] = 0
+                else:
+                    if n in d_list[m]:
+                        diffusive_layer[k + 1][m][n] = num.u_density_rect(diffusive_layer, k, m, n, d_radius, d_theta,
+                                                                          d_time, center[k], rings, advective_layer,
+                                                                          int(d_list[m][n]), a, b, d_tube)
+                    else:
+                        diffusive_layer[k + 1][m][n] = num.u_density(diffusive_layer, k, m, n, d_radius, d_theta,
+                                                                     d_time, center[k], rings, advective_layer,
+                                                                     aIdx, a, b, tube_placements)
+                    if n == tube_placements[aIdx]:
+                        advective_layer[k + 1][m][n] = num.u_tube_rect(advective_layer, diffusive_layer, k, m, n, a,
+                                                                       b, v, d_time, d_radius, d_theta, d_tube)
+                        if aIdx < len(tube_placements) - 1:
+                            aIdx += 1
+                n += 1
+            m += 1
+
+        center[k+1] = num.u_center(diffusive_layer, k, d_radius, d_theta, d_time, center[k],
+                                   advective_layer, tube_placements, v)
+
+    return diffusive_layer, advective_layer, center
+
+
 def animate_diffusion(
         rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, d_tube,
         steps_per_frame=10, interval_ms=10, color_scheme='viridis', epsilon=0.001
