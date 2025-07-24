@@ -109,11 +109,10 @@ cachegrind.out.*
 
 
 # Output and temp data
-
-project_src_package_2025/data_output/heatmaps/2025-07-15-16-58-11_polar_config/density_snapshot_#0_V=1_W=100_N=4_D=16x16_.csv
-!data_output/
-!data_output/**/
-!data_output/**/.gitkeep
+project_src_package_2025/data_output
+!project_src_package/data_output/
+!project_src_package/data_output/**/
+!project_src_package/data_output/**/.gitkeep
 
 
 
