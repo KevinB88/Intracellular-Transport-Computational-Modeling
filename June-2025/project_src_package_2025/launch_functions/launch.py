@@ -316,7 +316,7 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
         df = pd.DataFrame(diffusive_mass_container)
         df.to_csv(output_location, header=False, index=False)
         plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param,
-                               "diffusive_mass",
+                               "diffusive_mass", "diff",
                                data_filepath, save_png, show_plt)
         print()
 
@@ -337,7 +337,7 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
         df = pd.DataFrame(advective_mass_container)
         df.to_csv(output_location, header=False, index=False)
         plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param,
-                               "advective_mass",
+                               "advective_mass", "adv",
                                data_filepath, save_png, show_plt)
 
         print()
@@ -353,7 +353,7 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
         adv_over_total_output = output_location
         df = pd.DataFrame(advective_over_total_container)
         df.to_csv(output_location, header=False, index=False)
-        plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "adv_over_tot",
+        plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "adv_over_tot", "adv_over_tot",
                                data_filepath, save_png, show_plt)
         print()
 
@@ -373,7 +373,7 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
         total_mass_output = output_location
         df = pd.DataFrame(total_mass_container)
         df.to_csv(output_location, header=False, index=False)
-        plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "total_mass",
+        plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "total_mass", "total",
                                data_filepath, save_png, show_plt)
         print()
 
@@ -390,7 +390,7 @@ def collect_mass_analysis(rg_param, ry_param, N_param, v_param, w_param, T_param
         df = pd.DataFrame(advective_over_initial_container)
         df.to_csv(output_location, header=False, index=False)
 
-        plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "adv_over_init",
+        plt.plot_mass_analysis(output_location, v_param, w_param, N_param, T_param, rg_param, ry_param, "adv_over_init", "adv_over_init",
                                data_filepath, save_png, show_plt)
 
         clk.sleep(2)
@@ -425,7 +425,7 @@ def heatmap_production(rg_param, ry_param, w_param, v_param, N_param, filepath=f
 
 def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d_tube=0, Timestamp_List=None,
                         MA_collection_factor=5, MA_collection_factor_limit=10 ** 3,
-                        D=1.0, domain_radius=1.0, mass_checkpoint=10 ** 6, T_fixed_ring_seg=0.5, R_fixed_angle=-1):
+                        D=1.0, domain_radius=1.0, mass_checkpoint=10 ** 6, T_fixed_ring_seg=0.5, R_fixed_angle=-1, save_png=True, save_csv=True, show_plt=False):
 
     T_param = float(T_param)
 
@@ -488,4 +488,72 @@ def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d
                             MA_collection_factor, PvR_DL_snapshots, RvR_DL_snapshots, R_fixed_angle, MFPT_snapshots,
                             d_tube, D, domain_radius, mass_checkpoint, MA_collection_factor_limit)
 
-    # Process results: Produce CSVs, PNGs (plots and heatmaps)
+    # Process results: Produce CSVs, PNGs (plots and heatmaps) (log results to filepath_log<timestamp>.txt)
+    # Parameter chart (relative to the computation) is also included in the result
+    # Desired output: a package containing all results categorized by type
+
+    # Processing results for Mass-Analysis
+
+    # Diffusive mass analysis
+    timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
+    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_diffusive, timestamp))
+    filename = f"MA_DL.csv"
+    output_location = os.path.join(data_filepath, filename)
+
+    df = pd.DataFrame(MA_DL_timeseries)
+    df.to_csv(output_location, header=False, index=False)
+    plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
+                           "DL", "DL", data_filepath, save_png, show_plt)
+
+    # Advective mass analysis
+    timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
+    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective, timestamp))
+    filename = f"MA_AL.csv"
+    output_location = os.path.join(data_filepath, filename)
+
+    df = pd.DataFrame(MA_AL_timeseries)
+    df.to_csv(output_location, header=False, index=False)
+    plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
+                           "AL", "AL", data_filepath, save_png, show_plt)
+
+    # Total mass analysis
+    timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
+    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_total, timestamp))
+    filename = f"MA_total.csv"
+    output_location = os.path.join(data_filepath, filename)
+
+    df = pd.DataFrame(MA_TM_timeseries)
+    df.to_csv(output_location, header=False, index=False)
+    plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
+                           "Total", "Total", data_filepath, save_png, show_plt)
+
+    # Advective/running total mass analysis
+    timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
+    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective_over_total, timestamp))
+    filename = f"MA_AL_running_total.csv"
+    output_location = os.path.join(data_filepath, filename)
+
+    df = pd.DataFrame(MA_ALoT_timeseries)
+    df.to_csv(output_location, header=False, index=False)
+    plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
+                           "AL/running total", "Al_running_total", data_filepath, save_png, show_plt)
+
+    # Advective/initial total mass analysis
+    timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
+    data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective_over_initial, timestamp))
+    filename = f"MA_AL_initial_total.csv"
+    output_location = os.path.join(data_filepath, filename)
+
+    df = pd.DataFrame(MA_AL_timeseries)
+    df.to_csv(output_location, header=False, index=False)
+    plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
+                           "AL/initial total", "AL_initial_total", data_filepath, save_png, show_plt)
+
+
+
+
+
+
+
+
+
