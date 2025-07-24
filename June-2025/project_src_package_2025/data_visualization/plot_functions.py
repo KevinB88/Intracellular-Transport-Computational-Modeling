@@ -149,7 +149,7 @@ def plot_dense_v_rad(y_lab, data_filepath, v, w, N, rings, rays, fixed_angle, ti
     plt.close()
 
 
-def plot_mass_analysis(data_filepath, v, w, N, T, rings, rays, mass_type, file_path, save_png=False, show_plt=True):
+def plot_mass_analysis(data_filepath, v, w, N, T, rings, rays, mass_type, file_name_mass_type, file_path, save_png=False, show_plt=True):
 
     data = pd.read_csv(data_filepath, header=None)
 
@@ -166,7 +166,7 @@ def plot_mass_analysis(data_filepath, v, w, N, T, rings, rays, mass_type, file_p
     plt.xlabel("(T) Time")
     plt.ylabel("(m) Mass")
 
-    title = f"{mass_type}_versus_T__W={w:.2e}_V={v}_N={len(N)}_{rings}x{rays}"
+    title = f" Mass ({mass_type}) v. Time   W={w:.2e}   V={v}   N={len(N)}  Domain={rings}x{rays}"
 
     plt.title(title)
     # plt.legend()
@@ -174,11 +174,14 @@ def plot_mass_analysis(data_filepath, v, w, N, T, rings, rays, mass_type, file_p
     plt.tight_layout()
 
     if save_png:
-        current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        # current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         if file_path:
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
-            file = os.path.join(file_path, f'{mass_type}_versus_T_W={w}_V={v}_N={len(N)}_{rings}x{rays}_{current_time}.png')
+            # file = os.path.join(file_path, f'{mass_type}_versus_T_W={w}_V={v}_N={len(N)}_{rings}x{rays}_{current_time}.png')
+
+            filename_ = "MA_" + file_name_mass_type + ".png"
+            file = os.path.join(file_path, filename_)
             plt.savefig(file, bbox_inches='tight')
             print(f'Plot saved to {file_path}')
     if show_plt:

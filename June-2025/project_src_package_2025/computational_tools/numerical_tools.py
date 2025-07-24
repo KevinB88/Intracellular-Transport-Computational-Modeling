@@ -386,21 +386,23 @@ def calc_mass(phi, rho, k, d_radius, d_theta, curr_central, rings, rays, tube_pl
     :param tube_placements: (list(int)) discrete microtubule/filament positions between [0, rays-1]
     :return: domain mass
     """
+    #
+    # diffusive_mass = 0
+    # for m in range(rings):
+    #     for n in range(rays):
+    #         diffusive_mass += phi[k][m][n] * (m+1)
+    # diffusive_mass *= (d_radius * d_radius) * d_theta
+    #
+    # advective_mass = 0
+    #
+    # for i in range(len(tube_placements)):
+    #     angle = tube_placements[i]
+    #     for m in range(rings):
+    #         advective_mass += rho[k][m][angle] * d_radius
 
-    diffusive_mass = 0
-    for m in range(rings):
-        for n in range(rays):
-            diffusive_mass += phi[k][m][n] * (m+1)
-    diffusive_mass *= (d_radius * d_radius) * d_theta
+    return calc_mass_diff(phi, k, d_radius, d_theta, curr_central, rings, rays) + calc_mass_adv(rho, k, d_radius, d_theta, rings, tube_placements)
 
-    advective_mass = 0
-
-    for i in range(len(tube_placements)):
-        angle = tube_placements[i]
-        for m in range(rings):
-            advective_mass += rho[k][m][angle] * d_radius
-
-    return (curr_central * np.pi * d_radius * d_radius) + diffusive_mass + advective_mass
+    # return (curr_central * np.pi * d_radius * d_radius) + diffusive_mass + advective_mass
 
 
 @njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)

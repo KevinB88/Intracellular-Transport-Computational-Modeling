@@ -166,7 +166,7 @@ def super_comp_type_I(rg_param, ry_param, switch_param_a, switch_param_b, T_para
 
         # Collection mass
 
-        if MA_k_step < relative_k and k % MA_collection_factor == 0:
+        if MA_k_step < int(relative_k) and k % MA_collection_factor == 0:
             MA_DL_timeseries[MA_k_step] = dl_mass
             MA_AL_timeseries[MA_k_step] = al_mass
             MA_TM_timeseries[MA_k_step] = dl_mass + al_mass
@@ -200,14 +200,17 @@ def super_comp_type_I(rg_param, ry_param, switch_param_a, switch_param_b, T_para
 
                 timestamp += 1
 
-        # Prepare for next timestep
-        num.update_layer_inplace(D_LAYER[0], D_LAYER[1], ry_param, rg_param)
-        num.update_layer_inplace(A_LAYER[0], A_LAYER[1], ry_param, rg_param)
+        # Update mass for the next step
+        dl_mass = num.calc_mass_diff(D_LAYER,0, dRad, dThe, central_patch, rg_param, ry_param)
+        al_mass = num.calc_mass_adv(A_LAYER, 0, dRad, dThe, rg_param, N_LIST)
         central_patch = num.u_center(D_LAYER, 0, dRad, dThe, dT, central_patch, A_LAYER, N_LIST, v_param)
 
-        # Update mass for the next step
-        dl_mass = num.calc_mass(D_LAYER, A_LAYER, 0, dRad, dThe, central_patch, rg_param, ry_param, N_LIST)
-        al_mass = num.calc_mass_adv(A_LAYER, 0, dRad, dThe, rg_param, N_LIST)
+        # Prepare for next timestep
+        # num.update_layer_inplace(D_LAYER[0], D_LAYER[1], ry_param, rg_param)
+        # num.update_layer_inplace(A_LAYER[0], A_LAYER[1], ry_param, rg_param)
+
+        D_LAYER[0] = D_LAYER[1]
+        A_LAYER[0] = A_LAYER[1]
 
         k += 1
     # ------------%%%%%%%%%%%% collect results and update parameters for the next time-step %%%%%%%%%%%%------------
