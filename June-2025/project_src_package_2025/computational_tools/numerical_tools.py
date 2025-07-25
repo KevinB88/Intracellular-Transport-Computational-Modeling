@@ -13,6 +13,21 @@ def compute_dT(rg_param, ry_param, domain_radius=1.0, D=1.0):
 
 
 @njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+def compute_dRad(rg_param, domain_radius=1.0):
+    return domain_radius / rg_param
+
+
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+def compute_dThe(ry_param):
+    return (2 * np.pi) / ry_param
+
+
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+def compute_init_cond_cent(rg_param, domain_radius=1.0):
+    return 1 / (np.pi * compute_dRad(rg_param, domain_radius) ** 2)
+
+
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def convert_K_to_T(RG, RY, K):
     dR = 1 / RG
     dT = 2 * np.pi / RY

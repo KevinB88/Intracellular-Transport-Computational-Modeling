@@ -502,7 +502,6 @@ def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d
     # Processing results for Mass-Analysis
 
     # Diffusive mass analysis
-
     timestamp = datetime.now().strftime("%I-%M_%p_%m-%d-%Y")
     data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_diffusive, timestamp))
     filename = f"MA_DL.csv"
