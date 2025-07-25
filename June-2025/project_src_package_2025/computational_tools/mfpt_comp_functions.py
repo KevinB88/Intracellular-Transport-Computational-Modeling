@@ -100,7 +100,8 @@ def comp_mfpt_by_time(rings, rays, a, b, v, tube_placements, diffusive_layer, ad
 
     return MFPT
 
-#(****) (****)
+
+# (****) (****)
 @njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def comp_mfpt_by_time_points(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer, Timestamp_LIST, MFPT_snapshots,
                       T, mass_checkpoint=10**6, r=1.0, d=1.0, d_tube=0):
