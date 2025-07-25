@@ -35,26 +35,21 @@ def run_main():
     v_param = 10.0
     w_param = 100
     N_param = [0, 4, 8, 12]
-    T_param = 0.06
-    T_points = [0.03, 0.04]
+    T_param = 0.75
+    T_points = [0.25, 0.5]
 
-    gui.run_app()
+    # gui.run_app()
 
-    # launch.launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_param, Timestamp_List=T_points, d_tube=0, T_fixed_ring_seg=0.1)
+    # launch.launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_param, Timestamp_List=T_points, d_tube=0, T_fixed_ring_seg=0.1, MA_collection_factor=5)
+    # launch.collect_mass_analysis(rg_param, ry_param, v_param, w_param, T_param, N_param)
+    # launch.collect_phi_ang_dep(rg_param, ry_param, v_param, w_param, T_param, N_param, T_points, T_fixed_ring_seg=0.5)
 
-    # Include simulation time onto mass analysis csv
-    # Clarify which methods are robust and which are experimental/require extensive testing
+    launch.collect_density_rad_depend(rg_param, ry_param, N_param, v_param, w_param, T_param, T_points)
+
+    # print(launch.output_time_until_mass_depletion(rg_param, ry_param, N_param, v_param, w_param))
 
     '''
-        Tasks for the week:
-        
-        -Justify the asymmetry from previous typo in the code (refer to ani_evolution.py) 
-        
-        -Remain on standby for results from Ankush (so that I can compare my PDE results with)
-        -performance with multiprocessing capabilities (running the GUI on one process, and launching the animation on another)  
-        -Complete development of the software package 
-        -Test new calc_mass() from numerical_tools.py
-        -Develop a function to automate a results comparison (by comparing csvs automatically) 
+        Test for exactness in the computation of MFPT
     '''
 
 

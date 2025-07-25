@@ -1,5 +1,6 @@
 from . import njit, numerical_tools as num, sys_config, supplements as sup, np, struct_init as strc
 from numba.typed import List
+from project_src_package_2025.computational_tools import struct_init
 
 ENABLE_JIT = sys_config.ENABLE_NJIT
 
@@ -10,11 +11,11 @@ def super_comp_type_I(rg_param, ry_param, switch_param_a, switch_param_b, T_para
                       Timestamp_LIST,
                       HM_DL_snapshots, HM_C_snapshots,
                       PvT_DL_snapshots, T_fixed_ring_seg,
-                      MA_DL_timeseries, MA_AL_timeseries, MA_ALoI_timeseries, MA_ALoT_timeseries, MA_TM_timeseries, MA_collection_factor,
+                      MA_DL_timeseries, MA_AL_timeseries, MA_ALoI_timeseries, MA_ALoT_timeseries, MA_TM_timeseries, MA_collection_factor, relative_k,
                       PvR_DL_snapshots, RvR_AL_snapshots, R_fixed_angle,
                       MFPT_snapshots,
                       d_tube=0, D=1.0, domain_radius=1.0,
-                      mass_checkpoint=10**6, MA_collection_factor_limit=10**3):
+                      mass_checkpoint=10**6):
 
     """
     Super computation routine type I
@@ -40,6 +41,7 @@ def super_comp_type_I(rg_param, ry_param, switch_param_a, switch_param_b, T_para
         MA_ALoT_timeseries: Mass analysis advective layer over running total mass timeseries container (for mass as a function of time)
         MA_TM_timeseries: Mass analysis running total timeseries container (for mass as a function of time)
         MA_collection_factor (int) : Collecting data according to the ratio:   1 collection : MA_collection_factor [1, 10^3]
+        relative_k (int) :
         PvR_DL_snapshots: Phi v. Radius diffusive layer snapshot container (for phi as a function of radius at a fixed angle)
         RvR_AL_snapshots: Rho v. Radius advective layer snapshot container (for rho as a function of radius at a fixed angle)
         R_fixed_angle (int): Fixed angle index to collect for PvR or RvR snapshots
@@ -59,44 +61,31 @@ def super_comp_type_I(rg_param, ry_param, switch_param_a, switch_param_b, T_para
     if ENABLE_JIT:
         print("Running optimized version")
 
-    if len(N_LIST) > ry_param:
-        raise IndexError(
-            f'Too many angular indices supplied for microtubule positions: {len(N_LIST)} > {ry_param} (number of angular positions in domain).'
-        )
-
-    for i in range(len(N_LIST)):
-        if N_LIST[i] < 0 or N_LIST[i] > ry_param:
-            raise IndexError(f'Angular index: {N_LIST[i]} falls outside of the legal index range: [0,{ry_param-1}) under ry_param={ry_param}')
-
-    if T_fixed_ring_seg < 0 or T_fixed_ring_seg > 1:
-        print("T_fixed_ring_seg automatically adjusted to legal range.")
-        T_fixed_ring_seg = 0.5
-
-    if R_fixed_angle < 0 or R_fixed_angle > ry_param - 1:
-        print("R_fixed_angle automatically adjusted to legal range.")
-        R_fixed_angle = N_LIST[0]
-
-    if MA_collection_factor < 1 or MA_collection_factor > MA_collection_factor_limit:
-        print("MA_collection_factor automatically adjusted to legal range.")
-        MA_collection_factor = 100
-
     # Compute constants
-    dRad = domain_radius / rg_param
-    dThe = (2 * np.pi) / ry_param
-    dT = (0.1 * min(dRad ** 2, dThe ** 2 * dRad ** 2)) / (2 * D)
-    K = np.floor(T_param / dT)
+    dRad = num.compute_dRad(rg_param, domain_radius)
+    dThe = num.compute_dThe(ry_param)
+    dT = num.compute_dT(rg_param, ry_param, domain_radius, D)
+    K = num.compute_K(rg_param, ry_param, T_param, domain_radius, D)
     v_param *= -1
 
-    # Construct microtubule-update to diffusive layer positions dictionary
-    d_list = List()
-    if d_tube < 0:
-        d_tube = sup.solve_d_rect(1, rg_param, ry_param, sup.j_max_bef_overlap(ry_param, N_LIST), 0)
+    # dRad = domain_radius / rg_param
+    # dThe = ((2 * np.pi) / ry_param)
+    # dT = (0.1 * min(dRad ** 2, dThe ** 2 * dRad ** 2)) / (2 * D)
+    # K = np.floor(T_param / dT)
+    # v_param *= -1
 
-    for m in range(rg_param):
-        j_max = np.ceil((d_tube / ((m + 1) * dRad * dThe)) - 0.5)
-        keys = sup.mod_range_flat(N_LIST, j_max, rg_param, False)
-        dict_ = sup.dict_gen(keys, N_LIST)
-        d_list.append(dict_)
+    # Construct microtubule-update to diffusive layer positions dictionary
+    # d_list = List()
+    # if d_tube < 0:
+    #     d_tube = sup.solve_d_rect(1, rg_param, ry_param, sup.j_max_bef_overlap(ry_param, N_LIST), 0)
+    #
+    # for m in range(rg_param):
+    #     j_max = np.ceil((d_tube / ((m + 1) * dRad * dThe)) - 0.5)
+    #     keys = sup.mod_range_flat(N_LIST, j_max, rg_param, False)
+    #     dict_ = sup.dict_gen(keys, N_LIST)
+    #     d_list.append(dict_)
+
+    d_list = struct_init.build_d_tube_mapping_no_overlap(rg_param, ry_param, N_LIST, d_tube, domain_radius)
 
     # initialize variables
 
@@ -106,7 +95,7 @@ def super_comp_type_I(rg_param, ry_param, switch_param_a, switch_param_b, T_para
     central_patch = 1 / (np.pi * (dRad ** 2))
 
     # initialize collection width values
-    relative_k = np.floor(K / MA_collection_factor)
+    # relative_k = np.floor(K / MA_collection_factor)
     MA_k_step = 0
 
     # initialize timestep counter k
@@ -157,7 +146,7 @@ def super_comp_type_I(rg_param, ry_param, switch_param_a, switch_param_b, T_para
 
         if k > 0 and k % mass_checkpoint == 0:
             print("Current timestep: ", k, "Current simulation time: ", k * dT, "Current DL mass: ", dl_mass, "Current AL mass: ", al_mass)
-            print("Velocity (v): ", v_param, "Diffusive to Advective switch rate (a): ", switch_param_b,
+            print("Velocity (v): ", v_param, "Diffusive to Advective switch rate (a): ", switch_param_a,
                   "Advective to Diffusive switch rate (b): ", switch_param_b)
 
         # ------------%%%%%%%%%%%% collect results and update parameters for the next time-step %%%%%%%%%%%%------------
@@ -166,7 +155,7 @@ def super_comp_type_I(rg_param, ry_param, switch_param_a, switch_param_b, T_para
 
         # Collection mass
 
-        if MA_k_step < int(relative_k) and k % MA_collection_factor == 0:
+        if MA_k_step < relative_k and k % MA_collection_factor == 0:
             MA_DL_timeseries[MA_k_step] = dl_mass
             MA_AL_timeseries[MA_k_step] = al_mass
             MA_TM_timeseries[MA_k_step] = dl_mass + al_mass
@@ -191,9 +180,8 @@ def super_comp_type_I(rg_param, ry_param, switch_param_a, switch_param_b, T_para
                 # Phi v. Theta snapshot collection
                 PvT_DL_snapshots[timestamp] = D_LAYER[0][int(np.floor(rg_param * T_fixed_ring_seg))]
 
-                PvR_DL_snapshots[timestamp][0] = central_patch
-
                 # Density V. Radius snapshot collection
+                PvR_DL_snapshots[timestamp][0] = central_patch
                 for m in range(rg_param):
                     PvR_DL_snapshots[timestamp][m+1] = D_LAYER[0][m][R_fixed_angle]
                     RvR_AL_snapshots[timestamp][m] = A_LAYER[0][m][R_fixed_angle]
@@ -201,7 +189,7 @@ def super_comp_type_I(rg_param, ry_param, switch_param_a, switch_param_b, T_para
                 timestamp += 1
 
         # Update mass for the next step
-        dl_mass = num.calc_mass_diff(D_LAYER,0, dRad, dThe, central_patch, rg_param, ry_param)
+        dl_mass = num.calc_mass_diff(D_LAYER, 0, dRad, dThe, central_patch, rg_param, ry_param)
         al_mass = num.calc_mass_adv(A_LAYER, 0, dRad, dThe, rg_param, N_LIST)
         central_patch = num.u_center(D_LAYER, 0, dRad, dThe, dT, central_patch, A_LAYER, N_LIST, v_param)
 

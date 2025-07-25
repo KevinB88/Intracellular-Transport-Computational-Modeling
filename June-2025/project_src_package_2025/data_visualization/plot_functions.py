@@ -54,25 +54,24 @@ def plot_general(file_list, labels, xlab, ylab, title, filepath, xlog=False, ylo
     plt.close()
 
 
-def plot_phi_v_theta(data_filepath, v, w, N, approach, position, file_path, save_png=False, show_plt=True, time_point_container=None):
+def plot_phi_v_theta(data_filepath, v, w, N, approach, position, file_path, checkpoint_collect_container, save_png=False, show_plt=True):
 
     data = pd.read_csv(data_filepath, header=None)
 
     # Prepare the x-axis as column indices starting from 1
     x = range(1, data.shape[1] + 1)
 
-    if approach == 2:
-        label_container = ["0.675 < m < 0.68", "0.45 < mass_retained < 0.46",
-                           " 0.225 < mass_retained < 0.26", "0.015 < mass_retained < 0.02"]
-    elif approach == 1:
-        label_container = ["early time", "late time"]
-    elif approach == 3:
-        converted_container = [f"T={T:.3f}" for T in time_point_container]
-        label_container = converted_container
-    elif approach == 4:
-        label_container = [f"ring={i*2}" for i in range(24)]
+    label_container = []
+
+    if approach == 1:
+        for i in range(len(checkpoint_collect_container)):
+            label_container.append(f"Mass ~ {checkpoint_collect_container[i]}")
+
+    elif approach == 2:
+        for i in range(len(checkpoint_collect_container)):
+            label_container.append(f"T ~ {checkpoint_collect_container[i]}")
     else:
-        raise ValueError(f'{approach} is not a valid argument, use either approach2 "1" or "2" (must be an int)')
+        raise ValueError(f"Invalid approach: {approach}. Use approach 1 (mass-point collection) or approach 2 (time-point collection).")
 
     # Plot each row of data
     plt.figure(figsize=(10, 6))
@@ -107,7 +106,7 @@ def plot_phi_v_theta(data_filepath, v, w, N, approach, position, file_path, save
     plt.close()
 
 
-def plot_dense_v_rad(y_lab, data_filepath, v, w, N, rings, rays, fixed_angle, time_point_container, file_path, save_png=False, show_plt=True):
+def plot_dense_v_rad(y_lab, data_filepath, v, w, N, rings, rays, fixed_angle, checkpoint_collect_container, file_path, approach, save_png=False, show_plt=True):
 
     data = pd.read_csv(data_filepath, header=None)
 
@@ -116,9 +115,17 @@ def plot_dense_v_rad(y_lab, data_filepath, v, w, N, rings, rays, fixed_angle, ti
     elif y_lab.lower() == "rho":
         x = np.linspace(1/rings, 1, rings)
 
-    converted_container = [f"T={T:.3f}" for T in time_point_container]
-    label_container = converted_container
+    label_container = []
 
+    if approach == 1:
+        for i in range(len(checkpoint_collect_container)):
+            label_container.append(f"Mass ~ {checkpoint_collect_container[i]}")
+
+    elif approach == 2:
+        for i in range(len(checkpoint_collect_container)):
+            label_container.append(f"T ~ {checkpoint_collect_container[i]}")
+    else:
+        raise ValueError(f"Invalid approach: {approach}. Use approach 1 (mass-point collection) or approach 2 (time-point collection).")
     # Plot each row of data
     plt.figure(figsize=(10, 6))
     for i, row in data.iterrows():

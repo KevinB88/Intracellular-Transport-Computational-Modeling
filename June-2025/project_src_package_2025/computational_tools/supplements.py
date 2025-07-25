@@ -58,8 +58,8 @@ def j_max_domain_list(ry_param, rg_param, N_param, r=1, overlap=False, d_tube=-1
 
 # Decides the max j_max to prevent overlap in the domain\
 @njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
-def j_max_bef_overlap(N, Microtubules):
-    min_range = N
+def j_max_bef_overlap(ry_param, Microtubules):
+    min_range = ry_param
     r = len(Microtubules)
     for n in range(r):
         # current microtubule
@@ -68,8 +68,8 @@ def j_max_bef_overlap(N, Microtubules):
         r_n = Microtubules[(n+1) % r]
         # left-most microtubule
         l_n = Microtubules[(n-1) % r]
-        min_range = min(min_range, abs(c_n - r_n - 1) % N)
-        min_range = min(min_range, abs(c_n - l_n - 1) % N)
+        min_range = min(min_range, abs(c_n - r_n - 1) % ry_param)
+        min_range = min(min_range, abs(c_n - l_n - 1) % ry_param)
     # print(min_range)
     return min_range // 2
     # note if this function returns 0, there exists at least one overlapping region

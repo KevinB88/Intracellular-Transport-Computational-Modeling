@@ -70,7 +70,6 @@ PARAMETER_SCHEMAS = {
             ("save_png", True),
             ("show_plt", False),
             ("mixed_config", False),
-            ("d_tube", 0)
         ]
     },
     "Mass Analysis": {

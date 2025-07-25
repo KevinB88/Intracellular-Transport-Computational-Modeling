@@ -4,8 +4,50 @@ from numba.types import int64, ListType
 from . import sys_config, njit, np
 import csv
 import os
+from project_src_package_2025.computational_tools import supplements as sup, numerical_tools as num
 
 ENABLE_JIT = sys_config.ENABLE_NJIT
+
+
+@njit(nopython=ENABLE_JIT)
+def build_d_tube_mapping_no_overlap(rg_param, ry_param, N_LIST, d_tube=0.0, domain_radius=1.0):
+    d_list = List()
+
+    j_sup = sup.j_max_bef_overlap(ry_param, N_LIST)
+
+    if d_tube < 0 or d_tube > j_sup:
+        d_tube = sup.solve_d_rect(1, rg_param, ry_param, j_sup, 0)
+
+    dRad = num.compute_dRad(rg_param, domain_radius)
+    dThe = num.compute_dThe(ry_param)
+
+    for m in range(ry_param):
+        j_max = np.ceil((d_tube / ((m + 1) * dRad * dThe)) - 0.5)
+        keys = sup.mod_range_flat(N_LIST, j_max, rg_param, False)
+        d = sup.dict_gen(keys, N_LIST)
+        d_list.append(d)
+
+    return d_list
+
+
+@njit(nopython=ENABLE_JIT)
+def build_j_max_list(rg_param, ry_param, N_LIST, d_tube=0.0, domain_radius=1.0):
+
+    j_max_list = []
+    j_max_lim = sup.j_max_bef_overlap(ry_param, N_LIST)
+    max_d_tube = sup.solve_d_rect(domain_radius, ry_param, rg_param, j_max_lim, 0)
+
+    if d_tube < 0 or d_tube > max_d_tube:
+        d_tube = max_d_tube
+
+    dRad = num.compute_dRad(rg_param, domain_radius=domain_radius)
+    dThe = num.compute_dThe(ry_param)
+
+    for m in range(rg_param):
+        j_max = int(np.ceil((d_tube / ((m + 1) * dRad * dThe)) - 0.5))
+        j_max_list.append(j_max)
+
+    return j_max_list
 
 
 @njit(nopython=ENABLE_JIT)
