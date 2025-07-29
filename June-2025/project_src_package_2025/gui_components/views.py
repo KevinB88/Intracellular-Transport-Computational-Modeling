@@ -128,6 +128,7 @@ class ControlPanel(QWidget):
         self.history_dropdown = QComboBox()
         self.history_dropdown.addItem("Select Previous Computation: ")
         self.history_dropdown.currentIndexChanged.connect(self.load_history_entry)
+
         self.left_panel.addWidget(self.history_dropdown)
 
         for label in history_cache.cache.get_labels():
@@ -372,11 +373,11 @@ class ControlPanel(QWidget):
         self.launch_animation_button.setStyleSheet("background-color : lightgray")
 
         # Connect all relevant QLineEdit fields to validation
-        for key in ["rg_param", "ry_param", "w_param", "v_param", "N_param", "T_param", "d_tube"]:
+        for key in ["rg_param", "ry_param", "w_param", "v_param", "N_LIST", "T_param"]:
             if key in self.param_inputs:
                 self.param_inputs[key].textChanged.connect(self.validate_animation)
 
-        # self.launch_animation_button.clicked.connect(self.handle_launch_animation)
+        self.launch_animation_button.clicked.connect(self.handle_launch_animation)
         self.launch_animation_button.clicked.connect(self.handle_launch_animation)
 
         # Animation evolution display
@@ -649,7 +650,7 @@ class ControlPanel(QWidget):
             ry = int(self.param_inputs["ry_param"].text())
             w = float(self.param_inputs["w_param"].text())
             v = float(self.param_inputs["v_param"].text())
-            N_raw = self.param_inputs["N_param"].text()
+            N_raw = self.param_inputs["N_LIST"].text()
             N = list(map(int, re.findall(r'\d+', N_raw))) if N_raw else []
             T = float(self.param_inputs["T_param"].text())
             d_tube = float(self .param_inputs["d_tube"].text())
@@ -680,7 +681,7 @@ class ControlPanel(QWidget):
             ry = int(self.param_inputs["ry_param"].text())
             w = float(self.param_inputs["w_param"].text())
             v = float(self.param_inputs["v_param"].text())
-            N_raw = self.param_inputs["N_param"].text()
+            N_raw = self.param_inputs["N_LIST"].text()
             N = list(map(int, re.findall(r'\d+', N_raw))) if N_raw else []
             T = float(self.param_inputs["T_param"].text())
             d_tube = float(self.param_inputs["d_tube"].text())
@@ -744,7 +745,7 @@ class ControlPanel(QWidget):
 
     def validate_animation(self):
         required_keys = ["rg_param", "ry_param", "w_param", "v_param",
-                         "N_param", "T_param", "d_tube"]
+                         "N_LIST", "T_param", "d_tube"]
         inputs_filled = all(
             key in self.param_inputs and self.param_inputs[key].text().strip() != ""
             for key in required_keys

@@ -3,9 +3,10 @@ from numba.typed import List
 from project_src_package_2025.computational_tools import struct_init
 
 ENABLE_JIT = sys_config.ENABLE_NJIT
+ENABLE_CACHING = sys_config.ENABLE_NUMBA_CACHING
 
 
-@njit(nopython=ENABLE_JIT, cache=ENABLE_JIT)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHING)
 def super_comp_type_I(rg_param, ry_param, switch_param_a, switch_param_b, T_param,
                       v_param, N_LIST, D_LAYER, A_LAYER,
                       Timestamp_LIST,

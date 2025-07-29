@@ -241,20 +241,20 @@ def collect_MFPT_snapshots(rg_param, ry_param, N_LIST, v_param, w_param, T_param
 
 
 # (****) (****)
-def output_time_until_mass_depletion(rg_param, ry_param, N_param, v_param, w_param, domain_radius=1.0, D=1.0,
+def output_time_until_mass_depletion(rg_param, ry_param, N_LIST, v_param, w_param, domain_radius=1.0, D=1.0,
                                      d_tube=0, mass_threshold=0.01):
     D_LAYER, A_LAYER = sup.initialize_layers(rg_param, ry_param)
 
-    if len(N_param) > ry_param:
+    if len(N_LIST) > ry_param:
         raise IndexError(
-            f'Too many microtubules requested: {len(N_param)}, within domain of {ry_param} angular rays.')
+            f'Too many microtubules requested: {len(N_LIST)}, within domain of {ry_param} angular rays.')
 
-    for i in range(len(N_param)):
-        if N_param[i] < 0 or N_param[i] > ry_param:
-            raise IndexError(f'Angle {N_param[i]} is out of bounds, your range should be [0, {ry_param - 1}]')
+    for i in range(len(N_LIST)):
+        if N_LIST[i] < 0 or N_LIST[i] > ry_param:
+            raise IndexError(f'Angle {N_LIST[i]} is out of bounds, your range should be [0, {ry_param - 1}]')
 
     duration = ant.comp_until_mass_depletion(rg_param, ry_param, w_param, w_param,
-                                             v_param, N_param, D_LAYER, A_LAYER, domain_radius, D, mass_threshold,
+                                             v_param, N_LIST, D_LAYER, A_LAYER, domain_radius, D, mass_threshold,
                                              d_tube)
     return duration
 

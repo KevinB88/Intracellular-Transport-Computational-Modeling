@@ -59,6 +59,11 @@ def run_selected_computation(computation_name, param_dict):
             output["MFPT"] = result
         return output
 
+    # if computation_name == "Solve MFPT":
+    #     output = {}
+    #     output["MFPT"] = result
+    #     return output
+
     # --- Case 2: Time Until Mass Depletion ---
     if computation_name == "Time Until Mass Depletion":
         return {"duration": result}

@@ -5,27 +5,25 @@ from project_src_package_2025.computational_tools import struct_init
 from numba.typed import Dict, List
 from numba import int64
 
-
 ENABLE_JIT = sys_config.ENABLE_NJIT
 ENABLE_CACHE = sys_config.ENABLE_NUMBA_CACHING
 
 
 # (****) (****)
 @njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
-def comp_mfpt_by_time(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer,
-                      T, mass_checkpoint=10**6, r=1.0, d=1.0, d_tube=0):
-
+def comp_mfpt_by_time(rg_param, ry_param, switch_param_a, switch_param_b, v_param, N_LIST, D_LAYER, A_LAYER,
+                      T_param, mass_checkpoint=10 ** 6, domain_radius=1.0, D=1.0, d_tube=0):
     if ENABLE_JIT:
         print("Running optimized version.")
 
-    d_radius = num.compute_dRad(rings, r)
-    d_theta = num.compute_dThe(rays)
-    d_time = num.compute_dT(rings, rays, r, d)
-    K = num.compute_K(rings, rays, T, r, d)
-    phi_center = num.compute_init_cond_cent(rings, r)
-    v *= -1
+    dRad = num.compute_dRad(rg_param, domain_radius)
+    dThe = num.compute_dThe(ry_param)
+    dT = num.compute_dT(rg_param, ry_param, domain_radius, D)
+    K = num.compute_K(rg_param, ry_param, T_param, domain_radius, D)
+    central_patch = num.compute_init_cond_cent(rg_param, domain_radius)
+    v_param *= -1
 
-    d_list = struct_init.build_d_tube_mapping_no_overlap(rings, rays, tube_placements, d_tube, r)
+    d_list = struct_init.build_d_tube_mapping_no_overlap(rg_param, ry_param, N_LIST, d_tube, domain_radius)
 
     MFPT = 0
     mass_retained = 0
@@ -36,62 +34,63 @@ def comp_mfpt_by_time(rings, rays, a, b, v, tube_placements, diffusive_layer, ad
     while k < K:
 
         net_current_out = 0
+        # <<<< ------------- Updating DL and AL for the K+1-th step ------------- >>>>
         m = 0
 
-        # **************************************************************************************************
-        while m < rings:
+        while m < rg_param:
 
             # The advective angle index 'aIdx'
             aIdx = 0
             n = 0
 
-            while n < rays:
-                if m == rings - 1:
-                    diffusive_layer[1][m][n] = 0
+            while n < ry_param:
+                if m == rg_param - 1:
+                    D_LAYER[1][m][n] = 0
                 else:
-
-                    # **********************************************************************************************************************************************
                     if n in d_list[m]:
-
-                        diffusive_layer[1][m][n] = num.u_density_rect(diffusive_layer, 0, m, n, d_radius, d_theta,
-                                                                      d_time,
-                                                                      phi_center, rings, advective_layer,
-                                                                      int(d_list[m][n]), a, b, d_tube)
+                        # n denotes a discrete position (an extraction region ray) within an extraction region centered at a microtubule (indices contained in N_LIST)
+                        # if the iteration steps on an extraction region ray at ring m, then:
+                        # int(d_list[m][n]) is the corresponding microtubule position of the extraction region ray (n) at ring (m)
+                        corr_MT_pos = int(d_list[m][n])
+                        D_LAYER[1][m][n] = num.u_density_rect(D_LAYER, 0, m, n, dRad, dThe,
+                                                              dT,
+                                                              central_patch, rg_param, A_LAYER,
+                                                              corr_MT_pos, switch_param_a, switch_param_b, d_tube)
 
                     else:
-                        diffusive_layer[1][m][n] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta,
-                                                                 d_time,
-                                                                 phi_center, rings, advective_layer,
-                                                                 aIdx,
-                                                                 a, b,
-                                                                 tube_placements)
-                    if n == tube_placements[aIdx]:
+                        D_LAYER[1][m][n] = num.u_density(D_LAYER, 0, m, n, dRad, dThe,
+                                                         dT,
+                                                         central_patch, rg_param, A_LAYER,
+                                                         aIdx,
+                                                         switch_param_a, switch_param_b,
+                                                         N_LIST)
+                    if n == N_LIST[aIdx]:
 
-                        advective_layer[1][m][n] = num.u_tube_rect(advective_layer, diffusive_layer, 0, m, n, a,
-                                                                   b, v, d_time, d_radius, d_theta, d_tube)
-                        if aIdx < len(tube_placements) - 1:
+                        A_LAYER[1][m][n] = num.u_tube_rect(A_LAYER, D_LAYER, 0, m, n, switch_param_a,
+                                                           switch_param_b, v_param, dT, dRad, dThe, d_tube)
+                        if aIdx < len(N_LIST) - 1:
                             aIdx += 1
 
-                    if m == rings - 2:
-                        net_current_out += num.j_r_r(diffusive_layer, 0, m, n, d_radius, 0) * rings * d_radius * d_theta
+                    if m == rg_param - 2:
+                        net_current_out += num.j_r_r(D_LAYER, 0, m, n, dRad, 0) * rg_param * dRad * dThe
                 n += 1
             m += 1
-        # *****************************************************************************************************************
+        # <<<< ------------- Updating DL and AL for the K+1-th step ------------- >>>>
 
-        MFPT += net_current_out * k * d_time ** 2
+        MFPT += net_current_out * k * dT ** 2
         # Implemented to provide occasional status checks/metrics during MFPT calculation
         if k > 0 and k % mass_checkpoint == 0:
-            print("Velocity (V)= ", v, "Time step: ", k, "Simulation time: ", k * d_time, "Current mass: ",
+            print("Velocity (V)= ", v_param, "Time step: ", k, "Simulation time: ", k * dT, "Current mass: ",
                   mass_retained,
-                  "a=", a, "b=", b)
+                  "a=", switch_param_a, "b=", switch_param_b)
 
-        mass_retained = num.calc_mass(diffusive_layer, advective_layer, 0, d_radius, d_theta, phi_center,
-                                      rings, rays, tube_placements)
-        phi_center = num.u_center(diffusive_layer, 0, d_radius, d_theta, d_time, phi_center,
-                                  advective_layer, tube_placements, v)
+        mass_retained = num.calc_mass(D_LAYER, A_LAYER, 0, dRad, dThe, central_patch,
+                                      rg_param, ry_param, N_LIST)
+        central_patch = num.u_center(D_LAYER, 0, dRad, dThe, dT, central_patch,
+                                     A_LAYER, N_LIST, v_param)
 
-        diffusive_layer[0] = diffusive_layer[1]
-        advective_layer[0] = advective_layer[1]
+        D_LAYER[0] = D_LAYER[1]
+        A_LAYER[0] = A_LAYER[1]
         # transfer updated density info from the next step to the current
         # num.update_layer_inplace(diffusive_layer[0], diffusive_layer[1], rays, rings)
         # num.update_layer_inplace(advective_layer[0], advective_layer[1], rays, rings)
@@ -103,20 +102,21 @@ def comp_mfpt_by_time(rings, rays, a, b, v, tube_placements, diffusive_layer, ad
 
 # (****) (****)
 @njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
-def comp_mfpt_by_time_points(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer, Timestamp_LIST, MFPT_snapshots,
-                      T, mass_checkpoint=10**6, r=1.0, d=1.0, d_tube=0):
-
+def comp_mfpt_by_time_points(rg_param, ry_param, switch_param_a, switch_param_b, v_param, N_LIST, D_LAYER, A_LAYER,
+                             Timestamp_LIST,
+                             MFPT_snapshots,
+                             T_param, mass_checkpoint=10 ** 6, domain_radius=1.0, D=1.0, d_tube=0):
     if ENABLE_JIT:
         print("Running optimized version.")
 
-    d_radius = num.compute_dRad(rings, r)
-    d_theta = num.compute_dThe(rays)
-    d_time = num.compute_dT(rings, rays, r, d)
-    K = num.compute_K(rings, rays, T, r, d)
-    phi_center = num.compute_init_cond_cent(rings, r)
-    v *= -1
+    dRad = num.compute_dRad(rg_param, domain_radius)
+    dThe = num.compute_dThe(ry_param)
+    dT = num.compute_dT(rg_param, ry_param, domain_radius, D)
+    K = num.compute_K(rg_param, ry_param, T_param, domain_radius, D)
+    central_patch = num.compute_init_cond_cent(rg_param, domain_radius)
+    v_param *= -1
 
-    d_list = struct_init.build_d_tube_mapping_no_overlap(rings, rays, tube_placements, d_tube, r)
+    d_list = struct_init.build_d_tube_mapping_no_overlap(rg_param, ry_param, N_LIST, d_tube, domain_radius)
 
     MFPT = 0
     mass_retained = 0
@@ -132,65 +132,67 @@ def comp_mfpt_by_time_points(rings, rays, a, b, v, tube_placements, diffusive_la
         m = 0
 
         # **************************************************************************************************
-        while m < rings:
+        while m < rg_param:
 
             # The advective angle index 'aIdx'
             aIdx = 0
             n = 0
 
-            while n < rays:
-                if m == rings - 1:
-                    diffusive_layer[1][m][n] = 0
+            while n < ry_param:
+                if m == rg_param - 1:
+                    D_LAYER[1][m][n] = 0
                 else:
 
                     # **********************************************************************************************************************************************
                     if n in d_list[m]:
 
-                        diffusive_layer[1][m][n] = num.u_density_rect(diffusive_layer, 0, m, n, d_radius, d_theta,
-                                                                      d_time,
-                                                                      phi_center, rings, advective_layer,
-                                                                      int(d_list[m][n]), a, b, d_tube)
+                        D_LAYER[1][m][n] = num.u_density_rect(D_LAYER, 0, m, n, dRad, dThe,
+                                                              dT,
+                                                              central_patch, rg_param, A_LAYER,
+                                                              int(d_list[m][n]), switch_param_a, switch_param_b, d_tube)
 
                     else:
-                        diffusive_layer[1][m][n] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta,
-                                                                 d_time,
-                                                                 phi_center, rings, advective_layer,
-                                                                 aIdx,
-                                                                 a, b,
-                                                                 tube_placements)
-                    if n == tube_placements[aIdx]:
+                        D_LAYER[1][m][n] = num.u_density(D_LAYER, 0, m, n, dRad, dThe,
+                                                         dT,
+                                                         central_patch, rg_param, A_LAYER,
+                                                         aIdx,
+                                                         switch_param_a, switch_param_b,
+                                                         N_LIST)
+                    if n == N_LIST[aIdx]:
 
-                        advective_layer[1][m][n] = num.u_tube_rect(advective_layer, diffusive_layer, 0, m, n, a,
-                                                                   b, v, d_time, d_radius, d_theta, d_tube)
-                        if aIdx < len(tube_placements) - 1:
+                        A_LAYER[1][m][n] = num.u_tube_rect(A_LAYER, D_LAYER, 0, m, n, switch_param_a,
+                                                           switch_param_b, v_param, dT, dRad, dThe, d_tube)
+                        if aIdx < len(N_LIST) - 1:
                             aIdx += 1
 
-                    if m == rings - 2:
-                        net_current_out += num.j_r_r(diffusive_layer, 0, m, n, d_radius, 0) * rings * d_radius * d_theta
+                    if m == rg_param - 2:
+                        net_current_out += num.j_r_r(D_LAYER, 0, m, n, dRad, 0) * rg_param * dRad * dThe
                 n += 1
             m += 1
         # *****************************************************************************************************************
 
         if k > 0 and k % mass_checkpoint == 0:
-            print("Velocity (V)= ", v, "Time step: ", k, "Simulation time: ", k * d_time, "Current mass: ",
+            print("Velocity (V)= ", v_param, "Time step: ", k, "Simulation time: ", k * dT, "Current mass: ",
                   mass_retained,
-                  "a=", a, "b=", b)
+                  "a=", switch_param_a, "b=", switch_param_b)
 
-        MFPT += net_current_out * k * d_time ** 2
+        MFPT += net_current_out * k * dT ** 2
 
         if timestamp < len(Timestamp_LIST):
-            curr_stamp = np.floor(Timestamp_LIST [timestamp] / d_time)
+            curr_stamp = np.floor(Timestamp_LIST[timestamp] / dT)
             if k == curr_stamp:
                 MFPT_snapshots[timestamp] = MFPT
                 timestamp += 1
         else:
             return
 
-        mass_retained = num.calc_mass(diffusive_layer, advective_layer, 0, d_radius, d_theta, phi_center, rings, rays, tube_placements)
-        phi_center = num.u_center(diffusive_layer, 0, d_radius, d_theta, d_time, phi_center, advective_layer, tube_placements, v)
+        mass_retained = num.calc_mass(D_LAYER, A_LAYER, 0, dRad, dThe, central_patch, rg_param, ry_param,
+                                      N_LIST)
+        phi_center = num.u_center(D_LAYER, 0, dRad, dThe, dT, central_patch, A_LAYER,
+                                  N_LIST, v_param)
 
-        diffusive_layer[0] = diffusive_layer[1]
-        advective_layer[0] = advective_layer[1]
+        D_LAYER[0] = D_LAYER[1]
+        A_LAYER[0] = A_LAYER[1]
         # transfer updated density info from the next step to the current
         # num.update_layer_inplace(diffusive_layer[0], diffusive_layer[1], rays, rings)
         # num.update_layer_inplace(advective_layer[0], advective_layer[1], rays, rings)
@@ -243,8 +245,8 @@ def comp_mfpt_by_mass_loss(rings, rays, a, b, v, tube_placements, diffusive_laye
             f'Too many microtubules requested: {len(tube_placements)}, within domain of {rays} angular rays.')
 
     for i in range(len(tube_placements)):
-        if tube_placements[ i ] < 0 or tube_placements[ i ] > rays:
-            raise IndexError(f'Angle {tube_placements[ i ]} is out of bounds, your range should be [0, {rays - 1}]')
+        if tube_placements[i] < 0 or tube_placements[i] > rays:
+            raise IndexError(f'Angle {tube_placements[i]} is out of bounds, your range should be [0, {rays - 1}]')
 
     d_radius = r / rings
     d_theta = ((2 * math.pi) / rays)
@@ -271,15 +273,15 @@ def comp_mfpt_by_mass_loss(rings, rays, a, b, v, tube_placements, diffusive_laye
             while n < rays:
                 # absorbing boundary condition
                 if m == rings - 1:
-                    diffusive_layer[ 1 ][ m ][ n ] = 0
+                    diffusive_layer[1][m][n] = 0
                 else:
-                    diffusive_layer[ 1 ][ m ][ n ] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta, d_time,
-                                                                   phi_center, rings, advective_layer, angle_index,
-                                                                   a, b, tube_placements)
-                    if n == tube_placements[ angle_index ]:
-                        advective_layer[ 1 ][ m ][ n ] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b, v,
-                                                                    d_time,
-                                                                    d_radius, d_theta)
+                    diffusive_layer[1][m][n] = num.u_density(diffusive_layer, 0, m, n, d_radius, d_theta, d_time,
+                                                             phi_center, rings, advective_layer, angle_index,
+                                                             a, b, tube_placements)
+                    if n == tube_placements[angle_index]:
+                        advective_layer[1][m][n] = num.u_tube(advective_layer, diffusive_layer, 0, m, n, a, b, v,
+                                                              d_time,
+                                                              d_radius, d_theta)
                         if angle_index < len(tube_placements) - 1:
                             angle_index = angle_index + 1
 
@@ -304,8 +306,8 @@ def comp_mfpt_by_mass_loss(rings, rays, a, b, v, tube_placements, diffusive_laye
                                   advective_layer, tube_placements, v)
 
         # transfer updated density info from the next step to the current
-        diffusive_layer[ 0 ] = diffusive_layer[ 1 ]
-        advective_layer[ 0 ] = advective_layer[ 1 ]
+        diffusive_layer[0] = diffusive_layer[1]
+        advective_layer[0] = advective_layer[1]
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # calculate the sim-time
     duration = k * d_time
@@ -362,8 +364,8 @@ def comp_mfpt_by_mass_loss_rect(rings, rays, a, b, v, tube_placements, diffusive
             f'Too many microtubules requested: {len(tube_placements)}, within domain of {rays} angular rays.')
 
     for i in range(len(tube_placements)):
-        if tube_placements[ i ] < 0 or tube_placements[ i ] > rays:
-            raise IndexError(f'Angle {tube_placements[ i ]} is out of bounds, your range should be [0, {rays - 1}]')
+        if tube_placements[i] < 0 or tube_placements[i] > rays:
+            raise IndexError(f'Angle {tube_placements[i]} is out of bounds, your range should be [0, {rays - 1}]')
 
     d_radius = r / rings
     d_theta = ((2 * math.pi) / rays)
@@ -474,8 +476,8 @@ def comp_mfpt_by_mass_loss_rect(rings, rays, a, b, v, tube_placements, diffusive
                                   advective_layer, tube_placements, v)
 
         # transfer updated density info from the next step to the current
-        diffusive_layer[0] = diffusive_layer[ 1 ]
-        advective_layer[0] = advective_layer[ 1 ]
+        diffusive_layer[0] = diffusive_layer[1]
+        advective_layer[0] = advective_layer[1]
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # calculate the sim-time
     duration = k * d_time

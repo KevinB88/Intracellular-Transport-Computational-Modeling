@@ -4,50 +4,51 @@ PARAMETER_SCHEMAS = {
         "required": [
             ("rg_param", ""),
             ("ry_param", ""),
-            ("N_param", ""),
+            ("N_LIST", ""),
             ("v_param", ""),
             ("w_param", ""),
             ("T_param", "")
         ],
         "default": [
-            ("r", 1.0),
-            ("d", 1.0),
+            ("domain_radius", 1.0),
+            ("D", 1.0),
             ("mass_checkpoint", int(1e6)),
-            ("d_tube", 0),
-            ("return_duration", False)
+            ("d_tube", 0)
         ]
     },
     "Time Until Mass Depletion": {
         "required": [
             ("rg_param", ""),
             ("ry_param", ""),
-            ("N_param", ""),
+            ("N_LIST", ""),
             ("v_param", ""),
             ("w_param", "")
         ],
         "default": [
-            ("mass_threshold", 0.01),
-            ("mixed_config", False),
-            ("d_tube", 0)
+            ("domain_radius", 1.0),
+            ("D", 1.0),
+            ("d_tube", 0),
+            ("mass_threshold", 0.01)
         ]
     },
     "Phi Angular Dependence": {
         "required": [
             ("rg_param", ""),
             ("ry_param", ""),
-            ("N_param", ""),
             ("v_param", ""),
             ("w_param", ""),
+            ("T_param", ""),
+            ("N_LIST", ""),
+            ("checkpoint_collect_container", ""),
         ],
         "default": [
-            ("approach", 3),
-            ("m_segment", 0.5),
-            ("r", 1.0),
-            ("d", 1.0),
-            ("mass_retention_threshold", 0.01),
-            ("time_point_container", "[1.0, 2.0, 3.0]"),
-            ("mixed_config", False),
+            ("approach", 2),
+            ("T_fixed_ring_seg", 0.5),
             ("d_tube", 0),
+            ("domain_radius", 1.0),
+            ("D", 1.0),
+            ("mass_retention_threshold", 0.01),
+            ("mass_checkpoint", int(1e6)),
             ("save_png", True),
             ("show_plt", False)
         ]
@@ -56,42 +57,42 @@ PARAMETER_SCHEMAS = {
         "required": [
             ("rg_param", ""),
             ("ry_param", ""),
-            ("N_param", ""),
+            ("N_LIST", ""),
             ("v_param", ""),
             ("w_param", ""),
-            ("fixed_angle", ""),
-            ("time_point_container", "")
+            ("T_param", ""),
+            ("checkpoint_collect_container", ""),
         ],
         "default": [
-            ("r", 1.0),
-            ("d", 1.0),
+            ("R_fixed_angle", -1),
+            ("approach", 2),
+            ("domain_radius", 1.0),
+            ("D", 1.0),
+            ("d_tube", 0),
             ("mass_retention_threshold", 0.01),
             ("mass_checkpoint", int(1e6)),
             ("save_png", True),
-            ("show_plt", False),
-            ("mixed_config", False),
+            ("show_plt", False)
         ]
     },
     "Mass Analysis": {
         "required": [
             ("rg_param", ""),
             ("ry_param", ""),
-            ("N_param", ""),
             ("v_param", ""),
             ("w_param", ""),
             ("T_param", ""),
+            ("N_LIST", ""),
         ],
         "default": [
-            ("r", 1.0),
-            ("d", 1.0),
+            ("MA_collection_factor", int(5)),
+            ("domain_radius", 1.0),
+            ("D", 1.0),
             ("mass_checkpoint", int(1e6)),
-            ("save_png", True),
-            ("show_plt", False),
-            ("mixed_config", False),
             ("d_tube", 0),
-            ("collect_MFPT", False),
-            ("collect_plots", True),
-            ("collection_width", 10)
+            ("MA_collection_factor_limit", int(1e3)),
+            ("save_png", True),
+            ("show_plt", False)
         ]
     }
 }

@@ -9,6 +9,7 @@ from project_src_package_2025.computational_tools import supplements as sup, num
 ENABLE_JIT = sys_config.ENABLE_NJIT
 
 
+# (****) (****)
 @njit(nopython=ENABLE_JIT)
 def build_d_tube_mapping_no_overlap(rg_param, ry_param, N_LIST, d_tube=0.0, domain_radius=1.0):
     d_list = List()
@@ -30,6 +31,7 @@ def build_d_tube_mapping_no_overlap(rg_param, ry_param, N_LIST, d_tube=0.0, doma
     return d_list
 
 
+# (****) (****)
 @njit(nopython=ENABLE_JIT)
 def build_j_max_list(rg_param, ry_param, N_LIST, d_tube=0.0, domain_radius=1.0):
 
@@ -50,6 +52,7 @@ def build_j_max_list(rg_param, ry_param, N_LIST, d_tube=0.0, domain_radius=1.0):
     return j_max_list
 
 
+# <***> <***>
 @njit(nopython=ENABLE_JIT)
 def build_rect_config_dict(RINGS, RAYS, N, D_THE, D_RAD, D_TUBE):
     """

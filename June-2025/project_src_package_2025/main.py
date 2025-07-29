@@ -40,6 +40,13 @@ def run_main():
 
     gui.run_app()
 
+    '''
+        Next task
+        -computational flow map
+        -propagate changes to the GUI
+        -modularity principle for views.py (GUI) 
+    '''
+
     # launch.launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_param, Timestamp_List=T_points, d_tube=0, T_fixed_ring_seg=0.1, MA_collection_factor=5)
     # launch.collect_mass_analysis(rg_param, ry_param, v_param, w_param, T_param, N_param)
     # launch.collect_phi_ang_dep(rg_param, ry_param, v_param, w_param, T_param, N_param, T_points, T_fixed_ring_seg=0.5)
