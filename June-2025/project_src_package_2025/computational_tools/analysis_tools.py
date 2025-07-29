@@ -8,7 +8,7 @@ ENABLE_CACHE = sys_config.ENABLE_NUMBA_CACHING
 
 
 # Methods used to collect numerical results (via PDE solver) to conduct analyses on, e.g, mass(t), Phi(theta), Phi(rad), Rho(rad), ect.
-# The underlying
+# All methods below implement the space efficient two-step approach (in terms of how numerical data is stored across updates), i.e, [0][m][n] refers to the current (step k), and [1][m][n] refers to next (step k+1).
 
 
 # (****) (****)

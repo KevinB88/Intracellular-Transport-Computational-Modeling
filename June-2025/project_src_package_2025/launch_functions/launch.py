@@ -6,11 +6,13 @@ import pandas as pd
 
 
 # (****) (****)
-def collect_phi_ang_dep(rg_param, ry_param, v_param, w_param, T_param, N_LIST, checkpoint_collect_container, approach=2, T_fixed_ring_seg=0.5,
-                        d_tube=0, domain_radius=1, D=1, mass_retention_threshold=0.01, mass_checkpoint=10**6, save_png=True, show_plt=False):
-
+def collect_phi_ang_dep(rg_param, ry_param, v_param, w_param, T_param, N_LIST, checkpoint_collect_container, approach=2,
+                        T_fixed_ring_seg=0.5,
+                        d_tube=0, domain_radius=1, D=1, mass_retention_threshold=0.01, mass_checkpoint=10 ** 6,
+                        save_png=True, show_plt=False):
     if int(approach) != 1 and int(approach) != 2:
-        raise ValueError(f"Approach: {approach} is undefined. Must supply approach 1 (Mass-point collection) or approach 2 (Time-point collection).")
+        raise ValueError(
+            f"Approach: {approach} is undefined. Must supply approach 1 (Mass-point collection) or approach 2 (Time-point collection).")
 
     if T_fixed_ring_seg < 0 or T_fixed_ring_seg > 1:
         print("T_fixed_ring_seg automatically adjusted to legal range.")
@@ -29,15 +31,19 @@ def collect_phi_ang_dep(rg_param, ry_param, v_param, w_param, T_param, N_LIST, c
     D_LAYER, A_LAYER = sup.initialize_layers(rg_param, ry_param)
 
     ant.comp_diffusive_angle_snapshots(rg_param, ry_param, w_param, w_param, T_param, v_param, N_LIST, D_LAYER, A_LAYER,
-                                       PvT_DL_snapshots, checkpoint_collect_container, approach, T_fixed_ring_seg, d_tube, domain_radius,
+                                       PvT_DL_snapshots, checkpoint_collect_container, approach, T_fixed_ring_seg,
+                                       d_tube, domain_radius,
                                        D, mass_retention_threshold, mass_checkpoint)
 
-    return pro.process_PvT_DL(PvT_DL_snapshots, v_param, w_param, N_LIST, T_fixed_ring_seg, save_png, show_plt, checkpoint_collect_container, approach)
+    return pro.process_PvT_DL(PvT_DL_snapshots, v_param, w_param, N_LIST, T_fixed_ring_seg, save_png, show_plt,
+                              checkpoint_collect_container, approach)
 
 
 # (****) (****)
-def collect_mass_analysis(rg_param, ry_param, v_param, w_param, T_param, N_LIST, MA_collection_factor=5, domain_radius=1.0, D=1.0,
-                          mass_checkpoint=10**6, d_tube=0, MA_collection_factor_limit=10**3, save_png=True, show_plt=False):
+def collect_mass_analysis(rg_param, ry_param, v_param, w_param, T_param, N_LIST, MA_collection_factor=5,
+                          domain_radius=1.0, D=1.0,
+                          mass_checkpoint=10 ** 6, d_tube=0, MA_collection_factor_limit=10 ** 3, save_png=True,
+                          show_plt=False):
     # d_radius = r / rg_param
     # d_theta = ((2 * math.pi) / ry_param)
     # d_time = (0.1 * min(d_radius * d_radius, d_theta * d_theta * d_radius * d_radius)) / (2 * d)
@@ -78,10 +84,12 @@ def collect_mass_analysis(rg_param, ry_param, v_param, w_param, T_param, N_LIST,
     MA_TM_timeseries = np.zeros([relative_k], dtype=np.float64)
 
     ant.comp_mass_analysis_respect_to_time(rg_param, ry_param, w_param, w_param, v_param, T_param, N_LIST, D_LAYER,
-                                           A_LAYER, MA_DL_timeseries, MA_AL_timeseries, MA_ALoI_timeseries, MA_ALoT_timeseries, MA_TM_timeseries, MA_collection_factor,
+                                           A_LAYER, MA_DL_timeseries, MA_AL_timeseries, MA_ALoI_timeseries,
+                                           MA_ALoT_timeseries, MA_TM_timeseries, MA_collection_factor,
                                            relative_k, d_tube, domain_radius, D, mass_checkpoint)
 
-    return pro.process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_ALoT_timeseries, MA_ALoI_timeseries,
+    return pro.process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_ALoT_timeseries,
+                                  MA_ALoI_timeseries,
                                   v_param, w_param, N_LIST, T_param, rg_param, ry_param, save_png, show_plt)
 
 
@@ -89,9 +97,9 @@ def collect_mass_analysis(rg_param, ry_param, v_param, w_param, T_param, N_LIST,
 def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d_tube=0, Timestamp_List=None,
                         MA_collection_factor=5, MA_collection_factor_limit=10 ** 3,
                         D=1.0, domain_radius=1.0, mass_checkpoint=10 ** 6, T_fixed_ring_seg=0.5, R_fixed_angle=-1,
-                        save_png=True, save_csv=True, show_plt=False, heat_plot_border=False, heatplot_colorscheme='viridis',
+                        save_png=True, save_csv=True, show_plt=False, heat_plot_border=False,
+                        heatplot_colorscheme='viridis',
                         display_extraction=True):
-
     if len(N_LIST) > ry_param:
         raise IndexError(
             f'Too many angular indices supplied for microtubule positions: {len(N_LIST)} > {ry_param} (number of angular positions in domain).'
@@ -127,7 +135,8 @@ def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d
 
     for t in range(len(Timestamp_List)):
         if Timestamp_List[t] < 0.0 or Timestamp_List[t] > T_param:
-            raise ValueError(f"Timestamp-point: {Timestamp_List[t]} falls outside of the legal timestamp-point range: [0, {T_param} (T_param) ] (T_param = your input solution time duration)")
+            raise ValueError(
+                f"Timestamp-point: {Timestamp_List[t]} falls outside of the legal timestamp-point range: [0, {T_param} (T_param) ] (T_param = your input solution time duration)")
 
     dT = num.compute_dT(rg_param, ry_param, domain_radius=domain_radius, D=D)
     T_param += dT
@@ -165,9 +174,12 @@ def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d
     D_LAYER, A_LAYER = sup.initialize_layers(rg_param, ry_param)
 
     # Release the Kraken.. (execute super_comp_type_I)
-    super.super_comp_type_I(rg_param, rg_param, w_param, w_param, T_param, v_param, N_LIST, D_LAYER, A_LAYER, Timestamp_List,
-                            HM_DL_snapshots, HM_C_snapshots, PvT_DL_snapshots, T_fixed_ring_seg, MA_DL_timeseries, MA_AL_timeseries,
-                            MA_ALoI_timeseries, MA_ALoT_timeseries, MA_TM_timeseries, MA_collection_factor, relative_k, PvR_DL_snapshots,
+    super.super_comp_type_I(rg_param, rg_param, w_param, w_param, T_param, v_param, N_LIST, D_LAYER, A_LAYER,
+                            Timestamp_List,
+                            HM_DL_snapshots, HM_C_snapshots, PvT_DL_snapshots, T_fixed_ring_seg, MA_DL_timeseries,
+                            MA_AL_timeseries,
+                            MA_ALoI_timeseries, MA_ALoT_timeseries, MA_TM_timeseries, MA_collection_factor, relative_k,
+                            PvR_DL_snapshots,
                             RvR_AL_snapshots, R_fixed_angle, MFPT_snapshots, d_tube, D, domain_radius, mass_checkpoint)
 
     # Process results: Produce CSVs, PNGs (plots and heatmaps) (log results to filepath_log<timestamp>.txt)
@@ -176,31 +188,44 @@ def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d
 
     # Processing MFPT results
 
-    pro.process_MFPT_results(MFPT_snapshots, Timestamp_List)
+    MFPT_results = pro.process_MFPT_results(MFPT_snapshots, Timestamp_List)
 
     # Processing results for Mass-Analysis
 
     # Diffusive mass analysis
-    pro.process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_ALoT_timeseries, MA_ALoI_timeseries, v_param, w_param, N_LIST, T_param, rg_param, ry_param, save_png, show_plt)
+    MA_results = pro.process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_ALoT_timeseries,
+                                        MA_ALoI_timeseries, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
+                                        save_png, show_plt)
 
     # Processing results for Phi v. Theta
 
-    pro.process_PvT_DL(PvT_DL_snapshots, v_param, w_param, N_LIST, T_fixed_ring_seg, save_png, show_plt, Timestamp_List, 2)
+    PvT_DL_results = pro.process_PvT_DL(PvT_DL_snapshots, v_param, w_param, N_LIST, T_fixed_ring_seg, save_png,
+                                        show_plt, Timestamp_List, 2)
 
     # Processing results for Phi v. Radius & Rho v. Radius
 
-    pro.process_DvR_results(PvR_DL_snapshots, RvR_AL_snapshots, v_param, w_param, N_LIST, rg_param, ry_param, R_fixed_angle, Timestamp_List, save_png, show_plt)
+    DvR_results = pro.process_DvR_results(PvR_DL_snapshots, RvR_AL_snapshots, v_param, w_param, N_LIST, rg_param,
+                                          ry_param, R_fixed_angle, Timestamp_List, save_png, show_plt, 2)
 
     # Processing static heat-plots
 
-    pro.process_static_HM_results(HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, Timestamp_List, heat_plot_border, w_param, v_param, N_LIST, heatplot_colorscheme, save_png, show_plt, j_max_list, display_extraction)
+    static_HM_results = pro.process_static_HM_results(HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, Timestamp_List,
+                                                      heat_plot_border, w_param, v_param, N_LIST, heatplot_colorscheme,
+                                                      save_png, show_plt, j_max_list, display_extraction)
 
     print("Successfully completed super-function. View results in project_src_package_2025/data_output.")
 
+    output_list = MFPT_results + MA_results + PvT_DL_results + DvR_results + static_HM_results
+
+    print(output_list)
+    print(type(output_list))
+
+    return output_list
+
 
 # (****) (****)
-def collect_MFPT_snapshots(rg_param, ry_param, N_LIST, v_param, w_param, T_param, Timestamp_LIST=None, domain_radius=1.0, D=1.0, mass_checkpoint=10 ** 6, d_tube=0):
-
+def collect_MFPT_snapshots(rg_param, ry_param, N_LIST, v_param, w_param, T_param, Timestamp_LIST=None,
+                           domain_radius=1.0, D=1.0, mass_checkpoint=10 ** 6, d_tube=0):
     if len(N_LIST) > ry_param:
         raise IndexError(
             f'Too many angular indices supplied for microtubule positions: {len(N_LIST)} > {ry_param} (number of angular positions in domain).'
@@ -235,7 +260,8 @@ def collect_MFPT_snapshots(rg_param, ry_param, N_LIST, v_param, w_param, T_param
     MFPT_snapshots = np.zeros([Timestamp_enum], dtype=np.float64)
 
     mfpt_comp.comp_mfpt_by_time_points(rg_param, ry_param, w_param, w_param, v_param, N_LIST, D_LAYER, A_LAYER,
-                                       Timestamp_LIST, MFPT_snapshots, T_param, mass_checkpoint, domain_radius, D, d_tube)
+                                       Timestamp_LIST, MFPT_snapshots, T_param, mass_checkpoint, domain_radius, D,
+                                       d_tube)
 
     return pro.process_MFPT_results(MFPT_snapshots, Timestamp_LIST)
 
@@ -260,8 +286,10 @@ def output_time_until_mass_depletion(rg_param, ry_param, N_LIST, v_param, w_para
 
 
 # (****) (****)
-def collect_density_rad_depend(rg_param, ry_param, N_LIST, v_param, w_param, T_param, checkpoint_collect_container, R_fixed_angle=-1, approach=2, domain_radius=1.0, D=1.0,
-                               d_tube=0.0, mass_retention_threshold=0.01, mass_checkpoint=10 ** 6, save_png=True, show_plt=False):
+def collect_density_rad_depend(rg_param, ry_param, N_LIST, v_param, w_param, T_param, checkpoint_collect_container,
+                               R_fixed_angle=-1, approach=2, domain_radius=1.0, D=1.0,
+                               d_tube=0.0, mass_retention_threshold=0.01, mass_checkpoint=10 ** 6, save_png=True,
+                               show_plt=False):
     if len(N_LIST) > ry_param:
         raise IndexError(
             f'Too many angular indices supplied for microtubule positions: {len(N_LIST)} > {ry_param} (number of angular positions in domain).'
@@ -289,17 +317,24 @@ def collect_density_rad_depend(rg_param, ry_param, N_LIST, v_param, w_param, T_p
     D_LAYER, A_LAYER = sup.initialize_layers(rg_param, ry_param)
 
     ant.comp_diffusive_rad_snapshots(rg_param, ry_param, w_param, w_param, v_param, T_param, N_LIST, D_LAYER, A_LAYER,
-                                     R_fixed_angle, PvR_DL_snapshots, RvR_AL_snapshots, checkpoint_collect_container, approach,
+                                     R_fixed_angle, PvR_DL_snapshots, RvR_AL_snapshots, checkpoint_collect_container,
+                                     approach,
                                      domain_radius, D, mass_retention_threshold, mass_checkpoint, d_tube)
 
-    return pro.process_DvR_results(PvR_DL_snapshots, RvR_AL_snapshots, v_param, w_param, N_LIST, rg_param, ry_param, R_fixed_angle,
-                                   checkpoint_collect_container, save_png, show_plt, approach)
+    output_list = pro.process_DvR_results(PvR_DL_snapshots, RvR_AL_snapshots, v_param, w_param, N_LIST, rg_param,
+                                          ry_param, R_fixed_angle,
+                                          checkpoint_collect_container, save_png, show_plt, approach)
+
+    print(output_list)
+    print(type(output_list))
+
+    return output_list
 
 
 # (****) (****)
-def solve_mfpt_(rg_param, ry_param, N_LIST, v_param, w_param, T_param, domain_radius=1.0, D=1.0, mass_checkpoint=10 ** 6,
+def solve_mfpt_(rg_param, ry_param, N_LIST, v_param, w_param, T_param, domain_radius=1.0, D=1.0,
+                mass_checkpoint=10 ** 6,
                 d_tube=0):
-
     if len(N_LIST) > ry_param:
         raise IndexError(
             f'Too many angular indices supplied for microtubule positions: {len(N_LIST)} > {ry_param} (number of angular positions in domain).'
@@ -329,7 +364,6 @@ def heatmap_production(rg_param, ry_param, w_param, v_param, N_param, filepath=f
                        d_tube=-1, r=1.0, d=1.0, mass_retention_threshold=0.01, mass_checkpoint=10 ** 6,
                        color_scheme='viridis',
                        toggle_border=False, display_extraction=True, approach=2):
-
     ani.generate_heatmaps(rg_param=rg_param, ry_param=ry_param, w_param=w_param, v_param=v_param, N_param=N_param,
                           approach=approach,
                           filepath=filepath, time_point_container=time_point_container, save_png=save_png,
@@ -343,7 +377,6 @@ def heatmap_production(rg_param, ry_param, w_param, v_param, N_param, filepath=f
         If approach 2 is selected, only run the diffusive snapshot collection function until the last/maximum time point in the time-point container.
         The list of time-points should always be sorted in increasing order. 
     '''
-
 
 # <***************************** UNDER DEVELOPMENT/REQUIRES MORE TESTING *****************************>
 
@@ -398,10 +431,10 @@ def heatmap_production(rg_param, ry_param, w_param, v_param, N_param, filepath=f
 
 # <**********************************************************> REQUIRES REVIEW (These functions have not been used since 2024)
 
-    # ind_param:  independent parameter: the value that remains static across all MFPT solutions
-    # dep_param:  dependent parameter(s) : value that is being tested for MFPT dependence (contained within a set)
-    #
-    #
+# ind_param:  independent parameter: the value that remains static across all MFPT solutions
+# dep_param:  dependent parameter(s) : value that is being tested for MFPT dependence (contained within a set)
+#
+#
 
 # def solve_mfpt_multi_process(N_param, rg_param, ry_param, dep_type, ind_param, dep_param):
 #     M = rg_param
