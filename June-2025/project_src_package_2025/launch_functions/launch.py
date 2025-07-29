@@ -216,10 +216,6 @@ def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d
     print("Successfully completed super-function. View results in project_src_package_2025/data_output.")
 
     output_list = MFPT_results + MA_results + PvT_DL_results + DvR_results + static_HM_results
-
-    print(output_list)
-    print(type(output_list))
-
     return output_list
 
 

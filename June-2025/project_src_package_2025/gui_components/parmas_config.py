@@ -94,33 +94,34 @@ PARAMETER_SCHEMAS = {
             ("save_png", True),
             ("show_plt", False)
         ]
+    },
+
+    "Full Analysis": {
+        "required": [
+            ("rg_param", ""),
+            ("ry_param", ""),
+            ("w_param", ""),
+            ("v_param", ""),
+            ("T_param", ""),
+            ("N_LIST", "")
+        ],
+        "default": [
+            ("d_tube", 0.0),
+            ("Timestamp_List", None),
+            ("MA_collection_factor", int(5)),
+            ("MA_collection_factor_limit", int(1e3)),
+            ("D", 1.0),
+            ("domain_radius", 1.0),
+            ("mass_checkpoint", int(1e6)),
+            ("T_fixed_ring_seg", 0.5),
+            ("R_fixed_angle", int(-1)),
+            ("save_png", True),
+            ("save_csv", True),
+            ("show_plt", False),
+            ("heat_plot_border", False),
+            ("heatplot_colorscheme", 'viridis'),
+            ("display_extraction", True)
+        ]
     }
 }
 
-# "Full Analysis": {
-#     "required": [
-#         ("rg_param", ""),
-#         ("ry_param", ""),
-#         ("w_param", ""),
-#         ("v_param", ""),
-#         ("T_param", ""),
-#         ("N_LIST", "")
-#     ],
-#     "default": [
-#         ("d_tube", 0.0),
-#         ("Timestamp_List", None),
-#         ("MA_collection_factor", int(5)),
-#         ("MA_collection_factor_limit", int(1e3)),
-#         ("D", 1.0),
-#         ("domain_radius", 1.0),
-#         ("mass_checkpoint", int(1e6)),
-#         ("T_fixed_ring_seg", 0.5),
-#         ("R_fixed_angle", int(-1)),
-#         ("save_png", True),
-#         ("save_csv", True),
-#         ("show_plt", False),
-#         ("heat_plot_border", False),
-#         ("heatplot_colorscheme", 'viridis'),
-#         ("display_extraction", True)
-#     ]
-# }

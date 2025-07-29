@@ -1,19 +1,19 @@
 import sys
 import os
-from datetime import datetime
-from contextlib import redirect_stdout
+# from datetime import datetime
+# from contextlib import redirect_stdout
 from project_src_package_2025.gui_components import main_gui as gui
-from project_src_package_2025.launch_functions import launch
-from project_src_package_2025.auxiliary_tools import validity_checks as val
-from project_src_package_2025.system_configuration import file_paths as fp
-from project_src_package_2025.computational_tools import analysis_tools as ant
-from project_src_package_2025.computational_tools import supplements as sup
-from project_src_package_2025.data_visualization import ani_evolution as evo
-from project_src_package_2025.experimental import test_anim
+# from project_src_package_2025.launch_functions import launch
+# from project_src_package_2025.auxiliary_tools import validity_checks as val
+# from project_src_package_2025.system_configuration import file_paths as fp
+# from project_src_package_2025.computational_tools import analysis_tools as ant
+# from project_src_package_2025.computational_tools import supplements as sup
+# from project_src_package_2025.data_visualization import ani_evolution as evo
+# from project_src_package_2025.experimental import test_anim
 from multiprocessing import freeze_support
 from pathlib import Path
-import time
-import numpy as np
+# import time
+# import numpy as np
 
 if getattr(sys, 'frozen', False):
     base_dir = Path(sys._MEIPASS) if hasattr(sys, '_MEIPASS') else Path(os.path.dirname(sys.executable))
@@ -30,13 +30,13 @@ freeze_support()
 
 def run_main():
 
-    rg_param = 16
-    ry_param = 16
-    v_param = 10.0
-    w_param = 100
-    N_param = [0, 4, 8, 12]
-    T_param = 0.5
-    T_points = [0.25, 0.5]
+    # rg_param = 16
+    # ry_param = 16
+    # v_param = 10.0
+    # w_param = 100
+    # N_param = [0, 4, 8, 12]
+    # T_param = 0.5
+    # T_points = [0.25, 0.5]
 
     gui.run_app()
 

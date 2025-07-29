@@ -12,6 +12,7 @@ COMPUTATION_FUNCTIONS = {
     "Phi Angular Dependence": launch.collect_phi_ang_dep,
     "Density Radial Dependence": launch.collect_density_rad_depend,
     "Mass Analysis": launch.collect_mass_analysis,
+    "Full Analysis": launch.launch_super_comp_I
 }
 # "Full Analysis": launch.launch_super_comp_I
 
@@ -73,9 +74,9 @@ def run_selected_computation(computation_name, param_dict):
     if computation_name in {
         "Mass Analysis",
         "Density Radial Dependence",
-        "Phi Angular Dependence"
+        "Phi Angular Dependence",
+        "Full Analysis"
     }:
-        #         "Super Analysis"
 
         if isinstance(result, list) and all(isinstance(p, str) for p in result):
             return {"output_dirs": [os.path.dirname(p) for p in result]}

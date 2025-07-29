@@ -39,7 +39,7 @@ class BatchManager:
         self.rg_param = rg_param
         self.ry_param = ry_param
         self.w_param = w_param
-        self.v_param = v_param
+        self.v_param = v_param * -1
         self.N_param = N_param
         self.K_param = K_param
         self.T_param = T_param
@@ -333,207 +333,119 @@ def animate_diffusion(
     return canvas
 
 
-# def animate_diffusion_mp(rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, d_tube,
-#                          steps_per_frame=10, interval_ms=10, color_scheme='viridis', epsilon=0.001, result_queue=None):
+# def animate_diffusion_mp(
+#     rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, d_tube,
+#     steps_per_frame=10, interval_ms=10, color_scheme='viridis', result_queue=None, epsilon=0.001
+# ):
+#     rings = rg_param + 1
+#     rays = ry_param
+#
+#     r = np.linspace(0, 1, rings + 1)
+#     theta = np.linspace(0, 2 * np.pi, rays + 1)
+#     R, Theta = np.meshgrid(r, theta)
+#     X, Y = R * np.cos(Theta), R * np.sin(Theta)
 #
 #     fig, ax = plt.subplots(figsize=(10, 10))
 #     canvas = FigureCanvas(fig)
 #
-#     r = np.linspace(0, 1, rg_param + 2)
-#     theta = np.linspace(0, 2 * np.pi, ry_param + 1)
-#     R, Theta = np.meshgrid(r, theta)
-#     X, Y = R * np.cos(Theta), R * np.sin(Theta)
-#
 #     cmap = cm.get_cmap(color_scheme, 512)
 #     norm = Normalize(vmin=0, vmax=1)
-#     heatmap = None
 #
-#     sim_time = [0]
-#     d_time = [0]
-#     frame_in_batch = [0]
+#     # Initial dummy full_layer until first batch arrives
+#     dummy_layer = np.zeros((rings + 1, rays))
+#     # heatmap = ax.pcolormesh(X, Y, dummy_layer.T, shading='flat', cmap=cmap, edgecolors='k', linewidth=0.01, norm=norm)
+#     heatmap = ax.pcolormesh(
+#         X[:-1, :-1], Y[:-1, :-1], dummy_layer.T,
+#         shading='flat', cmap=cmap, edgecolors='k', linewidth=0.01, norm=norm
+#     )
 #
-#     diff_batch = [None]
-#     cen_batch = [None]
-#
-#     has_batch = [False]
-#
-#     def poll_for_new_batch():
-#         if result_queue and not result_queue.empty():
-#             result = result_queue.get()
-#             if result["status"] == "error":
-#                 print(f"[Animation Error] {result['message']}")
-#                 polling_timer.stop()
-#                 animation_timer.stop()
-#                 return
-#
-#             diff_batch[0] = result["diff_batch"]
-#             cen_batch[0] = result["cen_batch"]
-#             d_time[0] = result["d_time"]
-#             frame_in_batch[0] = 0
-#             sim_time[0] = 0
-#             has_batch[0] = True
-#             print("[Batch Received] Starting animation.")
-#
-#     def draw_next_frame():
-#         if not has_batch[0]:
-#             return
-#
-#         if frame_in_batch[0] >= K_param:
-#             print("[Animation] Completed all frames.")
-#             animation_timer.stop()
-#             return
-#
-#         nonlocal heatmap
-#
-#         diff = diff_batch[0][frame_in_batch[0]]
-#         center = cen_batch[0][frame_in_batch[0]]
-#         full_layer = np.vstack([np.full((1, ry_param), center), diff])
-#         full_layer_T = full_layer.T
-#
-#         if heatmap:
-#             heatmap.remove()
-#
-#         heatmap = ax.pcolormesh(X, Y, full_layer_T, shading='flat', cmap=cmap, edgecolors='k',
-#                                 linewidth=0.01, norm=norm)
-#         ax.set_title(f"Simulation time: {sim_time[0]:.4f}")
-#         canvas.draw()
-#
-#         sim_time[0] += steps_per_frame * d_time[0]
-#         frame_in_batch[0] += steps_per_frame
-#
-#     ax.axis("off")
+#     ax.axis('off')
 #     fig.set_tight_layout(True)
+#     plt.subplots_adjust(top=0.9)
 #
-#     # Separate timers
-#     polling_timer = QTimer()
-#     polling_timer.timeout.connect(poll_for_new_batch)
-#     polling_timer.start(100)  # Poll queue every 100 ms
+#     frame_idx = 0
+#     sim_time = 0
 #
-#     animation_timer = QTimer()
-#     animation_timer.timeout.connect(draw_next_frame)
-#     animation_timer.start(interval_ms)  # Frame update rate
+#     # Estimate d_time roughly to use for stopping
+#     d_radius = 1.0 / rings
+#     d_theta = (2 * np.pi) / rays
+#     d_time_est = (0.1 * min(d_radius**2, (d_theta**2) * d_radius**2)) / (2 * 1.0)  # Assume d = 1
 #
+#     # Wait for first real batch
+#     while result_queue.empty():
+#         time.sleep(0.05)
+#
+#     first_loaded = False
+#     while not first_loaded:
+#         batch = result_queue.get()
+#         if batch == "DONE":
+#             print("Received DONE before first batch")
+#             return canvas
+#         else:
+#             curr_diff, curr_cen = batch
+#             first_loaded = True
+#
+#     # Preload the next batch if available
+#     preload_next = None
+#     if not result_queue.empty():
+#         preload_next = result_queue.get()
+#
+#     def update(frame):
+#         nonlocal frame_idx, sim_time, heatmap, curr_diff, curr_cen, preload_next
+#
+#         if frame_idx >= K_param:
+#             if preload_next is not None:
+#                 if preload_next == "DONE":
+#                     print(f"Simulation ended at T ~ {sim_time:.3f}")
+#                     ani.event_source.stop()
+#                     return
+#                 curr_diff, curr_cen = preload_next
+#                 preload_next = None
+#                 frame_idx = 0
+#             else:
+#                 return  # Wait until next batch is ready
+#
+#             # Try to preload next again
+#             if not result_queue.empty():
+#                 preload_next = result_queue.get()
+#
+#         # Draw current frame
+#         center = curr_cen[frame_idx]
+#         diff = curr_diff[frame_idx]
+#         full_layer = np.vstack([np.full((1, ry_param), center), diff])
+#
+#         heatmap.remove()
+#         # heatmap = ax.pcolormesh(X, Y, full_layer.T, shading='flat',
+#         #                         cmap=cmap, edgecolors='k', linewidth=0.01, norm=norm)
+#
+#         heatmap = ax.pcolormesh(
+#             X[:-1, :-1], Y[:-1, :-1], full_layer.T,
+#             shading='flat', cmap=cmap, edgecolors='k', linewidth=0.01, norm=norm
+#         )
+#
+#         sim_time += steps_per_frame * d_time_est
+#         ax.set_title(f"Simulation time: {sim_time:.4f}", fontsize=14)
+#
+#         if T_param * (1 - epsilon) <= sim_time <= T_param * (1 + epsilon):
+#             print(f"Simulation paused at time T ~ {sim_time:.3f}")
+#             ani.event_source.stop()
+#
+#         frame_idx += steps_per_frame
+#         return [heatmap]
+#
+#     ani = FuncAnimation(
+#         fig, update,
+#         frames=100000,
+#         interval=interval_ms,
+#         blit=False
+#     )
+#
+#     canvas.ani = ani
 #     canvas.ani_paused = False
-#     canvas.polling_timer = polling_timer
-#     canvas.animation_timer = animation_timer
 #     canvas.fig = fig
 #
 #     return canvas
-
-
-def animate_diffusion_mp(
-    rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, d_tube,
-    steps_per_frame=10, interval_ms=10, color_scheme='viridis', result_queue=None, epsilon=0.001
-):
-    rings = rg_param + 1
-    rays = ry_param
-
-    r = np.linspace(0, 1, rings + 1)
-    theta = np.linspace(0, 2 * np.pi, rays + 1)
-    R, Theta = np.meshgrid(r, theta)
-    X, Y = R * np.cos(Theta), R * np.sin(Theta)
-
-    fig, ax = plt.subplots(figsize=(10, 10))
-    canvas = FigureCanvas(fig)
-
-    cmap = cm.get_cmap(color_scheme, 512)
-    norm = Normalize(vmin=0, vmax=1)
-
-    # Initial dummy full_layer until first batch arrives
-    dummy_layer = np.zeros((rings + 1, rays))
-    # heatmap = ax.pcolormesh(X, Y, dummy_layer.T, shading='flat', cmap=cmap, edgecolors='k', linewidth=0.01, norm=norm)
-    heatmap = ax.pcolormesh(
-        X[:-1, :-1], Y[:-1, :-1], dummy_layer.T,
-        shading='flat', cmap=cmap, edgecolors='k', linewidth=0.01, norm=norm
-    )
-
-    ax.axis('off')
-    fig.set_tight_layout(True)
-    plt.subplots_adjust(top=0.9)
-
-    frame_idx = 0
-    sim_time = 0
-
-    # Estimate d_time roughly to use for stopping
-    d_radius = 1.0 / rings
-    d_theta = (2 * np.pi) / rays
-    d_time_est = (0.1 * min(d_radius**2, (d_theta**2) * d_radius**2)) / (2 * 1.0)  # Assume d = 1
-
-    # Wait for first real batch
-    while result_queue.empty():
-        time.sleep(0.05)
-
-    first_loaded = False
-    while not first_loaded:
-        batch = result_queue.get()
-        if batch == "DONE":
-            print("Received DONE before first batch")
-            return canvas
-        else:
-            curr_diff, curr_cen = batch
-            first_loaded = True
-
-    # Preload the next batch if available
-    preload_next = None
-    if not result_queue.empty():
-        preload_next = result_queue.get()
-
-    def update(frame):
-        nonlocal frame_idx, sim_time, heatmap, curr_diff, curr_cen, preload_next
-
-        if frame_idx >= K_param:
-            if preload_next is not None:
-                if preload_next == "DONE":
-                    print(f"Simulation ended at T ~ {sim_time:.3f}")
-                    ani.event_source.stop()
-                    return
-                curr_diff, curr_cen = preload_next
-                preload_next = None
-                frame_idx = 0
-            else:
-                return  # Wait until next batch is ready
-
-            # Try to preload next again
-            if not result_queue.empty():
-                preload_next = result_queue.get()
-
-        # Draw current frame
-        center = curr_cen[frame_idx]
-        diff = curr_diff[frame_idx]
-        full_layer = np.vstack([np.full((1, ry_param), center), diff])
-
-        heatmap.remove()
-        # heatmap = ax.pcolormesh(X, Y, full_layer.T, shading='flat',
-        #                         cmap=cmap, edgecolors='k', linewidth=0.01, norm=norm)
-
-        heatmap = ax.pcolormesh(
-            X[:-1, :-1], Y[:-1, :-1], full_layer.T,
-            shading='flat', cmap=cmap, edgecolors='k', linewidth=0.01, norm=norm
-        )
-
-        sim_time += steps_per_frame * d_time_est
-        ax.set_title(f"Simulation time: {sim_time:.4f}", fontsize=14)
-
-        if T_param * (1 - epsilon) <= sim_time <= T_param * (1 + epsilon):
-            print(f"Simulation paused at time T ~ {sim_time:.3f}")
-            ani.event_source.stop()
-
-        frame_idx += steps_per_frame
-        return [heatmap]
-
-    ani = FuncAnimation(
-        fig, update,
-        frames=100000,
-        interval=interval_ms,
-        blit=False
-    )
-
-    canvas.ani = ani
-    canvas.ani_paused = False
-    canvas.fig = fig
-
-    return canvas
-
+#
 
 def run_realtime_simulation(rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, d_tube, steps_per_frame=10, interval_ms=10):
 

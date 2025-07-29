@@ -119,8 +119,11 @@ class ControlPanel(QWidget):
         self.visualization_layout = QVBoxLayout()
         self.visualization_tab.setLayout(self.visualization_layout)
 
+        # Results and Visualization widget --------- >
         self.tab_widget.addTab(self.result_display_tab, "Results")
         self.tab_widget.addTab(self.visualization_tab, "Visualization")
+        # Results and Visualization widget --------- >
+
         self.main_layout.addWidget(self.tab_widget)
 
         # History management
@@ -338,38 +341,39 @@ class ControlPanel(QWidget):
         # --- Animation Mode UI ---
         self.animation_controls_group = QGroupBox("Animation Controls")
         self.animation_controls_group.setVisible(False)
-        self.anim_layout = QVBoxLayout()
+        self.anim_layout = QHBoxLayout()
+        # self.anim_layout = QVBoxLayout()
 
         # Steps per frame slider
-        self.steps_slider = QSlider(Qt.Horizontal)
-        self.steps_slider.setMinimum(1)
-        self.steps_slider.setMaximum(150)
-        self.steps_slider.setValue(10)
-        self.steps_slider.setTickInterval(10)
-        self.steps_slider.setTickPosition(QSlider.TicksBelow)
-
-        self.steps_label = QLabel("Steps per Frame: 10")
-        self.steps_slider.valueChanged.connect(
-            lambda val: self.steps_label.setText(f"Steps per Frame: {val}")
-        )
+        # self.steps_slider = QSlider(Qt.Horizontal)
+        # self.steps_slider.setMinimum(1)
+        # self.steps_slider.setMaximum(150)
+        # self.steps_slider.setValue(10)
+        # self.steps_slider.setTickInterval(10)
+        # self.steps_slider.setTickPosition(QSlider.TicksBelow)
+        #
+        # self.steps_label = QLabel("Steps per Frame: 10")
+        # self.steps_slider.valueChanged.connect(
+        #     lambda val: self.steps_label.setText(f"Steps per Frame: {val}")
+        # )
 
         # Frames per second slider
-        self.interval_slider = QSlider(Qt.Horizontal)
-        self.interval_slider.setMinimum(10)
-        self.interval_slider.setMaximum(60)
-        self.interval_slider.setValue(50)
-        self.interval_slider.setTickInterval(5)
-        self.interval_slider.setTickPosition(QSlider.TicksBelow)
-
-        self.interval_label = QLabel("Frames per second: 50")
-        self.interval_slider.valueChanged.connect(
-            lambda val: self.interval_label.setText(f"Frames per Second: {val}")
-        )
+        # self.interval_slider = QSlider(Qt.Horizontal)
+        # self.interval_slider.setMinimum(10)
+        # self.interval_slider.setMaximum(60)
+        # self.interval_slider.setValue(50)
+        # self.interval_slider.setTickInterval(5)
+        # self.interval_slider.setTickPosition(QSlider.TicksBelow)
+        #
+        # self.interval_label = QLabel("Frames per second: 50")
+        # self.interval_slider.valueChanged.connect(
+        #     lambda val: self.interval_label.setText(f"Frames per Second: {val}")
+        # )
 
         # Launch button
 
         self.launch_animation_button = QPushButton("Launch Animation")
-        self.launch_animation_button.setEnabled(False)
+        # self.launch_animation_button.setEnabled(False)
         self.launch_animation_button.setStyleSheet("background-color : lightgray")
 
         # Connect all relevant QLineEdit fields to validation
@@ -377,7 +381,6 @@ class ControlPanel(QWidget):
             if key in self.param_inputs:
                 self.param_inputs[key].textChanged.connect(self.validate_animation)
 
-        self.launch_animation_button.clicked.connect(self.handle_launch_animation)
         self.launch_animation_button.clicked.connect(self.handle_launch_animation)
 
         # Animation evolution display
@@ -402,13 +405,13 @@ class ControlPanel(QWidget):
         self.anim_layout.addWidget(self.clear_ani_button)
 
         # add to layout
-        self.anim_layout.addWidget(self.steps_label)
-        self.anim_layout.addWidget(self.steps_slider)
-        self.anim_layout.addSpacing(10)
-        self.anim_layout.addWidget(self.interval_label)
+        # self.anim_layout.addWidget(self.steps_label)
+        # self.anim_layout.addWidget(self.steps_slider)
+        # self.anim_layout.addSpacing(10)
+        # self.anim_layout.addWidget(self.interval_label)
         # anim_layout.addWidget(self.fps_slider)
-        self.anim_layout.addWidget(self.interval_slider)
-        self.anim_layout.addSpacing(10)
+        # self.anim_layout.addWidget(self.interval_slider)
+        # self.anim_layout.addSpacing(10)
         self.anim_layout.addWidget(self.launch_animation_button)
 
         self.animation_controls_group.setLayout(self.anim_layout)
@@ -464,7 +467,7 @@ class ControlPanel(QWidget):
 
     def validate_d_tube_range(self):
         # Ensure all required fields are present and not empty
-        required_keys = ["rg_param", "ry_param", "N_param", "d_tube"]
+        required_keys = ["rg_param", "ry_param", "N_LIST", "d_tube"]
         for key in required_keys:
             if key not in self.param_inputs:
                 return
@@ -476,7 +479,7 @@ class ControlPanel(QWidget):
             d_tube = float(self.param_inputs["d_tube"].text())
             rg = int(self.param_inputs["rg_param"].text())
             ry = int(self.param_inputs["ry_param"].text())
-            N_raw = self.param_inputs["N_param"].text().strip()
+            N_raw = self.param_inputs["N_LIST"].text().strip()
             if not N_raw:
                 return  # Wait until N_param is filled
             N = list(map(int, re.findall(r"\d+", N_raw)))
@@ -655,8 +658,12 @@ class ControlPanel(QWidget):
             T = float(self.param_inputs["T_param"].text())
             d_tube = float(self .param_inputs["d_tube"].text())
 
-            steps_per_frame = self.steps_slider.value()
-            fps = self.interval_slider.value()
+            # steps_per_frame = self.steps_slider.value()
+            # fps = self.interval_slider.value()
+
+            steps_per_frame = 10
+            fps = 50
+
             interval_ms = int(1000 / fps)
             K_param = 1000
             color_scheme = 'viridis'
@@ -700,11 +707,17 @@ class ControlPanel(QWidget):
             while self.ani_queue.empty() and time.time() - start_time < 1.0:
                 time.sleep(0.01)  # 10 ms
 
+            # steps_per_frame = self.steps_slider.value()
+            # interval_ms = int(1e3 / self.interval_slider.value())
+
+            steps_per_frame = 50
+            interval_ms = 10
+
             # Step 3: Launch canvas connected to queue
             canvas = evo.animate_diffusion_mp(
                 rg, ry, w, v, N, K_param, T, d_tube,
-                steps_per_frame=self.steps_slider.value(),
-                interval_ms=int(1000 / self.interval_slider.value()),
+                steps_per_frame=steps_per_frame,
+                interval_ms=interval_ms,
                 result_queue=self.ani_queue
             )
 
@@ -1071,7 +1084,7 @@ class ControlPanel(QWidget):
             d_tube = float(self.param_inputs["d_tube"].text())
 
             try:
-                microtubules_input = self.param_inputs["N_param"].text()
+                microtubules_input = self.param_inputs["N_LIST"].text()
                 parsed = ast.literal_eval(microtubules_input)
                 microtubules = list(parsed) if isinstance(parsed, (list, tuple)) else [int(parsed)]
             except (ValueError, SyntaxError):
