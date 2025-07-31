@@ -130,3 +130,6 @@ project_src_package_2025/gui_components/saved_state.json
 
 /Makefile
 /MANIFEST.in
+
+/git_push_notify.sh
+/send_push_email.py
