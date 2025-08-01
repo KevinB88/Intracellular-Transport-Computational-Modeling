@@ -19,19 +19,8 @@ from collections import deque
 
 ENABLE_JIT = sys.ENABLE_NJIT
 
-import time
-
 GLOBAL_ani = None
 GLOBAL_fig = None
-
-
-# def get_screen_size():
-#     root = tk.Tk()
-#     root.withdraw()
-#     width = root.winfo_screenwidth()
-#     height = root.winfo_screenheight()
-#     root.destroy()
-#     return width, height
 
 
 class BatchManager:
@@ -89,39 +78,6 @@ class BatchManager:
             self.K_param, d_tube=self.d_tube
         )
 
-        # diff_result = np.random.rand(self.K_param, self.rg_param, self.ry_param)
-        # adv_result = np.random.rand(self.K_param, self.rg_param, self.ry_param)
-        # cen_result = np.random.rand(self.K_param)
-        #
-        # assert diff_result.shape == (self.K_param, self.rg_param, self.ry_param)
-        # assert adv_result.shape == (self.K_param, self.rg_param, self.ry_param)
-        # assert cen_result.shape == (self.K_param,)
-
-        # self.diff_batch = diff_result.copy()
-        # self.adv_batch = adv_result.copy()
-        # self.cen_batch = cen_result.copy()
-
-
-# def compute_batches_in_background(rg, ry, w, v, N, K, T, d_tube, result_queue):
-#     try:
-#         batch_mgr = BatchManager(rg, ry, w, v, N, K, T, d_tube)
-#         diff_batch, _, cen_batch = batch_mgr.get_current_batch()
-#
-#         result_queue.put({
-#             "status": "ok",
-#             "diff_batch":  diff_batch,
-#             "cen_batch": cen_batch,
-#             "d_time": batch_mgr.d_time,
-#             "K_param": K,
-#             "T_param": T
-#         })
-#
-#     except Exception as e:
-#         result_queue.put({
-#             "status": "error",
-#             "message": str(e)
-#         })
-
 def compute_batches_in_background(rg, ry, w, v, N, K_param, T, d_tube, result_queue):
     batch_mgr = BatchManager(rg, ry, w, v, N, K_param, T, d_tube)
     total_batches = int(np.ceil(T / batch_mgr.d_time / K_param))
@@ -134,6 +90,7 @@ def compute_batches_in_background(rg, ry, w, v, N, K_param, T, d_tube, result_qu
     result_queue.put("DONE")
 
 
+# Implement the following into analysis tools
 @njit(nopython=ENABLE_JIT)
 def collect_stamps_for_animation(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer, center, K,
                                  r=1.0, d=1.0, d_tube=-1):
@@ -184,67 +141,9 @@ def collect_stamps_for_animation(rings, rays, a, b, v, tube_placements, diffusiv
 
     return diffusive_layer, advective_layer, center
 
-
-@njit(nopython=ENABLE_JIT)
-def collect_stamps_for_animation_test(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer, PvT_DL_snapshots, Timestamp_List, center, K,
-                                 r=1.0, d=1.0, d_tube=-1, T_fixed_ring_seg=0.5):
-    d_radius = r / rings
-    d_theta = ((2 * np.pi) / rays)
-    d_time = (0.1 * min(d_radius * d_radius, d_theta * d_theta * d_radius * d_radius)) / (2 * d)
-
-    d_list = []
-
-    if d_tube < 0:
-        d_tube = sup.solve_d_rect(1, rings, rays, sup.j_max_bef_overlap(rays, tube_placements), 0)
-
-    for m in range(rings):
-        j_max = np.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5)
-        keys = sup.mod_range_flat(tube_placements, j_max, rays, False)
-        dict_ = sup.dict_gen(keys, tube_placements)
-        d_list.append(dict_)
-
-    stamp_iter = 0
-
-    for k in range(K - 1):
-        m = 0
-        # aIdx = 0
-        while m < rings:
-            aIdx = 0
-            n = 0
-            while n < rays:
-                if m == rings - 1:
-                    diffusive_layer[k + 1][m][n] = 0
-                else:
-                    if n in d_list[m]:
-                        diffusive_layer[k + 1][m][n] = num.u_density_rect(diffusive_layer, k, m, n, d_radius, d_theta,
-                                                                          d_time, center[k], rings, advective_layer,
-                                                                          int(d_list[m][n]), a, b, d_tube)
-                    else:
-                        diffusive_layer[k + 1][m][n] = num.u_density(diffusive_layer, k, m, n, d_radius, d_theta,
-                                                                     d_time, center[k], rings, advective_layer,
-                                                                     aIdx, a, b, tube_placements)
-                    if n == tube_placements[aIdx]:
-                        advective_layer[k + 1][m][n] = num.u_tube_rect(advective_layer, diffusive_layer, k, m, n, a,
-                                                                       b, v, d_time, d_radius, d_theta, d_tube)
-                        if aIdx < len(tube_placements) - 1:
-                            aIdx += 1
-                n += 1
-            m += 1
-
-        center[k+1] = num.u_center(diffusive_layer, k, d_radius, d_theta, d_time, center[k],
-                                   advective_layer, tube_placements, v)
-
-        if stamp_iter < len(Timestamp_List):
-            curr_stamp = int(np.floor(Timestamp_List[stamp_iter] / d_time))
-            if curr_stamp == k:
-                print(curr_stamp)
-                PvT_DL_snapshots[stamp_iter] = diffusive_layer[k][int(np.floor(rings * T_fixed_ring_seg))]
-                stamp_iter += 1
-
-
 def animate_diffusion(
         rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, d_tube,
-        steps_per_frame=10, interval_ms=10, color_scheme='viridis', epsilon=0.001
+        steps_per_frame=10, interval_ms=10, color_scheme='viridis', epsilon=0.001, border=True
 ):
     batch_mgr = BatchManager(rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, d_tube)
     diff_batch, adv_batch, cen_batch = batch_mgr.get_current_batch()
@@ -259,25 +158,16 @@ def animate_diffusion(
     R, Theta = np.meshgrid(r, theta)
     X, Y = R * np.cos(Theta), R * np.sin(Theta)
 
-    # screen_w, screen_h = get_screen_size()
-    # dpi = 100
-    # fig_w = int(0.8 * screen_w)
-    # fig_h = int(0.8 * screen_h)
-
-    # fig, ax = plt.subplots(figsize=(fig_w / dpi, fig_h / dpi), dpi=dpi)
-
     fig, ax = plt.subplots(figsize=(10, 10))
     canvas = FigureCanvas(fig)
-    # if matplotlib.get_backend() == 'TkAgg':
-    #     manager = plt.get_current_fig_manager()
-    #     x = int((screen_w) / 2)
-    #     y = int((screen_h)/ 2)
-    #     manager.window.wm_geometry(f"+{x}+{y}")
 
     cmap = cm.get_cmap(color_scheme, 512)
     norm = Normalize(vmin=0, vmax=1)
     initial = np.vstack([np.full((1, ry_param), cen_batch[0]), diff_batch[0]])
-    heatmap = ax.pcolormesh(X, Y, initial.T, shading='flat', cmap=cmap, edgecolors='k', linewidth=0.01, norm=norm)
+    if border:
+        heatmap = ax.pcolormesh(X, Y, initial.T, shading='flat', cmap=cmap, edgecolors='k', linewidth=0.01, norm=norm)
+    else:
+        heatmap = ax.pcolormesh(X, Y, initial.T, shading='flat', cmap=cmap, norm=norm)
     ax.axis('off')
     sim_time = 0
 
@@ -303,7 +193,11 @@ def animate_diffusion(
         heatmap.remove()
 
         full_layer_T = full_layer.T
-        heatmap = ax.pcolormesh(X, Y, full_layer_T, shading='flat', cmap=cmap, edgecolors='k', linewidth=0.01, norm=norm)
+
+        if border:
+            heatmap = ax.pcolormesh(X, Y, full_layer_T, shading='flat', cmap=cmap, edgecolors='k', linewidth=0.01, norm=norm)
+        else:
+            heatmap = ax.pcolormesh(X, Y, full_layer_T, shading='flat', cmap=cmap, norm=norm)
 
         sim_time += steps_per_frame * batch_mgr.d_time
         ax.set_title(f"Simulation time: {sim_time:.4f}", fontsize=14)
@@ -332,6 +226,16 @@ def animate_diffusion(
 
     return canvas
 
+
+def run_realtime_simulation(rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, d_tube, steps_per_frame=10, interval_ms=10):
+
+    estimated_memory = K_param * rg_param * ry_param * 8
+
+    print(f"Memory expenditure/footprint: {estimated_memory} bytes = {(estimated_memory / 10**7)}% of a GB")
+
+    animate_diffusion(rg_param, ry_param, w_param, -1*v_param, N_param, K_param, T_param, d_tube, steps_per_frame=steps_per_frame, interval_ms=interval_ms)
+
+# ========================== To be re-implemented in a future update ==========================
 
 # def animate_diffusion_mp(
 #     rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, d_tube,
@@ -446,11 +350,3 @@ def animate_diffusion(
 #
 #     return canvas
 #
-
-def run_realtime_simulation(rg_param, ry_param, w_param, v_param, N_param, K_param, T_param, d_tube, steps_per_frame=10, interval_ms=10):
-
-    estimated_memory = K_param * rg_param * ry_param * 8
-
-    print(f"Memory expenditure/footprint: {estimated_memory} bytes = {(estimated_memory / 10**7)}% of a GB")
-
-    animate_diffusion(rg_param, ry_param, w_param, -1*v_param, N_param, K_param, T_param, d_tube, steps_per_frame=steps_per_frame, interval_ms=interval_ms)

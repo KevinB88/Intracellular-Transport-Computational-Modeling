@@ -43,37 +43,39 @@ def comp_mass_analysis_respect_to_time(rg_param, ry_param, switch_param_a, switc
 
     while k < K:
 
+        num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST, dRad, dThe, dT, switch_param_a, switch_param_b, v_param, d_tube)
+
         # <<<< ------------- Updating DL and AL for the K+1-th step ------------- >>>>
-        m = 0
-
-        while m < rg_param:
-
-            # The advective angle index 'aIdx'
-            aIdx = 0
-            n = 0
-
-            while n < ry_param:
-                if m == rg_param - 1:
-                    D_LAYER[1][m][n] = 0
-                else:
-                    if n in d_list[m]:
-                        D_LAYER[1][m][n] = num.u_density_rect(D_LAYER, 0, m, n, dRad,
-                                                              dThe, dT, central_patch, rg_param,
-                                                              A_LAYER, int(d_list[m][n]), switch_param_a,
-                                                              switch_param_b, d_tube)
-                    else:
-                        D_LAYER[1][m][n] = num.u_density(D_LAYER, 0, m, n, dRad, dThe,
-                                                         dT, central_patch, rg_param, A_LAYER,
-                                                         aIdx, switch_param_a, switch_param_b, N_LIST)
-                    if n == N_LIST[aIdx]:
-
-                        A_LAYER[1][m][n] = num.u_tube_rect(A_LAYER, D_LAYER, 0, m, n,
-                                                           switch_param_a, switch_param_b,
-                                                           v_param, dT, dRad, dThe, d_tube)
-                        if aIdx < len(N_LIST) - 1:
-                            aIdx += 1
-                n += 1
-            m += 1
+        # m = 0
+        #
+        # while m < rg_param:
+        #
+        #     # The advective angle index 'aIdx'
+        #     aIdx = 0
+        #     n = 0
+        #
+        #     while n < ry_param:
+        #         if m == rg_param - 1:
+        #             D_LAYER[1][m][n] = 0
+        #         else:
+        #             if n in d_list[m]:
+        #                 D_LAYER[1][m][n] = num.u_density_rect(D_LAYER, 0, m, n, dRad,
+        #                                                       dThe, dT, central_patch, rg_param,
+        #                                                       A_LAYER, int(d_list[m][n]), switch_param_a,
+        #                                                       switch_param_b, d_tube)
+        #             else:
+        #                 D_LAYER[1][m][n] = num.u_density(D_LAYER, 0, m, n, dRad, dThe,
+        #                                                  dT, central_patch, rg_param, A_LAYER,
+        #                                                  aIdx, switch_param_a, switch_param_b, N_LIST)
+        #             if n == N_LIST[aIdx]:
+        #
+        #                 A_LAYER[1][m][n] = num.u_tube_rect(A_LAYER, D_LAYER, 0, m, n,
+        #                                                    switch_param_a, switch_param_b,
+        #                                                    v_param, dT, dRad, dThe, d_tube)
+        #                 if aIdx < len(N_LIST) - 1:
+        #                     aIdx += 1
+        #         n += 1
+        #     m += 1
         # <<<< ------------- Updating DL and AL for the K+1-th step ------------- >>>>
 
         if k > 0 and k % mass_checkpoint == 0:
@@ -142,39 +144,42 @@ def comp_diffusive_angle_snapshots(rg_param, ry_param, switch_param_a, switch_pa
 
     while k == 0 or (k < K and mass_retained > mass_retention_threshold):
 
+        num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST, dRad, dThe, dT,
+                                 switch_param_a, switch_param_b, v_param, d_tube)
+
         # <<<< ------------- Updating DL and AL for the K+1-th step ------------- >>>>
-        m = 0
-        while m < rg_param:
-
-            # The advective angle index 'aIdx'
-            aIdx = 0
-            n = 0
-
-            while n < ry_param:
-                if m == rg_param - 1:
-                    D_LAYER[1][m][n] = 0
-                else:
-
-                    if n in d_list[m]:
-
-                        D_LAYER[1][m][n] = num.u_density_rect(D_LAYER, 0, m, n, dRad, dThe, dT,
-                                                              central_patch, rg_param, A_LAYER, int(d_list[m][n]),
-                                                              switch_param_a, switch_param_b, d_tube)
-
-                    else:
-                        D_LAYER[1][m][n] = num.u_density(D_LAYER, 0, m, n, dRad, dThe,
-                                                         dT,
-                                                         central_patch, rg_param, A_LAYER,
-                                                         aIdx,
-                                                         switch_param_a, switch_param_b,
-                                                         N_LIST)
-                    if n == N_LIST[aIdx]:
-                        A_LAYER[1][m][n] = num.u_tube_rect(A_LAYER, D_LAYER, 0, m, n, switch_param_a, switch_param_b,
-                                                           v_param, dT, dRad, dThe, d_tube)
-                        if aIdx < len(N_LIST) - 1:
-                            aIdx += 1
-                n += 1
-            m += 1
+        # m = 0
+        # while m < rg_param:
+        #
+        #     # The advective angle index 'aIdx'
+        #     aIdx = 0
+        #     n = 0
+        #
+        #     while n < ry_param:
+        #         if m == rg_param - 1:
+        #             D_LAYER[1][m][n] = 0
+        #         else:
+        #
+        #             if n in d_list[m]:
+        #
+        #                 D_LAYER[1][m][n] = num.u_density_rect(D_LAYER, 0, m, n, dRad, dThe, dT,
+        #                                                       central_patch, rg_param, A_LAYER, int(d_list[m][n]),
+        #                                                       switch_param_a, switch_param_b, d_tube)
+        #
+        #             else:
+        #                 D_LAYER[1][m][n] = num.u_density(D_LAYER, 0, m, n, dRad, dThe,
+        #                                                  dT,
+        #                                                  central_patch, rg_param, A_LAYER,
+        #                                                  aIdx,
+        #                                                  switch_param_a, switch_param_b,
+        #                                                  N_LIST)
+        #             if n == N_LIST[aIdx]:
+        #                 A_LAYER[1][m][n] = num.u_tube_rect(A_LAYER, D_LAYER, 0, m, n, switch_param_a, switch_param_b,
+        #                                                    v_param, dT, dRad, dThe, d_tube)
+        #                 if aIdx < len(N_LIST) - 1:
+        #                     aIdx += 1
+        #         n += 1
+        #     m += 1
         # <<<< ------------- Updating DL and AL for the K+1-th step ------------- >>>>
 
         if k > 0 and k % mass_checkpoint == 0:
@@ -241,41 +246,44 @@ def comp_diffusive_rad_snapshots(rg_param, ry_param, switch_param_a, switch_para
     k = 0
     while k == 0 or (k < K and mass_retained > mass_retention_threshold):
 
+        num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST, dRad, dThe, dT,
+                                 switch_param_a, switch_param_b, v_param, d_tube)
+
         # <<<< ------------- Updating DL and AL for the K+1-th step ------------- >>>>
-        m = 0
-
-        while m < rg_param:
-
-            # The advective angle index 'aIdx'
-            aIdx = 0
-            n = 0
-
-            while n < ry_param:
-                if m == rg_param - 1:
-                    D_LAYER[1][m][n] = 0
-                else:
-                    if n in d_list[m]:
-                        D_LAYER[1][m][n] = num.u_density_rect(D_LAYER, 0, m, n, dRad, dThe,
-                                                              dT,
-                                                              central_patch, rg_param, A_LAYER,
-                                                              int(d_list[m][n]), switch_param_a, switch_param_b, d_tube)
-                    else:
-                        D_LAYER[1][m][n] = num.u_density(D_LAYER, 0, m, n, dRad, dThe,
-                                                         dT,
-                                                         central_patch, rg_param, A_LAYER,
-                                                         aIdx,
-                                                         switch_param_a, switch_param_b,
-                                                         N_LIST)
-                    if n == N_LIST[aIdx]:
-
-                        A_LAYER[1][m][n] = num.u_tube_rect(A_LAYER, D_LAYER, 0, m,
-                                                           n, switch_param_a, switch_param_b, v_param, dT, dRad, dThe,
-                                                           d_tube)
-
-                        if aIdx < len(N_LIST) - 1:
-                            aIdx += 1
-                n += 1
-            m += 1
+        # m = 0
+        #
+        # while m < rg_param:
+        #
+        #     # The advective angle index 'aIdx'
+        #     aIdx = 0
+        #     n = 0
+        #
+        #     while n < ry_param:
+        #         if m == rg_param - 1:
+        #             D_LAYER[1][m][n] = 0
+        #         else:
+        #             if n in d_list[m]:
+        #                 D_LAYER[1][m][n] = num.u_density_rect(D_LAYER, 0, m, n, dRad, dThe,
+        #                                                       dT,
+        #                                                       central_patch, rg_param, A_LAYER,
+        #                                                       int(d_list[m][n]), switch_param_a, switch_param_b, d_tube)
+        #             else:
+        #                 D_LAYER[1][m][n] = num.u_density(D_LAYER, 0, m, n, dRad, dThe,
+        #                                                  dT,
+        #                                                  central_patch, rg_param, A_LAYER,
+        #                                                  aIdx,
+        #                                                  switch_param_a, switch_param_b,
+        #                                                  N_LIST)
+        #             if n == N_LIST[aIdx]:
+        #
+        #                 A_LAYER[1][m][n] = num.u_tube_rect(A_LAYER, D_LAYER, 0, m,
+        #                                                    n, switch_param_a, switch_param_b, v_param, dT, dRad, dThe,
+        #                                                    d_tube)
+        #
+        #                 if aIdx < len(N_LIST) - 1:
+        #                     aIdx += 1
+        #         n += 1
+        #     m += 1
         # <<<< ------------- Updating DL and AL for the K+1-th step ------------- >>>>
 
         if k > 0 and k % mass_checkpoint == 0:
@@ -342,43 +350,42 @@ def comp_until_mass_depletion(rg_param, ry_param, switch_param_a, switch_param_b
     k = 0
 
     while k == 0 or mass_retained > mass_retention_threshold:
-
+        num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST, dRad, dThe, dT, switch_param_a, switch_param_b, v_param, d_tube)
         # <<<< ------------- Updating DL and AL for the K+1-th step ------------- >>>>
-
-        m = 0
-        while m < rg_param:
-
-            # The advective angle index 'aIdx'
-            aIdx = 0
-            n = 0
-
-            while n < ry_param:
-                if m == rg_param - 1:
-                    D_LAYER[1][m][n] = 0
-                else:
-                    if n in d_list[m]:
-
-                        D_LAYER[1][m][n] = num.u_density_rect(D_LAYER, 0, m, n, dRad, dThe,
-                                                              dT,
-                                                              central_patch, rg_param, A_LAYER,
-                                                              int(d_list[m][n]), switch_param_a, switch_param_b, d_tube)
-                    else:
-                        D_LAYER[1][m][n] = num.u_density(D_LAYER, 0, m, n, dRad, dThe,
-                                                         dT,
-                                                         central_patch, rg_param, A_LAYER,
-                                                         aIdx,
-                                                         switch_param_a, switch_param_b,
-                                                         N_LIST)
-
-                    if n == N_LIST[aIdx]:
-                        A_LAYER[1][m][n] = num.u_tube_rect(A_LAYER, D_LAYER, 0, m, n,
-                                                           switch_param_a, switch_param_b, v_param, dT, dRad, dThe,
-                                                           d_tube)
-
-                        if aIdx < len(N_LIST) - 1:
-                            aIdx += 1
-                n += 1
-            m += 1
+        # m = 0
+        # while m < rg_param:
+        #
+        #     # The advective angle index 'aIdx'
+        #     aIdx = 0
+        #     n = 0
+        #
+        #     while n < ry_param:
+        #         if m == rg_param - 1:
+        #             D_LAYER[1][m][n] = 0
+        #         else:
+        #             if n in d_list[m]:
+        #
+        #                 D_LAYER[1][m][n] = num.u_density_rect(D_LAYER, 0, m, n, dRad, dThe,
+        #                                                       dT,
+        #                                                       central_patch, rg_param, A_LAYER,
+        #                                                       int(d_list[m][n]), switch_param_a, switch_param_b, d_tube)
+        #             else:
+        #                 D_LAYER[1][m][n] = num.u_density(D_LAYER, 0, m, n, dRad, dThe,
+        #                                                  dT,
+        #                                                  central_patch, rg_param, A_LAYER,
+        #                                                  aIdx,
+        #                                                  switch_param_a, switch_param_b,
+        #                                                  N_LIST)
+        #
+        #             if n == N_LIST[aIdx]:
+        #                 A_LAYER[1][m][n] = num.u_tube_rect(A_LAYER, D_LAYER, 0, m, n,
+        #                                                    switch_param_a, switch_param_b, v_param, dT, dRad, dThe,
+        #                                                    d_tube)
+        #
+        #                 if aIdx < len(N_LIST) - 1:
+        #                     aIdx += 1
+        #         n += 1
+        #     m += 1
         # <<<< ------------- Updating DL and AL for the K+1-th step ------------- >>>>
 
         mass_retained = num.calc_mass(D_LAYER, A_LAYER, 0, dRad, dThe, central_patch, rg_param, ry_param,

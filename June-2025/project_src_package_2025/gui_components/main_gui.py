@@ -5,6 +5,8 @@ from PyQt5.QtCore import Qt, QPoint
 from . import views
 from . import fp
 
+from project_src_package_2025.gui_components.GUI_modular_plan.views_mod import ControlPanel
+
 
 class GridOverlay(QWidget):
     def __init__(self, parent=None):
@@ -61,6 +63,8 @@ class MainWindow(QMainWindow):
 
         self.layout = QVBoxLayout()
         self.control_panel = views.ControlPanel(self)
+        # self.control_panel = ControlPanel(self)
+        #
         container = QWidget()
         container.setLayout(self.layout)
         self.layout.addWidget(self.control_panel)

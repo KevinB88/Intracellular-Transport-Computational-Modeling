@@ -35,47 +35,48 @@ def comp_mfpt_by_time(rg_param, ry_param, switch_param_a, switch_param_b, v_para
 
         net_current_out = 0
         # <<<< ------------- Updating DL and AL for the K+1-th step ------------- >>>>
-        m = 0
-
-        while m < rg_param:
-
-            # The advective angle index 'aIdx'
-            aIdx = 0
-            n = 0
-
-            while n < ry_param:
-                if m == rg_param - 1:
-                    D_LAYER[1][m][n] = 0
-                else:
-                    if n in d_list[m]:
-                        # n denotes a discrete position (an extraction region ray) within an extraction region centered at a microtubule (indices contained in N_LIST)
-                        # if the iteration steps on an extraction region ray at ring m, then:
-                        # int(d_list[m][n]) is the corresponding microtubule position of the extraction region ray (n) at ring (m)
-                        corr_MT_pos = int(d_list[m][n])
-                        D_LAYER[1][m][n] = num.u_density_rect(D_LAYER, 0, m, n, dRad, dThe,
-                                                              dT,
-                                                              central_patch, rg_param, A_LAYER,
-                                                              corr_MT_pos, switch_param_a, switch_param_b, d_tube)
-
-                    else:
-                        D_LAYER[1][m][n] = num.u_density(D_LAYER, 0, m, n, dRad, dThe,
-                                                         dT,
-                                                         central_patch, rg_param, A_LAYER,
-                                                         aIdx,
-                                                         switch_param_a, switch_param_b,
-                                                         N_LIST)
-                    if n == N_LIST[aIdx]:
-
-                        A_LAYER[1][m][n] = num.u_tube_rect(A_LAYER, D_LAYER, 0, m, n, switch_param_a,
-                                                           switch_param_b, v_param, dT, dRad, dThe, d_tube)
-                        if aIdx < len(N_LIST) - 1:
-                            aIdx += 1
-
-                    if m == rg_param - 2:
-                        net_current_out += num.j_r_r(D_LAYER, 0, m, n, dRad, 0) * rg_param * dRad * dThe
-                n += 1
-            m += 1
+        # m = 0
+        #
+        # while m < rg_param:
+        #
+        #     # The advective angle index 'aIdx'
+        #     aIdx = 0
+        #     n = 0
+        #
+        #     while n < ry_param:
+        #         if m == rg_param - 1:
+        #             D_LAYER[1][m][n] = 0
+        #         else:
+        #             if n in d_list[m]:
+        #                 # n denotes a discrete position (an extraction region ray) within an extraction region centered at a microtubule (indices contained in N_LIST)
+        #                 # if the iteration steps on an extraction region ray at ring m, then:
+        #                 # int(d_list[m][n]) is the corresponding microtubule position of the extraction region ray (n) at ring (m)
+        #                 corr_MT_pos = int(d_list[m][n])
+        #                 D_LAYER[1][m][n] = num.u_density_rect(D_LAYER, 0, m, n, dRad, dThe,
+        #                                                       dT,
+        #                                                       central_patch, rg_param, A_LAYER,
+        #                                                       corr_MT_pos, switch_param_a, switch_param_b, d_tube)
+        #
+        #             else:
+        #                 D_LAYER[1][m][n] = num.u_density(D_LAYER, 0, m, n, dRad, dThe,
+        #                                                  dT,
+        #                                                  central_patch, rg_param, A_LAYER,
+        #                                                  aIdx,
+        #                                                  switch_param_a, switch_param_b,
+        #                                                  N_LIST)
+        #             if n == N_LIST[aIdx]:
+        #
+        #                 A_LAYER[1][m][n] = num.u_tube_rect(A_LAYER, D_LAYER, 0, m, n, switch_param_a,
+        #                                                    switch_param_b, v_param, dT, dRad, dThe, d_tube)
+        #                 if aIdx < len(N_LIST) - 1:
+        #                     aIdx += 1
+        #
+        #             if m == rg_param - 2:
+        #                 net_current_out += num.j_r_r(D_LAYER, 0, m, n, dRad, 0) * rg_param * dRad * dThe
+        #         n += 1
+        #     m += 1
         # <<<< ------------- Updating DL and AL for the K+1-th step ------------- >>>>
+        net_current_out += num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST, dRad, dThe, dT, switch_param_a, switch_param_b, v_param, d_tube)
 
         MFPT += net_current_out * k * dT ** 2
         # Implemented to provide occasional status checks/metrics during MFPT calculation
@@ -129,48 +130,48 @@ def comp_mfpt_by_time_points(rg_param, ry_param, switch_param_a, switch_param_b,
     while k < K:
 
         net_current_out = 0
-        m = 0
-
         # **************************************************************************************************
-        while m < rg_param:
-
-            # The advective angle index 'aIdx'
-            aIdx = 0
-            n = 0
-
-            while n < ry_param:
-                if m == rg_param - 1:
-                    D_LAYER[1][m][n] = 0
-                else:
-
-                    # **********************************************************************************************************************************************
-                    if n in d_list[m]:
-
-                        D_LAYER[1][m][n] = num.u_density_rect(D_LAYER, 0, m, n, dRad, dThe,
-                                                              dT,
-                                                              central_patch, rg_param, A_LAYER,
-                                                              int(d_list[m][n]), switch_param_a, switch_param_b, d_tube)
-
-                    else:
-                        D_LAYER[1][m][n] = num.u_density(D_LAYER, 0, m, n, dRad, dThe,
-                                                         dT,
-                                                         central_patch, rg_param, A_LAYER,
-                                                         aIdx,
-                                                         switch_param_a, switch_param_b,
-                                                         N_LIST)
-                    if n == N_LIST[aIdx]:
-
-                        A_LAYER[1][m][n] = num.u_tube_rect(A_LAYER, D_LAYER, 0, m, n, switch_param_a,
-                                                           switch_param_b, v_param, dT, dRad, dThe, d_tube)
-                        if aIdx < len(N_LIST) - 1:
-                            aIdx += 1
-
-                    if m == rg_param - 2:
-                        net_current_out += num.j_r_r(D_LAYER, 0, m, n, dRad, 0) * rg_param * dRad * dThe
-                n += 1
-            m += 1
+        # while m < rg_param:
+        #
+        #     # The advective angle index 'aIdx'
+        #     aIdx = 0
+        #     n = 0
+        #
+        #     while n < ry_param:
+        #         if m == rg_param - 1:
+        #             D_LAYER[1][m][n] = 0
+        #         else:
+        #
+        #             # **********************************************************************************************************************************************
+        #             if n in d_list[m]:
+        #
+        #                 D_LAYER[1][m][n] = num.u_density_rect(D_LAYER, 0, m, n, dRad, dThe,
+        #                                                       dT,
+        #                                                       central_patch, rg_param, A_LAYER,
+        #                                                       int(d_list[m][n]), switch_param_a, switch_param_b, d_tube)
+        #
+        #             else:
+        #                 D_LAYER[1][m][n] = num.u_density(D_LAYER, 0, m, n, dRad, dThe,
+        #                                                  dT,
+        #                                                  central_patch, rg_param, A_LAYER,
+        #                                                  aIdx,
+        #                                                  switch_param_a, switch_param_b,
+        #                                                  N_LIST)
+        #             if n == N_LIST[aIdx]:
+        #
+        #                 A_LAYER[1][m][n] = num.u_tube_rect(A_LAYER, D_LAYER, 0, m, n, switch_param_a,
+        #                                                    switch_param_b, v_param, dT, dRad, dThe, d_tube)
+        #                 if aIdx < len(N_LIST) - 1:
+        #                     aIdx += 1
+        #
+        #             if m == rg_param - 2:
+        #                 net_current_out += num.j_r_r(D_LAYER, 0, m, n, dRad, 0) * rg_param * dRad * dThe
+        #         n += 1
+        #     m += 1
         # *****************************************************************************************************************
 
+        net_current_out += num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST,
+                                                    dRad, dThe, dT, switch_param_a, switch_param_b, v_param, d_tube)
         if k > 0 and k % mass_checkpoint == 0:
             print("Velocity (V)= ", v_param, "Time step: ", k, "Simulation time: ", k * dT, "Current mass: ",
                   mass_retained,
@@ -188,8 +189,7 @@ def comp_mfpt_by_time_points(rg_param, ry_param, switch_param_a, switch_param_b,
 
         mass_retained = num.calc_mass(D_LAYER, A_LAYER, 0, dRad, dThe, central_patch, rg_param, ry_param,
                                       N_LIST)
-        phi_center = num.u_center(D_LAYER, 0, dRad, dThe, dT, central_patch, A_LAYER,
-                                  N_LIST, v_param)
+        central_patch = num.u_center(D_LAYER, 0, dRad, dThe, dT, central_patch, A_LAYER, N_LIST, v_param)
 
         D_LAYER[0] = D_LAYER[1]
         A_LAYER[0] = A_LAYER[1]

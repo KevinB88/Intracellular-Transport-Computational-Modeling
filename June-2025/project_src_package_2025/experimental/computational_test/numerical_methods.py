@@ -44,11 +44,11 @@ def comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_L
 
                     if aIdx < len(N_LIST) - 1:
                         aIdx += 1
+
+                if m == rg_param - 2:
+                    net_current_out += num.j_r_r(D_LAYER, 0, m, n, dRad, 0) * rg_param * dRad * dThe
             n += 1
         m += 1
-
-        if m == rg_param - 2:
-            net_current_out += num.j_r_r(D_LAYER, 0, m, n, dRad, 0) * rg_param * dRad * dThe
 
     return net_current_out
 
@@ -82,6 +82,8 @@ def compute_MFPT_until_T(rg_param, ry_param, v_param, switch_param_a, switch_par
 
         net_current_out = comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST,
                                                dRad, dThe, dT, switch_param_a, switch_param_b, v_param, d_tube)
+
+        # print(net_current_out)
 
         MFPT += net_current_out * k * dT ** 2
 

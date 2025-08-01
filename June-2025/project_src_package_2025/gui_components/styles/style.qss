@@ -45,3 +45,31 @@ QLabel#restoredLabel {
     font-weight: bold;
     font-size: 10pt;
 }
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 3px;
+    background-color: transparent;
+}
+
+QLineEdit:focus, QComboBox:focus, QTextEdit:focus {
+    border: 1px solid #007acc;
+    background-color: #ffffff;
+}
+
+QPushButton {
+    min-height: 32px;
+    min-width: 80px;
+}
+
+QPushButton:disabled {
+    background-color: #d0d0d0;
+    color: #888888;
+}
+
+QLabel {
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+

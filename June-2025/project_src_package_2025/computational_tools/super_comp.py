@@ -69,23 +69,6 @@ def super_comp_type_I(rg_param, ry_param, switch_param_a, switch_param_b, T_para
     K = num.compute_K(rg_param, ry_param, T_param, domain_radius, D)
     v_param *= -1
 
-    # dRad = domain_radius / rg_param
-    # dThe = ((2 * np.pi) / ry_param)
-    # dT = (0.1 * min(dRad ** 2, dThe ** 2 * dRad ** 2)) / (2 * D)
-    # K = np.floor(T_param / dT)
-    # v_param *= -1
-
-    # Construct microtubule-update to diffusive layer positions dictionary
-    # d_list = List()
-    # if d_tube < 0:
-    #     d_tube = sup.solve_d_rect(1, rg_param, ry_param, sup.j_max_bef_overlap(ry_param, N_LIST), 0)
-    #
-    # for m in range(rg_param):
-    #     j_max = np.ceil((d_tube / ((m + 1) * dRad * dThe)) - 0.5)
-    #     keys = sup.mod_range_flat(N_LIST, j_max, rg_param, False)
-    #     dict_ = sup.dict_gen(keys, N_LIST)
-    #     d_list.append(dict_)
-
     d_list = struct_init.build_d_tube_mapping_no_overlap(rg_param, ry_param, N_LIST, d_tube, domain_radius)
 
     # initialize variables
@@ -109,40 +92,41 @@ def super_comp_type_I(rg_param, ry_param, switch_param_a, switch_param_b, T_para
         # Numerically solve the PDE for a time step k
         # ************ -------------------------------------------------------------------------- ************
         net_current_escape = 0
-        m = 0
-        while m < rg_param:
-            # Current angular index in N_LIST
-            aIdx = 0
-            n = 0
-            while n < ry_param:
-                if m == rg_param - 1:
-                    D_LAYER[1][m][n] = 0
-                else:
-                    if n in d_list[m]:
-                        D_LAYER[1][m][n] = num.u_density_rect(
-                            D_LAYER, 0, m, n, dRad, dThe, dT,
-                            central_patch, rg_param, A_LAYER, int(d_list[m][n]),
-                            switch_param_a, switch_param_b, d_tube
-                        )
-                    else:
-                        D_LAYER[1][m][n] = num.u_density(
-                            D_LAYER, 0, m, n, dRad, dThe, dT,
-                            central_patch, rg_param, A_LAYER,
-                            aIdx, switch_param_a, switch_param_b,
-                            N_LIST)
-
-                    # update the advective layer
-                    if n == N_LIST[aIdx]:
-                        A_LAYER[1][m][n] = num.u_tube_rect(
-                            A_LAYER, D_LAYER, 0, m, n,
-                            switch_param_a, switch_param_b, v_param, dT, dRad, dThe, d_tube)
-                        if aIdx < len(N_LIST) - 1:
-                            aIdx += 1
-
-                    if m == rg_param - 2:
-                        net_current_escape += num.j_r_r(D_LAYER, 0, m, n, dRad, 0) * rg_param * dRad * dThe
-                n += 1
-            m += 1
+        net_current_escape += num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST, dRad, dThe, dT, switch_param_a, switch_param_b, v_param, d_tube)
+        # m = 0
+        # while m < rg_param:
+        #     # Current angular index in N_LIST
+        #     aIdx = 0
+        #     n = 0
+        #     while n < ry_param:
+        #         if m == rg_param - 1:
+        #             D_LAYER[1][m][n] = 0
+        #         else:
+        #             if n in d_list[m]:
+        #                 D_LAYER[1][m][n] = num.u_density_rect(
+        #                     D_LAYER, 0, m, n, dRad, dThe, dT,
+        #                     central_patch, rg_param, A_LAYER, int(d_list[m][n]),
+        #                     switch_param_a, switch_param_b, d_tube
+        #                 )
+        #             else:
+        #                 D_LAYER[1][m][n] = num.u_density(
+        #                     D_LAYER, 0, m, n, dRad, dThe, dT,
+        #                     central_patch, rg_param, A_LAYER,
+        #                     aIdx, switch_param_a, switch_param_b,
+        #                     N_LIST)
+        #
+        #             # update the advective layer
+        #             if n == N_LIST[aIdx]:
+        #                 A_LAYER[1][m][n] = num.u_tube_rect(
+        #                     A_LAYER, D_LAYER, 0, m, n,
+        #                     switch_param_a, switch_param_b, v_param, dT, dRad, dThe, d_tube)
+        #                 if aIdx < len(N_LIST) - 1:
+        #                     aIdx += 1
+        #
+        #             if m == rg_param - 2:
+        #                 net_current_escape += num.j_r_r(D_LAYER, 0, m, n, dRad, 0) * rg_param * dRad * dThe
+        #         n += 1
+        #     m += 1
             # ************ -------------------------------------------------------------------------- ************
 
         if k > 0 and k % mass_checkpoint == 0:

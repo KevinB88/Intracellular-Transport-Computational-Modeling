@@ -67,14 +67,6 @@ class OutputFilesWidget(QWidget):
         self.layout = QVBoxLayout(self)
         self.setLayout(self.layout)
 
-        # self.csv_group = QGroupBox("CSV Outputs")
-        # self.csv_layout = QVBoxLayout()
-        # self.csv_group.setLayout(self.csv_layout)
-        #
-        # self.csv_scroll = QScrollArea()
-        # self.csv_scroll.setWidget(self.csv_group)
-        # self.csv_scroll.setWidgetResizable(True)
-
         self.csv_container = QWidget()
         self.csv_layout = QVBoxLayout()
         self.csv_layout.setAlignment(Qt.AlignTop | Qt.AlignLeft)
@@ -86,10 +78,8 @@ class OutputFilesWidget(QWidget):
 
         self.layout.addWidget(self.csv_scroll)
 
-        # self.layout.addWidget(self.csv_scroll)
-        # self.layout.addWidget(self.png_scroll)
-
-    def open_in_file_explorer(self, file_path):
+    @staticmethod
+    def open_in_file_explorer(file_path):
         folder = os.path.dirname(file_path)
         if os.name == "nt":
             os.startfile(folder)
@@ -108,13 +98,6 @@ class OutputFilesWidget(QWidget):
             if widget:
                 widget.deleteLater()
 
-        # for path in csv_paths:
-        #     label = QLabel(f'<a href="{path}">{os.path.basename(path)}</a>')
-        #     label.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        #     label.setOpenExternalLinks(False)
-        #     label.linkActivated.connect(lambda file_path=path: self.open_in_file_explorer(file_path))
-        #     self.csv_layout.addWidget(label)
-
         for path in csv_paths:
             label = QLabel(f'<a href="{path}">{os.path.basename(path)}</a>')
             label.setTextInteractionFlags(Qt.TextBrowserInteraction)
@@ -122,14 +105,3 @@ class OutputFilesWidget(QWidget):
             label.linkActivated.connect(lambda file_path=path: self.open_in_file_explorer(file_path))
             label.setStyleSheet("padding: 4px;")
             self.csv_layout.addWidget(label)
-
-        # for path in png_paths:
-        #     if os.path.exists(path):
-        #         pixmap = QPixmap(path)
-        #         if not pixmap.isNull():
-        #             scaled = pixmap.scaledToWidth(300)
-        #             image_label = QLabel()
-        #             image_label.setPixmap(scaled)
-        #             self.png_layout.addWidget(image_label)
-
-
