@@ -82,10 +82,12 @@ def plot_phi_v_theta(data_filepath, v, w, N, approach, position, file_path, chec
     plt.xlabel("Theta")
     plt.ylabel("Phi")
 
-    if approach == 4:
-        title = f'Phi_versus_Theta_V={v}_W={w}_N={N}_Approach{approach}'
-    else:
-        title = f'Phi_versus_Theta_V={v}_W={w}_N={N}_Approach{approach}_Position={position}'
+    # if approach == 4:
+    #     title = f'Phi_versus_Theta_V={v}_W={w}_N={N}_Approach{approach}'
+    # else:
+    #     title = f'Phi_versus_Theta_V={v}_W={w}_N={N}_Approach{approach}_Position={position}'
+
+    title = f" Phi(theta)  W={w:.2e}   V={v}   N={len(N)} Position={position}"
 
     plt.title(title)
     plt.legend()
@@ -97,7 +99,8 @@ def plot_phi_v_theta(data_filepath, v, w, N, approach, position, file_path, chec
         if file_path:
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
-            file = os.path.join(file_path, f'phi_v_theta_v={v}_w={w}_app={approach}_pos={position}_{current_time}.png')
+            # file = os.path.join(file_path, f'phi_v_theta_v={v}_w={w}_app={approach}_pos={position}_{current_time}.png')
+            file = os.path.join(file_path, "phi_v_theta.png")
             plt.savefig(file, bbox_inches='tight')
             print(f'Plot saved to {file_path}')
 
@@ -117,6 +120,8 @@ def plot_dense_v_rad(y_lab, data_filepath, v, w, N, rings, rays, fixed_angle, ch
 
     label_container = []
 
+    title = f"{y_lab.lower()}(R) W={w:.2e}  V={v}   N={N}  fixed_angle={fixed_angle} Domain={rings}x{rays}"
+
     if approach == 1:
         for i in range(len(checkpoint_collect_container)):
             label_container.append(f"Mass ~ {checkpoint_collect_container[i]}")
@@ -135,8 +140,6 @@ def plot_dense_v_rad(y_lab, data_filepath, v, w, N, rings, rays, fixed_angle, ch
     plt.xlabel("(R) Radius")
     plt.ylabel(y_lab)
 
-    title = f"{y_lab}_versus_R_V={v}_W={w:.2e}_N={N}_fixed_angle={fixed_angle}_Domain={rings}x{rays}"
-
     plt.title(title)
     plt.legend()
     plt.grid(True)
@@ -147,7 +150,8 @@ def plot_dense_v_rad(y_lab, data_filepath, v, w, N, rings, rays, fixed_angle, ch
         if file_path:
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
-            file = os.path.join(file_path, f'{y_lab}_v_theta_V={v}_W={w}_N={N}_Angle={fixed_angle}_{current_time}.png')
+            # file = os.path.join(file_path, f'{y_lab}_v_theta_V={v}_W={w}_N={N}_Angle={fixed_angle}_{current_time}.png')
+            file = os.path.join(file_path, f'{y_lab.lower()}_v_radius.png')
             plt.savefig(file, bbox_inches='tight')
             print(f'Plot saved to {file_path}')
 
