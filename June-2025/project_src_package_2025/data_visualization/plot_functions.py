@@ -2,7 +2,7 @@ from . import plt, os, pd, datetime, Fraction, math, np
 
 
 def plot_general(file_list, labels, xlab, ylab, title, filepath, xlog=False, ylog=False, ylims=None,
-                 continuous=False, dynamic_pts=False, save_png=False, show_plt=True, transparent=False,
+                 continuous=False, dynamic_pts=False, save_png=True, show_plt=True, transparent=False,
                  figsize=(12, 8), lab_fontsize=30, title_fontsize=40, legend_fontsize=22,
                  fontname='Times New Roman'):
 
@@ -54,7 +54,31 @@ def plot_general(file_list, labels, xlab, ylab, title, filepath, xlog=False, ylo
     plt.close()
 
 
-def plot_phi_v_theta(data_filepath, v, w, N, approach, position, file_path, checkpoint_collect_container, save_png=False, show_plt=True):
+def plot_mfpt_v_checkpoints(data_filepath, x_label, rg_param, ry_param, w_param, v_param, N_LIST, file_path, save_png=True, show_plt=True):
+    data = pd.read_csv(data_filepath)
+    x = data[x_label]
+    y = data['MFPT']
+    plt.figure(figsize=(10, 6))
+    plt.scatter(x, y)
+    plt.xlabel(x_label)
+    plt.ylabel('MFPT')
+    plt.grid(True)
+    plt.tight_layout()
+    plt.title(f'MFPT({x_label}) W={w_param:.2e}   V={v_param}   N={len(N_LIST)}    Domain={rg_param}x{ry_param}')
+
+    if save_png:
+        if file_path:
+            if not os.path.exists(file_path):
+                os.makedirs(file_path)
+            file = os.path.join(file_path, f"MFPT_v_{x_label}.png")
+            plt.savefig(file, bbox_inches='tight')
+            print(f'Plot saved to {file_path}')
+    if show_plt:
+        plt.show()
+    plt.close()
+
+
+def plot_phi_v_theta(data_filepath, v, w, N, approach, position, file_path, checkpoint_collect_container, save_png=True, show_plt=True):
 
     data = pd.read_csv(data_filepath, header=None)
 
@@ -109,7 +133,7 @@ def plot_phi_v_theta(data_filepath, v, w, N, approach, position, file_path, chec
     plt.close()
 
 
-def plot_dense_v_rad(y_lab, data_filepath, v, w, N, rings, rays, fixed_angle, checkpoint_collect_container, file_path, approach, save_png=False, show_plt=True):
+def plot_dense_v_rad(y_lab, data_filepath, v, w, N, rings, rays, fixed_angle, checkpoint_collect_container, file_path, approach, save_png=True, show_plt=True):
 
     data = pd.read_csv(data_filepath, header=None)
 
@@ -160,7 +184,7 @@ def plot_dense_v_rad(y_lab, data_filepath, v, w, N, rings, rays, fixed_angle, ch
     plt.close()
 
 
-def plot_mass_analysis(data_filepath, v, w, N, T, rings, rays, mass_type, file_name_mass_type, file_path, save_png=False, show_plt=True):
+def plot_mass_analysis(data_filepath, v, w, N, T, rings, rays, mass_type, file_name_mass_type, file_path, save_png=True, show_plt=True):
 
     data = pd.read_csv(data_filepath, header=None)
 
@@ -200,139 +224,140 @@ def plot_mass_analysis(data_filepath, v, w, N, T, rings, rays, mass_type, file_n
     plt.close()
 
 
-def plot_dense_v_rad_mul(y_lab, data_filepaths, v, w, N, rings, rays, fixed_angle, time_point_container, file_path,
-                     save_png=False, show_plt=True):
-    """
-    Plots the same indexed row (trajectory) across multiple CSV datasets for comparison.
-
-    Parameters:
-        y_lab (str): Label for y-axis.
-        data_filepaths (list): List of CSV file paths (same format expected).
-        v, w, N, rings, rays, fixed_angle: Parameters for title.
-        time_point_container (list): Time values corresponding to each row.
-        file_path (str): Directory to save PNG if enabled.
-        save_png (bool): If True, saves PNG to file_path.
-        show_plt (bool): If True, displays the plot.
-    """
-
-    # Load all datasets into a list of DataFrames
-    datasets = [pd.read_csv(fp, header=None) for fp in data_filepaths]
-
-    # Determine x-axis values
-    if y_lab.lower() == "phi":
-        x = np.linspace(0, 1, rings + 1)
-    elif y_lab.lower() == "rho":
-        x = np.linspace(1 / rings, 1, rings)
-    else:
-        raise ValueError("y_lab must be either 'phi' or 'rho'.")
-
-    converted_container = [f"T={T:.3f}" for T in time_point_container]
-
-    num_trajectories = len(converted_container)
-    num_datasets = len(datasets)
-
-    plt.figure(figsize=(12, 6 * num_trajectories))
-
-    for i in range(num_trajectories):
-        plt.subplot(num_trajectories, 1, i + 1)
-        for j, df in enumerate(datasets):
-            label = f"{converted_container[i]} - Dataset {j + 1}"
-            plt.plot(x, df.iloc[i], label=label)
-
-        plt.xlabel("(R) Radius")
-        plt.ylabel(y_lab)
-        plt.title(f"Trajectory {i + 1} at {converted_container[i]}")
-        plt.legend()
-        plt.grid(True)
-
-    full_title = f"{y_lab}_comparison_V={v}_W={w:.2e}_N={N}_Angle={fixed_angle}_Domain={rings}x{rays}"
-    plt.suptitle(full_title, fontsize=14)
-    plt.tight_layout(rect=[0, 0, 1, 0.96])
-
-    if save_png:
-        current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        if file_path:
-            os.makedirs(file_path, exist_ok=True)
-            filename = f"{y_lab}_comparison_V={v}_W={w}_N={N}_Angle={fixed_angle}_{current_time}.png"
-            save_path = os.path.join(file_path, filename)
-            plt.savefig(save_path, bbox_inches='tight')
-            print(f'Plot saved to {save_path}')
-
-    if show_plt:
-        plt.show()
-    plt.close()
-
-
-def plot_phi_v_theta_mult(data_filepaths, v, w, N, approach, position, file_path, save_png=False, show_plt=True,
-                     time_point_container=None):
-    """
-    Plots corresponding phi-vs-theta rows across multiple CSV files.
-    Labeling is based on the approach used.
-
-    Parameters:
-        data_filepaths (list): List of file paths (all should have same row count).
-        v, w, N, approach, position: Plot parameters.
-        file_path (str): Directory to save figure if save_png=True.
-        save_png (bool): Save figure to file if True.
-        show_plt (bool): Show figure if True.
-        time_point_container (list): Used only if approach == 3.
-    """
-
-    # Load all datasets
-    datasets = [pd.read_csv(fp, header=None) for fp in data_filepaths]
-
-    # Assume all files have the same number of rows
-    num_curves = datasets[0].shape[0]
-    x = range(1, datasets[0].shape[1] + 1)  # theta values (1-based index)
-
-    # Determine label strategy based on approach
-    if approach == 2:
-        label_container = ["0.675 < m < 0.68", "0.45 < mass_retained < 0.46",
-                           "0.225 < mass_retained < 0.26", "0.015 < mass_retained < 0.02"]
-    elif approach == 1:
-        label_container = ["early time", "late time"]
-    elif approach == 3:
-        if time_point_container is None:
-            raise ValueError("time_point_container must be provided for approach == 3")
-        label_container = [f"T={T:.3f}" for T in time_point_container]
-    elif approach == 4:
-        label_container = [f"ring={i * 2}" for i in range(num_curves)]
-    else:
-        raise ValueError(f'{approach} is not a valid argument. Choose 1, 2, 3, or 4.')
-
-    # Plot each row (trajectory) as a subplot comparing all datasets
-    plt.figure(figsize=(12, 6 * num_curves))
-
-    for i in range(num_curves):
-        plt.subplot(num_curves, 1, i + 1)
-        for j, df in enumerate(datasets):
-            label = f"{label_container[i]} - Dataset {j + 1}"
-            plt.plot(x, df.iloc[i], label=label)
-
-        plt.xlabel("Theta")
-        plt.ylabel("Phi")
-        plt.title(f"Trajectory {i + 1}: {label_container[i]}")
-        plt.legend()
-        plt.grid(True)
-
-    # Overall title
-    if approach == 4:
-        suptitle = f'Phi_vs_Theta_V={v}_W={w}_N={N}_Approach{approach}'
-    else:
-        suptitle = f'Phi_vs_Theta_V={v}_W={w}_N={N}_Approach{approach}_Position={position}'
-
-    plt.suptitle(suptitle, fontsize=14)
-    plt.tight_layout(rect=[0, 0, 1, 0.96])
-
-    if save_png:
-        current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        if file_path:
-            os.makedirs(file_path, exist_ok=True)
-            filename = f'phi_v_theta_v={v}_w={w}_app={approach}_pos={position}_{current_time}.png'
-            save_path = os.path.join(file_path, filename)
-            plt.savefig(save_path, bbox_inches='tight')
-            print(f'Plot saved to {save_path}')
-
-    if show_plt:
-        plt.show()
-    plt.close()
+# ================================================= UNDER INSPECTION/REQUIRES UPDATES =================================================
+# def plot_dense_v_rad_mul(y_lab, data_filepaths, v, w, N, rings, rays, fixed_angle, time_point_container, file_path,
+#                      save_png=False, show_plt=True):
+#     """
+#     Plots the same indexed row (trajectory) across multiple CSV datasets for comparison.
+#
+#     Parameters:
+#         y_lab (str): Label for y-axis.
+#         data_filepaths (list): List of CSV file paths (same format expected).
+#         v, w, N, rings, rays, fixed_angle: Parameters for title.
+#         time_point_container (list): Time values corresponding to each row.
+#         file_path (str): Directory to save PNG if enabled.
+#         save_png (bool): If True, saves PNG to file_path.
+#         show_plt (bool): If True, displays the plot.
+#     """
+#
+#     # Load all datasets into a list of DataFrames
+#     datasets = [pd.read_csv(fp, header=None) for fp in data_filepaths]
+#
+#     # Determine x-axis values
+#     if y_lab.lower() == "phi":
+#         x = np.linspace(0, 1, rings + 1)
+#     elif y_lab.lower() == "rho":
+#         x = np.linspace(1 / rings, 1, rings)
+#     else:
+#         raise ValueError("y_lab must be either 'phi' or 'rho'.")
+#
+#     converted_container = [f"T={T:.3f}" for T in time_point_container]
+#
+#     num_trajectories = len(converted_container)
+#     num_datasets = len(datasets)
+#
+#     plt.figure(figsize=(12, 6 * num_trajectories))
+#
+#     for i in range(num_trajectories):
+#         plt.subplot(num_trajectories, 1, i + 1)
+#         for j, df in enumerate(datasets):
+#             label = f"{converted_container[i]} - Dataset {j + 1}"
+#             plt.plot(x, df.iloc[i], label=label)
+#
+#         plt.xlabel("(R) Radius")
+#         plt.ylabel(y_lab)
+#         plt.title(f"Trajectory {i + 1} at {converted_container[i]}")
+#         plt.legend()
+#         plt.grid(True)
+#
+#     full_title = f"{y_lab}_comparison_V={v}_W={w:.2e}_N={N}_Angle={fixed_angle}_Domain={rings}x{rays}"
+#     plt.suptitle(full_title, fontsize=14)
+#     plt.tight_layout(rect=[0, 0, 1, 0.96])
+#
+#     if save_png:
+#         current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+#         if file_path:
+#             os.makedirs(file_path, exist_ok=True)
+#             filename = f"{y_lab}_comparison_V={v}_W={w}_N={N}_Angle={fixed_angle}_{current_time}.png"
+#             save_path = os.path.join(file_path, filename)
+#             plt.savefig(save_path, bbox_inches='tight')
+#             print(f'Plot saved to {save_path}')
+#
+#     if show_plt:
+#         plt.show()
+#     plt.close()
+#
+#
+# def plot_phi_v_theta_mult(data_filepaths, v, w, N, approach, position, file_path, save_png=False, show_plt=True,
+#                      time_point_container=None):
+#     """
+#     Plots corresponding phi-vs-theta rows across multiple CSV files.
+#     Labeling is based on the approach used.
+#
+#     Parameters:
+#         data_filepaths (list): List of file paths (all should have same row count).
+#         v, w, N, approach, position: Plot parameters.
+#         file_path (str): Directory to save figure if save_png=True.
+#         save_png (bool): Save figure to file if True.
+#         show_plt (bool): Show figure if True.
+#         time_point_container (list): Used only if approach == 3.
+#     """
+#
+#     # Load all datasets
+#     datasets = [pd.read_csv(fp, header=None) for fp in data_filepaths]
+#
+#     # Assume all files have the same number of rows
+#     num_curves = datasets[0].shape[0]
+#     x = range(1, datasets[0].shape[1] + 1)  # theta values (1-based index)
+#
+#     # Determine label strategy based on approach
+#     if approach == 2:
+#         label_container = ["0.675 < m < 0.68", "0.45 < mass_retained < 0.46",
+#                            "0.225 < mass_retained < 0.26", "0.015 < mass_retained < 0.02"]
+#     elif approach == 1:
+#         label_container = ["early time", "late time"]
+#     elif approach == 3:
+#         if time_point_container is None:
+#             raise ValueError("time_point_container must be provided for approach == 3")
+#         label_container = [f"T={T:.3f}" for T in time_point_container]
+#     elif approach == 4:
+#         label_container = [f"ring={i * 2}" for i in range(num_curves)]
+#     else:
+#         raise ValueError(f'{approach} is not a valid argument. Choose 1, 2, 3, or 4.')
+#
+#     # Plot each row (trajectory) as a subplot comparing all datasets
+#     plt.figure(figsize=(12, 6 * num_curves))
+#
+#     for i in range(num_curves):
+#         plt.subplot(num_curves, 1, i + 1)
+#         for j, df in enumerate(datasets):
+#             label = f"{label_container[i]} - Dataset {j + 1}"
+#             plt.plot(x, df.iloc[i], label=label)
+#
+#         plt.xlabel("Theta")
+#         plt.ylabel("Phi")
+#         plt.title(f"Trajectory {i + 1}: {label_container[i]}")
+#         plt.legend()
+#         plt.grid(True)
+#
+#     # Overall title
+#     if approach == 4:
+#         suptitle = f'Phi_vs_Theta_V={v}_W={w}_N={N}_Approach{approach}'
+#     else:
+#         suptitle = f'Phi_vs_Theta_V={v}_W={w}_N={N}_Approach{approach}_Position={position}'
+#
+#     plt.suptitle(suptitle, fontsize=14)
+#     plt.tight_layout(rect=[0, 0, 1, 0.96])
+#
+#     if save_png:
+#         current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+#         if file_path:
+#             os.makedirs(file_path, exist_ok=True)
+#             filename = f'phi_v_theta_v={v}_w={w}_app={approach}_pos={position}_{current_time}.png'
+#             save_path = os.path.join(file_path, filename)
+#             plt.savefig(save_path, bbox_inches='tight')
+#             print(f'Plot saved to {save_path}')
+#
+#     if show_plt:
+#         plt.show()
+#     plt.close()

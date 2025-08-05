@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 
-from project_src_package_2025.gui_components import parmas_config
+from project_src_package_2025.gui_components import params_config
 
 class ParameterSection(QWidget):
     def __init__(self, parent):

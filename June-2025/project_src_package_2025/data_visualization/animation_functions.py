@@ -7,192 +7,31 @@ import time
 import math
 
 
-def generate_heatmaps(rg_param, ry_param, w_param, v_param, N_param, approach=2,
-                      filepath=fp.heatmap_output, time_point_container=None, save_png=True, show_plot=False,
-                      compute_mfpt=False, verbose=False, output_csv=False, rect_config=False,
-                      d_tube=-1, r=1.0, d=1.0, mass_retention_threshold=0.01, mass_checkpoint=10 ** 6,
-                      color_scheme='viridis',
-                      toggle_border=False, display_extraction=True):
+# (****) (****)
+def produce_heatmap_tool_rect(HM_DL_snapshot, HM_C_snapshot, w_param, v_param, N_LIST_count, approach, pane,
+                              filepath, MFPT, check_point, extraction_angle_list=None, boundary_of_extraction_list=None, display_extraction=True,
+                              save_png=True, show_plt=True, transparent=False, toggle_border=False, color_scheme='viridis'):
 
-    j_max_list = []
-    if rect_config:
-        j_max_lim = sup.j_max_bef_overlap(ry_param, N_param)
-        max_d_tube = sup.solve_d_rect(r, ry_param, rg_param, j_max_lim, 0)
+    # Setting up the layers.
 
-        while d_tube < 0 or d_tube > max_d_tube:
-            d_tube = float(
-                input(f"Select d_tube within the range: [0, {max_d_tube}] to avoid DL extraction region overlap: "))
+    diffusive_layer_center = np.full((1, HM_DL_snapshot.shape[1]), HM_C_snapshot)
+    full_diffusive_layer = np.vstack([diffusive_layer_center, HM_DL_snapshot])
+    rg_param, ry_param = full_diffusive_layer.shape
 
-        d_radius = r / rg_param
-        d_theta = ((2 * math.pi) / ry_param)
+    # Constructing the discretized polar plane.
 
-        for m in range(rg_param):
-            j_max = int(np.ceil((d_tube / ((m + 1) * d_radius * d_theta)) - 0.5))
-            j_max_list.append(j_max)
-
-    duration = False
-    time_point = -1
-
-    if approach == 1:
-        panes = 4
-    elif approach == 2:
-        if time_point_container is None:
-            raise "Time point container must be non empty for collection approach #2."
-        panes = len(time_point_container)
-        duration = True
-    else:
-        raise f"Approach: {approach} has not been defined, please provide either 1 or 2 as input. (int)"
-
-    domain_snapshot_container = np.zeros((panes, rg_param, ry_param), dtype=np.float64)
-    domain_center_snapshot_container = np.zeros([panes], dtype=np.float64)
-    sim_time_container = np.zeros([panes], dtype=np.float64)
-    mfpt_container = np.zeros([panes], dtype=np.float64)
-    diff_layer, adv_layer = sup.initialize_layers(rg_param, ry_param)
-
-    ant.comp_diffusive_snapshots(rg_param, ry_param, w_param, w_param, v_param * -1, N_param, diff_layer, adv_layer,
-                                 domain_snapshot_container,
-                                 domain_center_snapshot_container, sim_time_container, approach, r=r, d=d,
-                                 mass_retention_threshold=mass_retention_threshold,
-                                 time_point_container=time_point_container, compute_mfpt=compute_mfpt,
-                                 mfpt_container=mfpt_container, mass_checkpoint=mass_checkpoint,
-                                 rect_config=rect_config, d_tube=d_tube)
-
-    if verbose:
-        print(f"Values from within the center snapshot container: {domain_snapshot_container}")
-
-    current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-
-    if rect_config:
-        current_time += "_rect_config"
-    else:
-        current_time += "_polar_config"
-
-    data_filepath = tb.create_directory(filepath, current_time)
-
-    microtubule_count = len(N_param)
-
-    for i in range(panes):
-        if verbose:
-            print(f"Looking at pane {i}")
-
-        if compute_mfpt:
-            MFPT = mfpt_container[i]
-        else:
-            MFPT = -1.0
-
-        if output_csv:
-            csv_filename = f"density_snapshot_#{i}_V={v_param}_W={w_param}_N={microtubule_count}_D={rg_param}x{ry_param}_.csv"
-            output_csv_location = os.path.join(data_filepath, csv_filename)
-            df = pd.DataFrame(domain_snapshot_container[i])
-            df.to_csv(output_csv_location, header=False, index=False)
-
-        if duration:
-            time_point = time_point_container[i]
-
-        if rect_config:
-            print(j_max_list)
-            produce_heatmap_tool_rect(domain_snapshot_container[i], domain_center_snapshot_container[i],
-                                      toggle_border, w_param, v_param, len(N_param), data_filepath, color_scheme,
-                                      save_png,
-                                      show_plot, approach=int(approach), pane=i, MFPT=MFPT, duration=duration,
-                                      time_point=time_point,
-                                      extraction_angle_list=N_param, boundary_of_extraction_list=j_max_list,
-                                      display_extraction=display_extraction)
-
-        else:
-            produce_heatmap_tool(domain_snapshot_container[i], domain_center_snapshot_container[i],
-                                 toggle_border, w_param, v_param, len(N_param), data_filepath,
-                                 save_png=save_png, show_plot=show_plot, approach=int(approach), pane=i,
-                                 MFPT=MFPT, duration=duration, time_point=time_point, color_scheme=color_scheme)
-        if verbose:
-            if save_png:
-                print(f"File saved at: {data_filepath}")
-        time.sleep(3)
-
-
-def produce_heatmap_tool(diffusive_layer, diffusive_layer_center, toggle_border, w, v, MT_count, filepath,
-                         color_scheme='viridis',
-                         save_png=False, show_plot=True, transparent=False, approach=-1, pane=None, MFPT=-1.0,
-                         duration=False, time_point=-1.0):
-    # Include the center value as the first "ring" in the polar heatmap
-    diffusive_layer_center = np.full((1, diffusive_layer.shape[1]), diffusive_layer_center)  # Expand the center value
-    full_diffusive_layer = np.vstack([diffusive_layer_center, diffusive_layer])
-
-    rings = full_diffusive_layer.shape[0]
-    rays = full_diffusive_layer.shape[1]
-
-    r = np.linspace(0, 1, rings + 1)
-    theta = np.linspace(0, 2 * np.pi, rays + 1)
-
+    r = np.linspace(0, 1, rg_param + 1)
+    theta = np.linspace(0, 2 * np.pi, ry_param + 1)
     R, Theta = np.meshgrid(r, theta)
     X, Y = R * np.cos(Theta), R * np.sin(Theta)
 
+    # Constructing the plot.
     plt.figure(figsize=(8, 10))
     cmap = cm.get_cmap(color_scheme, 512)
 
+    # Normalize density across the DL between the min and max density value.
     norm = Normalize(vmin=full_diffusive_layer.min(), vmax=full_diffusive_layer.max())
 
-    if toggle_border:
-        heatmap = plt.pcolormesh(X, Y, full_diffusive_layer.T, shading='flat', cmap=cmap, norm=norm, edgecolors='k',
-                                 linewidth=0.01)
-    else:
-        heatmap = plt.pcolormesh(X, Y, full_diffusive_layer.T, shading='flat', cmap=cmap, norm=norm)
-
-    cbar = plt.colorbar(heatmap, location='bottom', pad=0.08)
-
-    cbar.set_ticks(np.linspace(full_diffusive_layer.min(), full_diffusive_layer.max(), num=8))
-    cbar.set_ticklabels(
-        [f'{tick:.3f}' for tick in np.linspace(full_diffusive_layer.min(), full_diffusive_layer.max(), num=8)])
-
-    cbar.ax.tick_params(labelsize=12, labelcolor='black')
-
-    title = f'N={MT_count}, w={w:.2e}, v={v}'
-
-    if MFPT >= 0:
-        title += f', MFPT={MFPT:.3f}'
-    if duration:
-        print(time_point)
-        title += f', T={time_point:.3f}'
-
-    plt.title(title, fontdict={'weight': 'bold', 'font': 'Times New Roman', 'size': 20}, pad=20)
-
-    plt.axis('off')
-
-    if save_png:
-        if filepath:
-            if not os.path.exists(filepath):
-                os.makedirs(filepath)
-            current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"N={MT_count}_w={w}_MxN={rings}x{rays}_data{current_time}"
-            if approach > 0:
-                filename += f"_app={approach}"
-            filename += f'_pane={pane}'
-            file = os.path.join(filepath, filename + ".png")
-            plt.savefig(file, bbox_inches='tight', transparent=transparent)
-    if show_plot:
-        plt.show()
-    plt.close()
-
-
-def produce_heatmap_tool_rect(diffusive_layer, diffusive_layer_center, toggle_border, w, v, MT_count, filepath,
-                              color_scheme='viridis',
-                              save_png=False, show_plot=True, transparent=False, approach=-1, pane=None, MFPT=-1.0,
-                              duration=False, time_point=-1.0,
-                              extraction_angle_list=None,
-                              boundary_of_extraction_list=None,
-                              display_extraction=False):
-    diffusive_layer_center = np.full((1, diffusive_layer.shape[1]), diffusive_layer_center)
-    full_diffusive_layer = np.vstack([diffusive_layer_center, diffusive_layer])
-    rings, rays = full_diffusive_layer.shape
-
-    r = np.linspace(0, 1, rings + 1)
-    theta = np.linspace(0, 2 * np.pi, rays + 1)
-    R, Theta = np.meshgrid(r, theta)
-    X, Y = R * np.cos(Theta), R * np.sin(Theta)
-
-    plt.figure(figsize=(8, 10))
-    cmap = cm.get_cmap(color_scheme, 512)
-    norm = Normalize(vmin=full_diffusive_layer.min(), vmax=full_diffusive_layer.max())
     # norm = Normalize(vmin=0, vmax=1)
 
     if toggle_border:
@@ -201,34 +40,47 @@ def produce_heatmap_tool_rect(diffusive_layer, diffusive_layer_center, toggle_bo
     else:
         heatmap = plt.pcolormesh(X, Y, full_diffusive_layer.T, shading='flat', cmap=cmap, norm=norm)
 
+    # Constructing the tick bar to display onto the plot. (This provides a numerical key for the colors depicting across the heatmap)
+
     cbar = plt.colorbar(heatmap, location='bottom', pad=0.08)
     ticks = np.linspace(full_diffusive_layer.min(), full_diffusive_layer.max(), num=8)
     cbar.set_ticks(ticks)
     cbar.set_ticklabels([f'{tick:.3f}' for tick in ticks])
     cbar.ax.tick_params(labelsize=12, labelcolor='black')
 
-    title = f'N={MT_count}, w={w:.2e}, v={v}'
+    title = f'N={N_LIST_count}, w={w_param:.2e}, v={v_param}'
     if MFPT >= 0:
         title += f', MFPT={MFPT:.3f}'
-    if duration:
-        title += f', T={time_point:.3f}'
+
+    filename = ''
+
+    if approach == 1:
+        title += f',Total-Mass={check_point}'
+        filename += f'static_HM_mass_dependence_pane={pane}.png'
+    elif approach == 2:
+        title += f', T={check_point}'
+        filename += f'static_HM_time_dependence_pane={pane}.png'
+    else:
+        raise ValueError(f"Approach: {approach} is undefined, please input approach=1 (domain mass dependent) or approach=2 (time dependent)")
     plt.title(title, fontdict={'weight': 'bold', 'font': 'Times New Roman', 'size': 20}, pad=20)
     plt.axis('off')
+
+    # Constructing the AL extraction region if it is toggled by the user.
 
     if display_extraction:
         if (boundary_of_extraction_list is not None and
                 extraction_angle_list is not None and
-                len(boundary_of_extraction_list) == rings - 1):
+                len(boundary_of_extraction_list) == rg_param - 1):
 
             ax = plt.gca()
             overlay_color = exc.extraction_overlay_colors.get(color_scheme, (0.5, 0.5, 0.5, 0.15))
             faint_color = (overlay_color[0], overlay_color[1], overlay_color[2], 0.08)
 
-            for ring_idx in range(1, rings):
+            for ring_idx in range(1, rg_param):
                 angular_spread = boundary_of_extraction_list[ring_idx - 1]
                 for angle_center in extraction_angle_list:
                     for offset in range(-angular_spread, angular_spread + 1):
-                        angle_idx = (angle_center + offset) % rays
+                        angle_idx = (angle_center + offset) % ry_param
                         r1, r2 = r[ring_idx], r[ring_idx + 1]
                         t1, t2 = theta[angle_idx], theta[angle_idx + 1]
                         verts = [
@@ -247,19 +99,13 @@ def produce_heatmap_tool_rect(diffusive_layer, diffusive_layer_center, toggle_bo
         if filepath:
             if not os.path.exists(filepath):
                 os.makedirs(filepath)
-            current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"N={MT_count}_w={w}_MxN={rings}x{rays}_data{current_time}"
-            if approach > 0:
-                filename += f"_app={approach}"
-            filename += f'_pane={pane}'
-            file = os.path.join(filepath, filename + ".png")
+            file = os.path.join(filepath, filename)
             plt.savefig(file, bbox_inches='tight', transparent=transparent)
-
-    if show_plot:
+    if show_plt:
         plt.show()
     plt.close()
 
-
+# (****) (****)
 def display_domain_grid(rings, rays, microtubules, d_tube, r=1, display_extract=True, toggle_border=True):
 
     j_max_list = []
@@ -282,7 +128,7 @@ def display_domain_grid(rings, rays, microtubules, d_tube, r=1, display_extract=
 
     return build_domain_grid(rings, rays, j_max_list, microtubules, display_extract, toggle_border, max_d_tube)
 
-
+# (****) (****)
 def build_domain_grid(rings, rays, boundary_of_extraction_list=None,
                       extraction_angle_list=None, display_extraction=False, toggle_border=True, d_sup=0):
 

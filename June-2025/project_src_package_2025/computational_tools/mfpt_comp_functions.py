@@ -34,48 +34,7 @@ def comp_mfpt_by_time(rg_param, ry_param, switch_param_a, switch_param_b, v_para
     while k < K:
 
         net_current_out = 0
-        # <<<< ------------- Updating DL and AL for the K+1-th step ------------- >>>>
-        # m = 0
-        #
-        # while m < rg_param:
-        #
-        #     # The advective angle index 'aIdx'
-        #     aIdx = 0
-        #     n = 0
-        #
-        #     while n < ry_param:
-        #         if m == rg_param - 1:
-        #             D_LAYER[1][m][n] = 0
-        #         else:
-        #             if n in d_list[m]:
-        #                 # n denotes a discrete position (an extraction region ray) within an extraction region centered at a microtubule (indices contained in N_LIST)
-        #                 # if the iteration steps on an extraction region ray at ring m, then:
-        #                 # int(d_list[m][n]) is the corresponding microtubule position of the extraction region ray (n) at ring (m)
-        #                 corr_MT_pos = int(d_list[m][n])
-        #                 D_LAYER[1][m][n] = num.u_density_rect(D_LAYER, 0, m, n, dRad, dThe,
-        #                                                       dT,
-        #                                                       central_patch, rg_param, A_LAYER,
-        #                                                       corr_MT_pos, switch_param_a, switch_param_b, d_tube)
-        #
-        #             else:
-        #                 D_LAYER[1][m][n] = num.u_density(D_LAYER, 0, m, n, dRad, dThe,
-        #                                                  dT,
-        #                                                  central_patch, rg_param, A_LAYER,
-        #                                                  aIdx,
-        #                                                  switch_param_a, switch_param_b,
-        #                                                  N_LIST)
-        #             if n == N_LIST[aIdx]:
-        #
-        #                 A_LAYER[1][m][n] = num.u_tube_rect(A_LAYER, D_LAYER, 0, m, n, switch_param_a,
-        #                                                    switch_param_b, v_param, dT, dRad, dThe, d_tube)
-        #                 if aIdx < len(N_LIST) - 1:
-        #                     aIdx += 1
-        #
-        #             if m == rg_param - 2:
-        #                 net_current_out += num.j_r_r(D_LAYER, 0, m, n, dRad, 0) * rg_param * dRad * dThe
-        #         n += 1
-        #     m += 1
-        # <<<< ------------- Updating DL and AL for the K+1-th step ------------- >>>>
+
         net_current_out += num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST, dRad, dThe, dT, switch_param_a, switch_param_b, v_param, d_tube)
 
         MFPT += net_current_out * k * dT ** 2
@@ -104,9 +63,9 @@ def comp_mfpt_by_time(rg_param, ry_param, switch_param_a, switch_param_b, v_para
 # (****) (****)
 @njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def comp_mfpt_by_time_points(rg_param, ry_param, switch_param_a, switch_param_b, v_param, N_LIST, D_LAYER, A_LAYER,
-                             Timestamp_LIST,
+                             checkpoint_collect_container,
                              MFPT_snapshots,
-                             T_param, mass_checkpoint=10 ** 6, domain_radius=1.0, D=1.0, d_tube=0):
+                             T_param, approach, mass_checkpoint=10 ** 6, domain_radius=1.0, D=1.0, d_tube=0):
     if ENABLE_JIT:
         print("Running optimized version.")
 
@@ -122,7 +81,7 @@ def comp_mfpt_by_time_points(rg_param, ry_param, switch_param_a, switch_param_b,
     MFPT = 0
     mass_retained = 0
 
-    timestamp = 0
+    checkpoint_iter = 0
 
     # **** - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     k = 0
@@ -130,45 +89,6 @@ def comp_mfpt_by_time_points(rg_param, ry_param, switch_param_a, switch_param_b,
     while k < K:
 
         net_current_out = 0
-        # **************************************************************************************************
-        # while m < rg_param:
-        #
-        #     # The advective angle index 'aIdx'
-        #     aIdx = 0
-        #     n = 0
-        #
-        #     while n < ry_param:
-        #         if m == rg_param - 1:
-        #             D_LAYER[1][m][n] = 0
-        #         else:
-        #
-        #             # **********************************************************************************************************************************************
-        #             if n in d_list[m]:
-        #
-        #                 D_LAYER[1][m][n] = num.u_density_rect(D_LAYER, 0, m, n, dRad, dThe,
-        #                                                       dT,
-        #                                                       central_patch, rg_param, A_LAYER,
-        #                                                       int(d_list[m][n]), switch_param_a, switch_param_b, d_tube)
-        #
-        #             else:
-        #                 D_LAYER[1][m][n] = num.u_density(D_LAYER, 0, m, n, dRad, dThe,
-        #                                                  dT,
-        #                                                  central_patch, rg_param, A_LAYER,
-        #                                                  aIdx,
-        #                                                  switch_param_a, switch_param_b,
-        #                                                  N_LIST)
-        #             if n == N_LIST[aIdx]:
-        #
-        #                 A_LAYER[1][m][n] = num.u_tube_rect(A_LAYER, D_LAYER, 0, m, n, switch_param_a,
-        #                                                    switch_param_b, v_param, dT, dRad, dThe, d_tube)
-        #                 if aIdx < len(N_LIST) - 1:
-        #                     aIdx += 1
-        #
-        #             if m == rg_param - 2:
-        #                 net_current_out += num.j_r_r(D_LAYER, 0, m, n, dRad, 0) * rg_param * dRad * dThe
-        #         n += 1
-        #     m += 1
-        # *****************************************************************************************************************
 
         net_current_out += num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST,
                                                     dRad, dThe, dT, switch_param_a, switch_param_b, v_param, d_tube)
@@ -179,13 +99,23 @@ def comp_mfpt_by_time_points(rg_param, ry_param, switch_param_a, switch_param_b,
 
         MFPT += net_current_out * k * dT ** 2
 
-        if timestamp < len(Timestamp_LIST):
-            curr_stamp = np.floor(Timestamp_LIST[timestamp] / dT)
-            if k == curr_stamp:
-                MFPT_snapshots[timestamp] = MFPT
-                timestamp += 1
+        if int(approach) == 1:
+            if checkpoint_iter < len(checkpoint_collect_container):
+                curr_mass_stamp = checkpoint_collect_container[checkpoint_iter]
+                if curr_mass_stamp * 0.99 < mass_retained < curr_mass_stamp * 1.01:
+                    MFPT_snapshots[checkpoint_iter] = MFPT
+                    checkpoint_iter += 1
+        elif int(approach) == 2:
+            if checkpoint_iter < len(checkpoint_collect_container):
+                curr_stamp = np.floor(checkpoint_collect_container[checkpoint_iter] / dT)
+                if k == curr_stamp:
+                    MFPT_snapshots[checkpoint_iter] = MFPT
+                    checkpoint_iter += 1
+            else:
+                return
         else:
-            return
+            raise ValueError(
+                f'{approach} is not a valid argument, use either collection approach "1" or "2" (must be an int)')
 
         mass_retained = num.calc_mass(D_LAYER, A_LAYER, 0, dRad, dThe, central_patch, rg_param, ry_param,
                                       N_LIST)
@@ -484,6 +414,49 @@ def comp_mfpt_by_mass_loss_rect(rings, rays, a, b, v, tube_placements, diffusive
 
     return m_f_p_t, duration
 
+
+# <<<< ------------- Updating DL and AL for the K+1-th step ------------- >>>>
+        # m = 0
+        #
+        # while m < rg_param:
+        #
+        #     # The advective angle index 'aIdx'
+        #     aIdx = 0
+        #     n = 0
+        #
+        #     while n < ry_param:
+        #         if m == rg_param - 1:
+        #             D_LAYER[1][m][n] = 0
+        #         else:
+        #             if n in d_list[m]:
+        #                 # n denotes a discrete position (an extraction region ray) within an extraction region centered at a microtubule (indices contained in N_LIST)
+        #                 # if the iteration steps on an extraction region ray at ring m, then:
+        #                 # int(d_list[m][n]) is the corresponding microtubule position of the extraction region ray (n) at ring (m)
+        #                 corr_MT_pos = int(d_list[m][n])
+        #                 D_LAYER[1][m][n] = num.u_density_rect(D_LAYER, 0, m, n, dRad, dThe,
+        #                                                       dT,
+        #                                                       central_patch, rg_param, A_LAYER,
+        #                                                       corr_MT_pos, switch_param_a, switch_param_b, d_tube)
+        #
+        #             else:
+        #                 D_LAYER[1][m][n] = num.u_density(D_LAYER, 0, m, n, dRad, dThe,
+        #                                                  dT,
+        #                                                  central_patch, rg_param, A_LAYER,
+        #                                                  aIdx,
+        #                                                  switch_param_a, switch_param_b,
+        #                                                  N_LIST)
+        #             if n == N_LIST[aIdx]:
+        #
+        #                 A_LAYER[1][m][n] = num.u_tube_rect(A_LAYER, D_LAYER, 0, m, n, switch_param_a,
+        #                                                    switch_param_b, v_param, dT, dRad, dThe, d_tube)
+        #                 if aIdx < len(N_LIST) - 1:
+        #                     aIdx += 1
+        #
+        #             if m == rg_param - 2:
+        #                 net_current_out += num.j_r_r(D_LAYER, 0, m, n, dRad, 0) * rg_param * dRad * dThe
+        #         n += 1
+        #     m += 1
+        # <<<< ------------- Updating DL and AL for the K+1-th step ------------- >>>>
 
 '''
     Kevin Bedoya

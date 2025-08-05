@@ -8,7 +8,7 @@ from project_src_package_2025.gui_components.GUI_modular_plan.computation_sectio
 from project_src_package_2025.gui_components.GUI_modular_plan.computation_executor_mixin import ComputationExecutorMixin
 
 # import parmas_config
-from project_src_package_2025.gui_components import parmas_config
+from project_src_package_2025.gui_components import params_config
 
 class ControlPanel(QWidget, ComputationExecutorMixin):
     def __init__(self, main_window):

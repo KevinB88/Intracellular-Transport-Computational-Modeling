@@ -14,7 +14,7 @@ from PyQt5.QtGui import QColor, QPalette
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import QEvent
 
-from . import parmas_config
+from . import params_config
 from . import controller
 # from . import stdout_redirector
 from . import output_display_widget
@@ -177,7 +177,7 @@ class ControlPanel(QWidget):
 
         # -- Adjustable computation block wrapper --
         self.comp_select = QComboBox()
-        self.comp_select.addItems(parmas_config.PARAMETER_SCHEMAS.keys())
+        self.comp_select.addItems(params_config.PARAMETER_SCHEMAS.keys())
         self.comp_select.currentTextChanged.connect(self.update_parameter_fields)
         self.comp_select.currentTextChanged.connect(self.validate_computation)
 
@@ -301,7 +301,7 @@ class ControlPanel(QWidget):
         viz_label = QLabel("Select Visualization: ")
         viz_label.setStyleSheet("font-weight: bold;")
         self.visualization_select = QComboBox()
-        self.visualization_select.addItems([ "Show Domain", "Animate Diffusion" ])
+        self.visualization_select.addItems(["Show Domain", "Animate Diffusion"])
         self.visualization_select.currentTextChanged.connect(self.handle_visualization_mode_change)
         viz_layout.addWidget(viz_label)
         viz_layout.addWidget(self.visualization_select)
@@ -376,7 +376,7 @@ class ControlPanel(QWidget):
     # 1 v------------------------------------------- Static functions --------------------------------------------v
     def show_param_hint(self, param_name):
         from PyQt5.QtWidgets import QMessageBox
-        hint = getattr(parmas_config, "PARAMETER_HINTS", {}).get(param_name, "No hint available for this parameter.")
+        hint = getattr(params_config, "PARAMETER_HINTS", {}).get(param_name, "No hint available for this parameter.")
         QMessageBox.information(self, f"Hint: {param_name}", hint)
 
     @staticmethod
@@ -637,7 +637,7 @@ class ControlPanel(QWidget):
 
     def validate_computation(self):
         computation_type = self.comp_select.currentText()
-        schema = parmas_config.PARAMETER_SCHEMAS.get(computation_type)
+        schema = params_config.PARAMETER_SCHEMAS.get(computation_type)
         if schema is None:
             self._set_computation_controls_enabled(False)
             return
@@ -772,8 +772,8 @@ class ControlPanel(QWidget):
         self.param_inputs.clear()
         self.advanced_widgets.clear()
 
-        schema = parmas_config.PARAMETER_SCHEMAS[computation_name]
-        hints = parmas_config.PARAMETER_HINTS  # <-- Hints dictionary
+        schema = params_config.PARAMETER_SCHEMAS[computation_name]
+        hints = params_config.PARAMETER_HINTS  # <-- Hints dictionary
 
         # === Required parameters ===
         for param, _ in schema.get("required", [ ]):
@@ -1347,7 +1347,7 @@ class ControlPanel(QWidget):
 
         # Respect mixed_config if and only if it's part of the schema
         current_comp = self.comp_select.currentText()
-        schema = parmas_config.PARAMETER_SCHEMAS.get(current_comp)
+        schema = params_config.PARAMETER_SCHEMAS.get(current_comp)
         if schema is None:
             return
         default_params = dict(schema.get("default", [ ]))

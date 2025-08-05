@@ -12,7 +12,9 @@ COMPUTATION_FUNCTIONS = {
     "Phi Angular Dependence": launch.collect_phi_ang_dep,
     "Density Radial Dependence": launch.collect_density_rad_depend,
     "Mass Analysis": launch.collect_mass_analysis,
-    "Full Analysis": launch.launch_super_comp_I
+    "Full Analysis": launch.launch_super_comp_I,
+    "MFPT Analysis": launch.collect_MFPT_snapshots,
+    "Static Heatplot Analysis": launch.heatmap_production
 }
 # "Full Analysis": launch.launch_super_comp_I
 
@@ -75,7 +77,9 @@ def run_selected_computation(computation_name, param_dict):
         "Mass Analysis",
         "Density Radial Dependence",
         "Phi Angular Dependence",
-        "Full Analysis"
+        "Full Analysis",
+        "MFPT Analysis",
+        "Static Heatplot Analysis"
     }:
 
         if isinstance(result, list) and all(isinstance(p, str) for p in result):
@@ -93,19 +97,19 @@ def run_selected_computation(computation_name, param_dict):
     return result
 
 
-def _dummy_compile_run():
-    try:
-        launch.solve_mfpt_(1,1,[0], 0, 0, 0, d_tube=0)
-        launch.output_time_until_mass_depletion(1, 1, [0], 0, 0, d_tube=0, mass_threshold=1)
-        # a = launch.collect_phi_ang_dep(1, 1, [0], 0, 0, approach=3, m_segment=0, time_point_container=[0], d_tube=0)
-        # b = launch.collect_density_rad_depend(1, 1, [0], 0, 0, 0, [0], d_tube=0)
-        c = launch.collect_mass_analysis(1, 1,[0],0,0,0,1, d_tube=0, save_png=False, show_plt=False, collect_plots=False)
-        print("[Numba Compilation] Compilation complete.")
-    except Exception as e:
-        print(f"[Numba Compilation] Warning: {e}")
-
-
-def initiate_compilation():
-    p = Process(target=_dummy_compile_run)
-    p.start()
-    return p
+# def _dummy_compile_run():
+#     try:
+#         launch.solve_mfpt_(1,1,[0], 0, 0, 0, d_tube=0)
+#         launch.output_time_until_mass_depletion(1, 1, [0], 0, 0, d_tube=0, mass_threshold=1)
+#         # a = launch.collect_phi_ang_dep(1, 1, [0], 0, 0, approach=3, m_segment=0, time_point_container=[0], d_tube=0)
+#         # b = launch.collect_density_rad_depend(1, 1, [0], 0, 0, 0, [0], d_tube=0)
+#         c = launch.collect_mass_analysis(1, 1,[0],0,0,0,1, d_tube=0, save_png=False, show_plt=False, collect_plots=False)
+#         print("[Numba Compilation] Compilation complete.")
+#     except Exception as e:
+#         print(f"[Numba Compilation] Warning: {e}")
+#
+#
+# def initiate_compilation():
+#     p = Process(target=_dummy_compile_run)
+#     p.start()
+#     return p

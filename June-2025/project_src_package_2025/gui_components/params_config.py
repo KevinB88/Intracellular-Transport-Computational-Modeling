@@ -47,7 +47,7 @@ PARAMETER_SCHEMAS = {
             ("d_tube", 0),
             ("domain_radius", 1.0),
             ("D", 1.0),
-            ("mass_retention_threshold", 0.01),
+            ("mass_retention_threshold", int(1e-2)),
             ("mass_checkpoint", int(1e6)),
             ("save_png", True),
             ("show_plt", False)
@@ -69,7 +69,7 @@ PARAMETER_SCHEMAS = {
             ("domain_radius", 1.0),
             ("D", 1.0),
             ("d_tube", 0),
-            ("mass_retention_threshold", 0.01),
+            ("mass_retention_threshold", int(1e-2)),
             ("mass_checkpoint", int(1e6)),
             ("save_png", True),
             ("show_plt", False)
@@ -122,7 +122,54 @@ PARAMETER_SCHEMAS = {
             ("heatplot_colorscheme", 'viridis'),
             ("display_extraction", True)
         ]
-    }
+    },
+
+    "MFPT Analysis": {
+            "required": [
+                ("rg_param", ""),
+                ("ry_param", ""),
+                ("N_LIST", ""),
+                ("v_param", ""),
+                ("w_param", ""),
+                ("T_param", ""),
+                ("approach", ""),
+                ("checkpoint_collect_container", "")
+            ],
+            "default": [
+                ("domain_radius", 1.0),
+                ("D", 1.0),
+                ("mass_checkpoint", int(1e6)),
+                ("d_tube", 0.0),
+                ("save_png", True),
+                ("show_plt", False)
+            ]
+        },
+
+    "Static Heatplot Analysis": {
+                "required": [
+                    ("rg_param", ""),
+                    ("ry_param", ""),
+                    ("N_LIST", ""),
+                    ("v_param", ""),
+                    ("w_param", ""),
+                    ("T_param", ""),
+                    ("checkpoint_collect_container", ""),
+                    ("approach", ""),
+                ],
+                "default": [
+                    ("domain_radius", 1.0),
+                    ("D", 1.0),
+                    ("mass_checkpoint", int(1e6)),
+                    ("d_tube", 0.0),
+                    ("mass_retention_threshold", int(1e-2)),
+                    ("heatplot_border", False),
+                    ("heatplot_colorscheme", 'viridis'),
+                    ("save_png", True),
+                    ("show_plt", False),
+                    ("display_extraction", True)
+                ]
+            },
+
 }
 
 PARAMETER_HINTS = {
@@ -149,6 +196,7 @@ PARAMETER_HINTS = {
     "mass_checkpoint": "mass_checkpoint: # of time-steps per computational checkpoint (status-check). (int)",
     "mass_retention_threshold": "mass_retention_threshold: amount of mass until termination of method. (float)",
     "mass_threshold": "mass_threshold: amount of mass until termination of method. (float)",
-    "checkpoint_collect_container": "checkpoint_collect_container: Provide as a list of floats: [], s.t each entry denotes a time-stamp OR a mass-stamp for data collection."
+    "checkpoint_collect_container": "checkpoint_collect_container: Provide as a list of floats: [], s.t each entry denotes a time-stamp (approach=2) OR a mass-stamp for data collection (approach=1).",
+    "approach": "approach: (1) For mass dependent data collection, (2) For time dependent data collection. (int)"
 }
 

@@ -130,40 +130,39 @@ def process_DvR_results(PvR_DL_snapshots, RvR_AL_snapshots, v_param, w_param, N_
     return output_location_list
 
 
-def process_static_HM_results(HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, Timestamp_List,
+def process_static_HM_results(HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, checkpoint_collect_container,
                               heat_plot_border, w_param, v_param, N_LIST, heatplot_colorscheme,
-                              save_png, show_plt, j_max_list, display_extraction):
+                              save_png, show_plt, j_max_list, display_extraction, approach):
 
     output_location_list = []
     timestamp = prints.return_timestamp()
     data_filepath = tb.create_directory(fp.heatmap_output, timestamp)
 
-    for t in range(len(Timestamp_List)):
+    N_LIST_count = len(N_LIST)
+
+    for t in range(len(checkpoint_collect_container)):
 
         MFPT = MFPT_snapshots[t]
         curr_DL_snapshot = HM_DL_snapshots[t]
         curr_C_snapshot = HM_C_snapshots[t]
-        time_point = Timestamp_List[t]
+        check_point = checkpoint_collect_container[t]
 
-        csv_filename = f"HM_DL_snapshot_T={time_point}.csv"
+        csv_filename = f"HM_DL_snapshot_T={check_point}.csv"
         output_csv_loc = os.path.join(data_filepath, csv_filename)
         # print(output_csv_loc)
         df = pd.DataFrame(curr_DL_snapshot)
         df.to_csv(output_csv_loc, header=False, index=False)
 
-        ani.produce_heatmap_tool_rect(curr_DL_snapshot, curr_C_snapshot,
-                                      heat_plot_border, w_param, v_param,
-                                      len(N_LIST), data_filepath, heatplot_colorscheme, save_png,
-                                      show_plt, pane=t, MFPT=MFPT, duration=True, time_point=time_point, approach=2,
-                                      extraction_angle_list=N_LIST, boundary_of_extraction_list=j_max_list,
-                                      display_extraction=display_extraction)
+        ani.produce_heatmap_tool_rect(curr_DL_snapshot, curr_C_snapshot, w_param, v_param, N_LIST_count,
+                                      approach, t, data_filepath, MFPT, check_point, N_LIST, j_max_list, display_extraction,
+                                      save_png, show_plt, transparent=False, toggle_border=heat_plot_border, color_scheme=heatplot_colorscheme)
         time.sleep(1)
 
     csv_filename = f"HM_C_snapshot.csv"
     column_labels = ['T', 'Phi(center)']
 
     data_dict = {
-        column_labels[0]: Timestamp_List,
+        column_labels[0]: checkpoint_collect_container,
         column_labels[1]: HM_C_snapshots
     }
 
@@ -175,7 +174,9 @@ def process_static_HM_results(HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, T
     return output_location_list
 
 
-def process_MFPT_results(MFPT_snapshots, Timestamp_List):
+def process_MFPT_results(MFPT_snapshots, checkpoint_collect_container, approach,
+                         rg_param, ry_param, w_param, v_param, N_LIST, save_png=True,
+                         show_plt=True):
 
     output_location_list = []
 
@@ -184,16 +185,25 @@ def process_MFPT_results(MFPT_snapshots, Timestamp_List):
 
     csv_filename = f"MFPT_timestamp.csv"
 
-    column_labels = ['T', 'MFPT']
+    if approach == 1:
+        x_label = 'TM'
+    elif approach == 2:
+        x_label = 'T'
+    else:
+        raise ValueError(f'{approach} is not a valid argument, use either collection approach "1" or "2" (must be an int)')
+
+    column_labels = [x_label, 'MFPT']
 
     data_dict = {
-        column_labels[0]: Timestamp_List,
+        column_labels[0]: checkpoint_collect_container,
         column_labels[1]: MFPT_snapshots
     }
 
     output_csv_loc = os.path.join(data_filepath, csv_filename)
     df = pd.DataFrame(data_dict)
     df.to_csv(output_csv_loc, index=False)
+    plt.plot_mfpt_v_checkpoints(output_csv_loc, x_label, rg_param, ry_param, w_param, v_param, N_LIST, data_filepath,
+                                save_png, show_plt)
     output_location_list.append(output_csv_loc)
 
     return output_location_list

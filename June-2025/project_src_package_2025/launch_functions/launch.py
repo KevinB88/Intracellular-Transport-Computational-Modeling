@@ -8,8 +8,19 @@ import pandas as pd
 # (****) (****)
 def collect_phi_ang_dep(rg_param, ry_param, v_param, w_param, T_param, N_LIST, checkpoint_collect_container, approach=2,
                         T_fixed_ring_seg=0.5,
-                        d_tube=0, domain_radius=1, D=1, mass_retention_threshold=0.01, mass_checkpoint=10 ** 6,
+                        d_tube=0.0, domain_radius=1, D=1, mass_retention_threshold=0.01, mass_checkpoint=10 ** 6,
                         save_png=True, show_plt=False):
+    if len(N_LIST) > ry_param:
+        raise IndexError(
+            f'Too many angular indices supplied for microtubule positions: {len(N_LIST)} > {ry_param} (number of angular positions in domain).'
+        )
+
+    for i in range(len(N_LIST)):
+        if N_LIST[i] < 0 or N_LIST[i] > ry_param:
+            raise IndexError(
+                f'Angular index: {N_LIST[i]} falls outside of the legal index range: [0,{ry_param - 1}) under ry_param={ry_param}')
+    N_LIST.sort()
+
     if int(approach) != 1 and int(approach) != 2:
         raise ValueError(
             f"Approach: {approach} is undefined. Must supply approach 1 (Mass-point collection) or approach 2 (Time-point collection).")
@@ -17,6 +28,22 @@ def collect_phi_ang_dep(rg_param, ry_param, v_param, w_param, T_param, N_LIST, c
     if T_fixed_ring_seg < 0 or T_fixed_ring_seg > 1:
         print("T_fixed_ring_seg automatically adjusted to legal range.")
         T_fixed_ring_seg = 0.5
+
+    if approach == 1:
+        checkpoint_collect_container.sort(reverse=True)
+    elif approach == 2:
+        for t in range(len(checkpoint_collect_container)):
+            if checkpoint_collect_container[t] < 0.0 or checkpoint_collect_container[t] > T_param:
+                raise ValueError(
+                    f"Timestamp-point: {checkpoint_collect_container[t]} falls outside of the legal timestamp-point range: [0, {T_param} (T_param) ] (T_param = your input solution time duration)")
+            dT = num.compute_dT(rg_param, ry_param, domain_radius=domain_radius, D=D)
+            T_param += dT
+        checkpoint_collect_container.sort()
+    else:
+        raise ValueError(
+            f'{approach} is not a valid argument, use either collection approach "1" or "2" (must be an int)')
+
+    checkpoint_collect_container = [float(item) for item in checkpoint_collect_container]
 
     # d_tube_max is with respect to the non-overlapping microtubule extraction region implementation.
     d_tube_max = sup.solve_d_rect(domain_radius, rg_param, ry_param, sup.j_max_bef_overlap(ry_param, N_LIST), 0)
@@ -42,13 +69,8 @@ def collect_phi_ang_dep(rg_param, ry_param, v_param, w_param, T_param, N_LIST, c
 # (****) (****)
 def collect_mass_analysis(rg_param, ry_param, v_param, w_param, T_param, N_LIST, MA_collection_factor=5,
                           domain_radius=1.0, D=1.0,
-                          mass_checkpoint=10 ** 6, d_tube=0, MA_collection_factor_limit=10 ** 3, save_png=True,
+                          mass_checkpoint=10 ** 6, d_tube=0.0, MA_collection_factor_limit=10 ** 3, save_png=True,
                           show_plt=False):
-    # d_radius = r / rg_param
-    # d_theta = ((2 * math.pi) / ry_param)
-    # d_time = (0.1 * min(d_radius * d_radius, d_theta * d_theta * d_radius * d_radius)) / (2 * d)
-    # K = math.floor(T_param / d_time)
-    # relative_k = math.floor(K / collection_width)
 
     if len(N_LIST) > ry_param:
         raise IndexError(
@@ -59,6 +81,7 @@ def collect_mass_analysis(rg_param, ry_param, v_param, w_param, T_param, N_LIST,
         if N_LIST[i] < 0 or N_LIST[i] > ry_param:
             raise IndexError(
                 f'Angular index: {N_LIST[i]} falls outside of the legal index range: [0,{ry_param - 1}) under ry_param={ry_param}')
+    N_LIST.sort()
 
     d_tube_max = sup.solve_d_rect(domain_radius, rg_param, ry_param, sup.j_max_bef_overlap(ry_param, N_LIST), 0)
 
@@ -71,9 +94,6 @@ def collect_mass_analysis(rg_param, ry_param, v_param, w_param, T_param, N_LIST,
 
     K = num.compute_K(rg_param, ry_param, T_param, domain_radius, D)
     relative_k = int(np.floor(K / MA_collection_factor))
-
-    # print("Number of time-steps: ", K)
-    # print("Number of data-points to collect: ", relative_k)
 
     D_LAYER, A_LAYER = sup.initialize_layers(rg_param, ry_param)
 
@@ -94,7 +114,7 @@ def collect_mass_analysis(rg_param, ry_param, v_param, w_param, T_param, N_LIST,
 
 
 # (****) (****)
-def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d_tube=0, Timestamp_List=None,
+def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d_tube=0.0, Timestamp_List=None,
                         MA_collection_factor=5, MA_collection_factor_limit=10 ** 3,
                         D=1.0, domain_radius=1.0, mass_checkpoint=10 ** 6, T_fixed_ring_seg=0.5, R_fixed_angle=-1,
                         save_png=True, save_csv=True, show_plt=False, heat_plot_border=False,
@@ -109,6 +129,8 @@ def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d
         if N_LIST[i] < 0 or N_LIST[i] > ry_param:
             raise IndexError(
                 f'Angular index: {N_LIST[i]} falls outside of the legal index range: [0,{ry_param - 1}) under ry_param={ry_param}')
+    N_LIST.sort()
+
 
     if T_fixed_ring_seg < 0 or T_fixed_ring_seg > 1:
         print("T_fixed_ring_seg automatically adjusted to legal range.")
@@ -132,6 +154,10 @@ def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d
     if Timestamp_List is None:
         # Default timestamps
         Timestamp_List = [T_param * 0.25, T_param * 0.5, T_param * 0.75, T_param]
+    else:
+        Timestamp_List.sort()
+
+    Timestamp_List = [float(item) for item in Timestamp_List]
 
     for t in range(len(Timestamp_List)):
         if Timestamp_List[t] < 0.0 or Timestamp_List[t] > T_param:
@@ -188,7 +214,7 @@ def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d
 
     # Processing MFPT results
 
-    MFPT_results = pro.process_MFPT_results(MFPT_snapshots, Timestamp_List)
+    MFPT_results = pro.process_MFPT_results(MFPT_snapshots, Timestamp_List, 2, rg_param, ry_param, w_param, v_param, N_LIST, save_png, show_plt)
 
     # Processing results for Mass-Analysis
 
@@ -211,7 +237,7 @@ def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d
 
     static_HM_results = pro.process_static_HM_results(HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, Timestamp_List,
                                                       heat_plot_border, w_param, v_param, N_LIST, heatplot_colorscheme,
-                                                      save_png, show_plt, j_max_list, display_extraction)
+                                                      save_png, show_plt, j_max_list, display_extraction, 2)
 
     print("Successfully completed super-function. View results in project_src_package_2025/data_output.")
 
@@ -220,8 +246,9 @@ def launch_super_comp_I(rg_param, ry_param, w_param, v_param, T_param, N_LIST, d
 
 
 # (****) (****)
-def collect_MFPT_snapshots(rg_param, ry_param, N_LIST, v_param, w_param, T_param, Timestamp_LIST=None,
-                           domain_radius=1.0, D=1.0, mass_checkpoint=10 ** 6, d_tube=0):
+def collect_MFPT_snapshots(rg_param, ry_param, N_LIST, v_param, w_param, T_param, approach, checkpoint_collect_container,
+                           domain_radius=1.0, D=1.0, mass_checkpoint=10 ** 6, d_tube=0.0, save_png=True,
+                           show_plt=False):
     if len(N_LIST) > ry_param:
         raise IndexError(
             f'Too many angular indices supplied for microtubule positions: {len(N_LIST)} > {ry_param} (number of angular positions in domain).'
@@ -231,6 +258,25 @@ def collect_MFPT_snapshots(rg_param, ry_param, N_LIST, v_param, w_param, T_param
         if N_LIST[i] < 0 or N_LIST[i] > ry_param:
             raise IndexError(
                 f'Angular index: {N_LIST[i]} falls outside of the legal index range: [0,{ry_param - 1}) under ry_param={ry_param}')
+    N_LIST.sort()
+
+    if approach == 1:
+        checkpoint_collect_container.sort(reverse=True)
+    elif approach == 2:
+        for t in range(len(checkpoint_collect_container)):
+            if checkpoint_collect_container[t] < 0.0 or checkpoint_collect_container[t] > T_param:
+                raise ValueError(
+                    f"Timestamp-point: {checkpoint_collect_container[t]} falls outside of the legal timestamp-point range: [0, {T_param} (T_param) ] (T_param = your input solution time duration)")
+            dT = num.compute_dT(rg_param, ry_param, domain_radius=domain_radius, D=D)
+            T_param += dT
+        checkpoint_collect_container.sort()
+    else:
+        raise ValueError(
+            f'{approach} is not a valid argument, use either collection approach "1" or "2" (must be an int)')
+
+    checkpoint_collect_container = [float(item) for item in checkpoint_collect_container]
+
+    checkpoint_enum = len(checkpoint_collect_container)
 
     d_tube_max = sup.solve_d_rect(domain_radius, rg_param, ry_param, sup.j_max_bef_overlap(ry_param, N_LIST), 0)
 
@@ -239,27 +285,15 @@ def collect_MFPT_snapshots(rg_param, ry_param, N_LIST, v_param, w_param, T_param
 
     T_param = float(T_param)
 
-    if Timestamp_LIST is None:
-        # Default timestamps
-        Timestamp_LIST = [T_param * 0.25, T_param * 0.5, T_param * 0.75, T_param]
-
-    for t in range(len(Timestamp_LIST)):
-        if Timestamp_LIST[t] < 0.0 or Timestamp_LIST[t] > T_param:
-            raise ValueError(
-                f"Timestamp-point: {Timestamp_LIST[t]} falls outside of the legal timestamp-point range: [0, {T_param} (T_param) ] (T_param = your input solution time duration)")
-
-    dT = num.compute_dT(rg_param, ry_param, domain_radius=domain_radius, D=D)
-    T_param += dT
-    Timestamp_enum = len(Timestamp_LIST)
-
     D_LAYER, A_LAYER = sup.initialize_layers(rg_param, ry_param)
-    MFPT_snapshots = np.zeros([Timestamp_enum], dtype=np.float64)
+    MFPT_snapshots = np.zeros([checkpoint_enum], dtype=np.float64)
 
     mfpt_comp.comp_mfpt_by_time_points(rg_param, ry_param, w_param, w_param, v_param, N_LIST, D_LAYER, A_LAYER,
-                                       Timestamp_LIST, MFPT_snapshots, T_param, mass_checkpoint, domain_radius, D,
+                                       checkpoint_collect_container, MFPT_snapshots, T_param, approach, mass_checkpoint, domain_radius, D,
                                        d_tube)
 
-    return pro.process_MFPT_results(MFPT_snapshots, Timestamp_LIST)
+    return pro.process_MFPT_results(MFPT_snapshots, checkpoint_collect_container, approach, rg_param, ry_param, w_param, v_param, N_LIST,
+                                    save_png, show_plt)
 
 
 # (****) (****)
@@ -274,6 +308,7 @@ def output_time_until_mass_depletion(rg_param, ry_param, N_LIST, v_param, w_para
     for i in range(len(N_LIST)):
         if N_LIST[i] < 0 or N_LIST[i] > ry_param:
             raise IndexError(f'Angle {N_LIST[i]} is out of bounds, your range should be [0, {ry_param - 1}]')
+    N_LIST.sort()
 
     duration = ant.comp_until_mass_depletion(rg_param, ry_param, w_param, w_param,
                                              v_param, N_LIST, D_LAYER, A_LAYER, domain_radius, D, mass_threshold,
@@ -286,6 +321,7 @@ def collect_density_rad_depend(rg_param, ry_param, N_LIST, v_param, w_param, T_p
                                R_fixed_angle=-1, approach=2, domain_radius=1.0, D=1.0,
                                d_tube=0.0, mass_retention_threshold=0.01, mass_checkpoint=10 ** 6, save_png=True,
                                show_plt=False):
+
     if len(N_LIST) > ry_param:
         raise IndexError(
             f'Too many angular indices supplied for microtubule positions: {len(N_LIST)} > {ry_param} (number of angular positions in domain).'
@@ -295,6 +331,24 @@ def collect_density_rad_depend(rg_param, ry_param, N_LIST, v_param, w_param, T_p
         if N_LIST[i] < 0 or N_LIST[i] > ry_param:
             raise IndexError(
                 f'Angular index: {N_LIST[i]} falls outside of the legal index range: [0,{ry_param - 1}) under ry_param={ry_param}')
+
+    N_LIST.sort()
+
+    if approach == 1:
+        checkpoint_collect_container.sort(reverse=True)
+    elif approach == 2:
+        for t in range(len(checkpoint_collect_container)):
+            if checkpoint_collect_container[t] < 0.0 or checkpoint_collect_container[t] > T_param:
+                raise ValueError(
+                    f"Timestamp-point: {checkpoint_collect_container[t]} falls outside of the legal timestamp-point range: [0, {T_param} (T_param) ] (T_param = your input solution time duration)")
+            dT = num.compute_dT(rg_param, ry_param, domain_radius=domain_radius, D=D)
+            T_param += dT
+        checkpoint_collect_container.sort()
+    else:
+        raise ValueError(
+            f'{approach} is not a valid argument, use either collection approach "1" or "2" (must be an int)')
+
+    checkpoint_collect_container = [float(item) for item in checkpoint_collect_container]
 
     d_tube_max = sup.solve_d_rect(domain_radius, rg_param, ry_param, sup.j_max_bef_overlap(ry_param, N_LIST), 0)
 
@@ -321,16 +375,13 @@ def collect_density_rad_depend(rg_param, ry_param, N_LIST, v_param, w_param, T_p
                                           ry_param, R_fixed_angle,
                                           checkpoint_collect_container, save_png, show_plt, approach)
 
-    print(output_list)
-    print(type(output_list))
-
     return output_list
 
 
 # (****) (****)
 def solve_mfpt_(rg_param, ry_param, N_LIST, v_param, w_param, T_param, domain_radius=1.0, D=1.0,
                 mass_checkpoint=10 ** 6,
-                d_tube=0):
+                d_tube=0.0):
     if len(N_LIST) > ry_param:
         raise IndexError(
             f'Too many angular indices supplied for microtubule positions: {len(N_LIST)} > {ry_param} (number of angular positions in domain).'
@@ -340,6 +391,8 @@ def solve_mfpt_(rg_param, ry_param, N_LIST, v_param, w_param, T_param, domain_ra
         if N_LIST[i] < 0 or N_LIST[i] > ry_param:
             raise IndexError(
                 f'Angular index: {N_LIST[i]} falls outside of the legal index range: [0,{ry_param - 1}) under ry_param={ry_param}')
+
+    N_LIST.sort()
 
     d_tube_max = sup.solve_d_rect(domain_radius, rg_param, ry_param, sup.j_max_bef_overlap(ry_param, N_LIST), 0)
 
@@ -352,27 +405,82 @@ def solve_mfpt_(rg_param, ry_param, N_LIST, v_param, w_param, T_param, domain_ra
     return MFPT
 
 
-# (****> Requires non-numerical updates <****)
-def heatmap_production(rg_param, ry_param, w_param, v_param, N_param, filepath=fp.heatmap_output,
-                       time_point_container=None,
-                       save_png=True, show_plot=True, compute_MFPT=True, verbose=False, output_csv=True,
-                       rect_config=False,
-                       d_tube=-1, r=1.0, d=1.0, mass_retention_threshold=0.01, mass_checkpoint=10 ** 6,
-                       color_scheme='viridis',
-                       toggle_border=False, display_extraction=True, approach=2):
-    ani.generate_heatmaps(rg_param=rg_param, ry_param=ry_param, w_param=w_param, v_param=v_param, N_param=N_param,
-                          approach=approach,
-                          filepath=filepath, time_point_container=time_point_container, save_png=save_png,
-                          show_plot=show_plot, compute_mfpt=compute_MFPT,
-                          verbose=verbose, output_csv=output_csv, rect_config=rect_config, d_tube=d_tube, r=r, d=d,
-                          mass_retention_threshold=mass_retention_threshold,
-                          mass_checkpoint=mass_checkpoint, color_scheme=color_scheme, toggle_border=toggle_border,
-                          display_extraction=display_extraction)
+# (****) (****)
+def heatmap_production(rg_param, ry_param, N_LIST, v_param, w_param, T_param, checkpoint_collect_container, approach,
+                       domain_radius=1.0, D=1.0, mass_checkpoint=10 ** 6, d_tube=0.0, mass_retention_threshold=0.01,
+                       heatplot_border=False, heatplot_colorscheme='viridis', save_png=True,
+                       show_plt=True, display_extraction=True):
 
-    '''
-        If approach 2 is selected, only run the diffusive snapshot collection function until the last/maximum time point in the time-point container.
-        The list of time-points should always be sorted in increasing order. 
-    '''
+    if len(N_LIST) > ry_param:
+        raise IndexError(
+            f'Too many angular indices supplied for microtubule positions: {len(N_LIST)} > {ry_param} (number of angular positions in domain).'
+        )
+
+    for i in range(len(N_LIST)):
+        if N_LIST[i] < 0 or N_LIST[i] > ry_param:
+            raise IndexError(
+                f'Angular index: {N_LIST[i]} falls outside of the legal index range: [0,{ry_param - 1}) under ry_param={ry_param}')
+
+    N_LIST.sort()
+
+    d_tube_max = sup.solve_d_rect(domain_radius, rg_param, ry_param, sup.j_max_bef_overlap(ry_param, N_LIST), 0)
+
+    if d_tube < 0 or d_tube > d_tube_max:
+        raise ValueError(f"d_tube: {d_tube} is outside of the legal range: [0, {d_tube_max}")
+
+    checkpoint_enum = len(checkpoint_collect_container)
+
+    if approach == 1:
+        checkpoint_collect_container.sort(reverse=True)
+    elif approach == 2:
+        for t in range(len(checkpoint_collect_container)):
+            if checkpoint_collect_container[t] < 0.0 or checkpoint_collect_container[t] > T_param:
+                raise ValueError(
+                    f"Timestamp-point: {checkpoint_collect_container[t]} falls outside of the legal timestamp-point range: [0, {T_param} (T_param) ] (T_param = your input solution time duration)")
+            dT = num.compute_dT(rg_param, ry_param, domain_radius=domain_radius, D=D)
+            T_param += dT
+        checkpoint_collect_container.sort()
+    else:
+        raise ValueError(
+            f'{approach} is not a valid argument, use either collection approach "1" or "2" (must be an int)')
+
+    checkpoint_collect_container = [float(item) for item in checkpoint_collect_container]
+
+    j_max_list = struct_init.build_j_max_list(rg_param, ry_param, N_LIST, d_tube, domain_radius)
+
+    # Initialize layers
+    D_LAYER, A_LAYER = sup.initialize_layers(rg_param, ry_param)
+
+    HM_DL_snapshots = np.zeros((checkpoint_enum, rg_param, ry_param), dtype=np.float64)
+    HM_C_snapshots = np.zeros([checkpoint_enum], dtype=np.float64)
+    MFPT_snapshots = np.zeros([checkpoint_enum], dtype=np.float64)
+
+    ant.comp_diffusive_snapshots(rg_param, ry_param, w_param, w_param, v_param, T_param, N_LIST,
+                                 D_LAYER, A_LAYER, HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, approach, checkpoint_collect_container, domain_radius, D, mass_retention_threshold,
+                                 mass_checkpoint, d_tube)
+
+    return pro.process_static_HM_results(HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, checkpoint_collect_container, heatplot_border, w_param, v_param,
+                                         N_LIST, heatplot_colorscheme, save_png, show_plt, j_max_list, display_extraction, approach)
+
+
+# (****> Requires non-numerical updates <****)
+# def heatmap_production(rg_param, ry_param, w_param, v_param, N_LIST, filepath=fp.heatmap_output,
+#                        time_point_container=None,
+#                        save_png=True, show_plot=True, compute_MFPT=True, verbose=False, output_csv=True,
+#                        rect_config=False,
+#                        d_tube=-1, r=1.0, d=1.0, mass_retention_threshold=0.01, mass_checkpoint=10 ** 6,
+#                        color_scheme='viridis',
+#                        toggle_border=False, display_extraction=True, approach=2):
+#
+#     ani.generate_heatmaps(rg_param=rg_param, ry_param=ry_param, w_param=w_param, v_param=v_param, N_param=N_LIST,
+#                           approach=approach,
+#                           filepath=filepath, time_point_container=time_point_container, save_png=save_png,
+#                           show_plot=show_plot, compute_mfpt=compute_MFPT,
+#                           verbose=verbose, output_csv=output_csv, rect_config=rect_config, d_tube=d_tube, r=r, d=d,
+#                           mass_retention_threshold=mass_retention_threshold,
+#                           mass_checkpoint=mass_checkpoint, color_scheme=color_scheme, toggle_border=toggle_border,
+#                           display_extraction=display_extraction)
+
 
 # <***************************** UNDER DEVELOPMENT/REQUIRES MORE TESTING *****************************>
 
