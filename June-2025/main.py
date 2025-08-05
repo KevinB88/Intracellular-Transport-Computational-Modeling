@@ -1,17 +1,6 @@
 import sys
 import os
-# from datetime import datetime
-# from contextlib import redirect_stdout
-from project_src_package_2025.gui_components import main_gui as gui
-from project_src_package_2025.launch_functions import launch
-# from project_src_package_2025.auxiliary_tools import validity_checks as val
-# from project_src_package_2025.system_configuration import file_paths as fp
-# from project_src_package_2025.computational_tools import analysis_tools as ant
-from project_src_package_2025.computational_tools import supplements as sup
-# from project_src_package_2025.data_visualization import ani_evolution as evo
-from project_src_package_2025.experimental.computational_test import numerical_methods as test
-from multiprocessing import freeze_support
-from pathlib import Path
+from gui_components import main_gui as gui
 
 
 def run_main():
