@@ -93,41 +93,6 @@ def super_comp_type_I(rg_param, ry_param, switch_param_a, switch_param_b, T_para
         # ************ -------------------------------------------------------------------------- ************
         net_current_escape = 0
         net_current_escape += num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST, dRad, dThe, dT, switch_param_a, switch_param_b, v_param, d_tube)
-        # m = 0
-        # while m < rg_param:
-        #     # Current angular index in N_LIST
-        #     aIdx = 0
-        #     n = 0
-        #     while n < ry_param:
-        #         if m == rg_param - 1:
-        #             D_LAYER[1][m][n] = 0
-        #         else:
-        #             if n in d_list[m]:
-        #                 D_LAYER[1][m][n] = num.u_density_rect(
-        #                     D_LAYER, 0, m, n, dRad, dThe, dT,
-        #                     central_patch, rg_param, A_LAYER, int(d_list[m][n]),
-        #                     switch_param_a, switch_param_b, d_tube
-        #                 )
-        #             else:
-        #                 D_LAYER[1][m][n] = num.u_density(
-        #                     D_LAYER, 0, m, n, dRad, dThe, dT,
-        #                     central_patch, rg_param, A_LAYER,
-        #                     aIdx, switch_param_a, switch_param_b,
-        #                     N_LIST)
-        #
-        #             # update the advective layer
-        #             if n == N_LIST[aIdx]:
-        #                 A_LAYER[1][m][n] = num.u_tube_rect(
-        #                     A_LAYER, D_LAYER, 0, m, n,
-        #                     switch_param_a, switch_param_b, v_param, dT, dRad, dThe, d_tube)
-        #                 if aIdx < len(N_LIST) - 1:
-        #                     aIdx += 1
-        #
-        #             if m == rg_param - 2:
-        #                 net_current_escape += num.j_r_r(D_LAYER, 0, m, n, dRad, 0) * rg_param * dRad * dThe
-        #         n += 1
-        #     m += 1
-            # ************ -------------------------------------------------------------------------- ************
 
         if k > 0 and k % mass_checkpoint == 0:
             print("Current timestep: ", k, "Current simulation time: ", k * dT, "Current DL mass: ", dl_mass, "Current AL mass: ", al_mass)
@@ -187,8 +152,40 @@ def super_comp_type_I(rg_param, ry_param, switch_param_a, switch_param_b, T_para
 
         k += 1
     # ------------%%%%%%%%%%%% collect results and update parameters for the next time-step %%%%%%%%%%%%------------
-
-
+        # m = 0
+        # while m < rg_param:
+        #     # Current angular index in N_LIST
+        #     aIdx = 0
+        #     n = 0
+        #     while n < ry_param:
+        #         if m == rg_param - 1:
+        #             D_LAYER[1][m][n] = 0
+        #         else:
+        #             if n in d_list[m]:
+        #                 D_LAYER[1][m][n] = num.u_density_rect(
+        #                     D_LAYER, 0, m, n, dRad, dThe, dT,
+        #                     central_patch, rg_param, A_LAYER, int(d_list[m][n]),
+        #                     switch_param_a, switch_param_b, d_tube
+        #                 )
+        #             else:
+        #                 D_LAYER[1][m][n] = num.u_density(
+        #                     D_LAYER, 0, m, n, dRad, dThe, dT,
+        #                     central_patch, rg_param, A_LAYER,
+        #                     aIdx, switch_param_a, switch_param_b,
+        #                     N_LIST)
+        #
+        #             # update the advective layer
+        #             if n == N_LIST[aIdx]:
+        #                 A_LAYER[1][m][n] = num.u_tube_rect(
+        #                     A_LAYER, D_LAYER, 0, m, n,
+        #                     switch_param_a, switch_param_b, v_param, dT, dRad, dThe, d_tube)
+        #                 if aIdx < len(N_LIST) - 1:
+        #                     aIdx += 1
+        #
+        #             if m == rg_param - 2:
+        #                 net_current_escape += num.j_r_r(D_LAYER, 0, m, n, dRad, 0) * rg_param * dRad * dThe
+        #         n += 1
+        #     m += 1
 
 
 
