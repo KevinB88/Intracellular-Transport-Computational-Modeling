@@ -374,6 +374,11 @@ class ControlPanel(QWidget):
     # ============================================== FUNCTIONS ==============================================
 
     # 1 v------------------------------------------- Static functions --------------------------------------------v
+    def show_param_hint(self, param_name):
+        from PyQt5.QtWidgets import QMessageBox
+        hint = getattr(parmas_config, "PARAMETER_HINTS", {}).get(param_name, "No hint available for this parameter.")
+        QMessageBox.information(self, f"Hint: {param_name}", hint)
+
     @staticmethod
     def get_widget_center_global(widget):
         geom = widget.geometry()
@@ -758,6 +763,7 @@ class ControlPanel(QWidget):
     # ^-------------------------------------------- Computation launch functions (MP) --------------------------------------------^
 
     # 6 v-------------------------------------------- UI functions for I/O ops --------------------------------------------v
+
     def update_parameter_fields(self, computation_name):
         # Clear previous inputs
         for i in reversed(range(self.param_form.count())):
@@ -767,28 +773,78 @@ class ControlPanel(QWidget):
         self.advanced_widgets.clear()
 
         schema = parmas_config.PARAMETER_SCHEMAS[computation_name]
+        hints = parmas_config.PARAMETER_HINTS  # <-- Hints dictionary
 
-        # Add required fields
-        for param, default in schema.get("required", [ ]):
+        # === Required parameters ===
+        for param, _ in schema.get("required", [ ]):
             input_field = QLineEdit()
             input_field.installEventFilter(self)
-            self.param_form.addRow(f"{param}:", input_field)
+
+            label = QLabel(f"{param}:")
             self.param_inputs[param] = input_field
 
-        # Add default/advanced fields (initially hidden)
-        for param, value in schema.get("default", []):
+            # Set hover-based tooltip if hint is available
+            if param in hints:
+                label.setToolTip(hints[param])
+                input_field.setToolTip(hints[param])
+
+            self.param_form.addRow(label, input_field)
+
+        # === Default (advanced) parameters ===
+        for param, value in schema.get("default", [ ]):
             input_field = QLineEdit(str(value))
             input_field.installEventFilter(self)
-            self.param_inputs[param] = input_field
+            input_field.setVisible(False)
+
             label = QLabel(f"{param}:")
             label.setVisible(False)
-            input_field.setVisible(False)
+
+            self.param_inputs[param] = input_field
+
+            # Set hover-based tooltip if hint is available
+            if param in hints:
+                label.setToolTip(hints[param])
+                input_field.setToolTip(hints[param])
+
             self.param_form.addRow(label, input_field)
             self.advanced_widgets.append((label, input_field))
 
         self.setup_d_tube_live_check()
+
         for field in self.param_inputs.values():
             field.textChanged.connect(self.validate_computation)
+
+    # def update_parameter_fields(self, computation_name):
+    #     # Clear previous inputs
+    #     for i in reversed(range(self.param_form.count())):
+    #         self.param_form.removeRow(i)
+    #
+    #     self.param_inputs.clear()
+    #     self.advanced_widgets.clear()
+    #
+    #     schema = parmas_config.PARAMETER_SCHEMAS[computation_name]
+    #
+    #     # Add required fields
+    #     for param, default in schema.get("required", [ ]):
+    #         input_field = QLineEdit()
+    #         input_field.installEventFilter(self)
+    #         self.param_form.addRow(f"{param}:", input_field)
+    #         self.param_inputs[param] = input_field
+    #
+    #     # Add default/advanced fields (initially hidden)
+    #     for param, value in schema.get("default", []):
+    #         input_field = QLineEdit(str(value))
+    #         input_field.installEventFilter(self)
+    #         self.param_inputs[param] = input_field
+    #         label = QLabel(f"{param}:")
+    #         label.setVisible(False)
+    #         input_field.setVisible(False)
+    #         self.param_form.addRow(label, input_field)
+    #         self.advanced_widgets.append((label, input_field))
+    #
+    #     self.setup_d_tube_live_check()
+    #     for field in self.param_inputs.values():
+    #         field.textChanged.connect(self.validate_computation)
 
     """
         ^^^^^^^^ 
