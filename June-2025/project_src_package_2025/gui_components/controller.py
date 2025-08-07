@@ -3,11 +3,12 @@
 import ast
 import os
 from . import launch
-from multiprocessing import Process
+# from multiprocessing import Process
 
 
 COMPUTATION_FUNCTIONS = {
-    "Solve MFPT": launch.solve_mfpt_,
+    "Solve MFPT Time": launch.solve_mfpt_time_,
+    "Solve MFPT Mass": launch.solve_mfpt_mass_,
     "Time Until Mass Depletion": launch.output_time_until_mass_depletion,
     "Phi Angular Dependence": launch.collect_phi_ang_dep,
     "Density Radial Dependence": launch.collect_density_rad_depend,
@@ -50,7 +51,7 @@ def run_selected_computation(computation_name, param_dict):
     result = func(**parsed_inputs)
 
     # --- Case 1: Solve MFPT ---
-    if computation_name == "Solve MFPT":
+    if computation_name == "Solve MFPT Time":
         output = {}
         if isinstance(result, tuple):
             output["MFPT"] = result[0]
@@ -59,6 +60,15 @@ def run_selected_computation(computation_name, param_dict):
             output["MFPT"] = result.get("MFPT")
             if "duration" in result and isinstance(result["duration"], (int, float)):
                 output["duration"] = result["duration"]
+        else:
+            output["MFPT"] = result
+        return output
+
+    if computation_name == "Solve MFPT Mass":
+        output = {}
+        if isinstance(result, tuple):
+            output["MFPT"] = result[0]
+            output["duration"] = result[1]
         else:
             output["MFPT"] = result
         return output

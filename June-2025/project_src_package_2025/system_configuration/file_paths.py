@@ -16,10 +16,12 @@ general_output = BASE_DIR / "data_output"
 mfpt_results_output = general_output / "mfpt-results"
 heatmap_output = general_output / "heatmaps"
 phi_v_theta_output = general_output / "diffusive-v-theta"
+# phi_v_theta_output = "/Users/kbedoya88/Desktop"
 
 # Density outputs
 angular_dependence_phi = general_output / "density-results/angular-dependence/diffusive"
-angular_dependence_rho = general_output / "density-results/angular-dependence/rho"
+# angular_dependence_phi = "/Users/kbedoya88/Desktop"
+# angular_dependence_rho = general_output / "density-results/angular-dependence/rho"
 radial_dependence_phi = general_output / "density-results/radial-dependence/diffusive"
 radial_dependence_rho = general_output / "density-results/radial-dependence/rho"
 

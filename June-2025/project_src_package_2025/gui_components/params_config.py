@@ -1,6 +1,6 @@
 
 PARAMETER_SCHEMAS = {
-    "Solve MFPT": {
+    "Solve MFPT Time": {
         "required": [
             ("rg_param", ""),
             ("ry_param", ""),
@@ -16,6 +16,22 @@ PARAMETER_SCHEMAS = {
             ("d_tube", 0)
         ]
     },
+    "Solve MFPT Mass": {
+            "required": [
+                ("rg_param", ""),
+                ("ry_param", ""),
+                ("N_LIST", ""),
+                ("v_param", ""),
+                ("w_param", "")
+            ],
+            "default": [
+                ("domain_radius", 1.0),
+                ("D", 1.0),
+                ("mass_checkpoint", int(1e6)),
+                ("mass_retention_threshold", 1e-2),
+                ("d_tube", 0)
+            ]
+        },
     "Time Until Mass Depletion": {
         "required": [
             ("rg_param", ""),
@@ -47,7 +63,7 @@ PARAMETER_SCHEMAS = {
             ("d_tube", 0),
             ("domain_radius", 1.0),
             ("D", 1.0),
-            ("mass_retention_threshold", int(1e-2)),
+            ("mass_retention_threshold", 1e-2),
             ("mass_checkpoint", int(1e6)),
             ("save_png", True),
             ("show_plt", False)
@@ -69,7 +85,7 @@ PARAMETER_SCHEMAS = {
             ("domain_radius", 1.0),
             ("D", 1.0),
             ("d_tube", 0),
-            ("mass_retention_threshold", int(1e-2)),
+            ("mass_retention_threshold", 1e-2),
             ("mass_checkpoint", int(1e6)),
             ("save_png", True),
             ("show_plt", False)
@@ -161,7 +177,7 @@ PARAMETER_SCHEMAS = {
                     ("D", 1.0),
                     ("mass_checkpoint", int(1e6)),
                     ("d_tube", 0.0),
-                    ("mass_retention_threshold", int(1e-2)),
+                    ("mass_retention_threshold", 1e-2),
                     ("heatplot_border", False),
                     ("heatplot_colorscheme", 'viridis'),
                     ("save_png", True),

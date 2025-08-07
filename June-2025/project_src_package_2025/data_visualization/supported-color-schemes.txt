@@ -11,7 +11,7 @@
 'Purples', 'Purples_r', 'RdBu', 'RdBu_r',
 'RdGy', 'RdGy_r', 'RdPu', 'RdPu_r',
 'RdYlBu', 'RdYlBu_r', 'RdYlGn', 'RdYlGn_r',
-'Reds', 'Reds_r', 'Set1', 'Set1_r',
+'Reds', 'Resds_r', 'Set1', 'Set1_r',
 'Set2', 'Set2_r', 'Set3', 'Set3_r',
 'Spectral', 'Spectral_r', 'Wistia',
 'Wistia_r', 'YlGn', 'YlGnBu', 'YlGnBu_r',

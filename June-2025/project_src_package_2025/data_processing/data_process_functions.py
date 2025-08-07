@@ -1,10 +1,12 @@
-from project_src_package_2025.system_configuration import file_paths as fp
-from project_src_package_2025.auxiliary_tools import prints, tabulate_functions as tb
-from project_src_package_2025.data_visualization import plot_functions as plt
-from project_src_package_2025.data_visualization import animation_functions as ani
+from system_configuration import file_paths as fp
+from auxiliary_tools import prints, tabulate_functions as tb
+from data_visualization import plot_functions as plt, animation_functions as ani
+from computational_tools import numerical_tools as num
+
 import pandas as pd
 import time
 import os
+import numpy as np
 
 
 def process_PvT_DL(PvT_DL_snapshots, v_param, w_param, N_LIST, T_fixed_ring_seg, save_png, show_plt, Timestamp_List, approach):
@@ -30,18 +32,29 @@ def process_PvT_DL(PvT_DL_snapshots, v_param, w_param, N_LIST, T_fixed_ring_seg,
 
 def process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_ALoT_timeseries,
                        MA_ALoI_timeseries, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
-                       save_png, show_plt):
+                       save_png, show_plt, mass_collection_factor, domain_radius, D):
 
     output_location_list = []
+
+    dt = num.compute_dT(rg_param, ry_param, domain_radius, D)
+
+    T_mesh = [dt * mass_collection_factor * t for t in range(len(MA_DL_timeseries))]
 
     # Diffusive mass analysis
     timestamp = prints.return_timestamp()
     data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_diffusive, timestamp))
+
     filename = f"MA_DL.csv"
     output_location = os.path.join(data_filepath, filename)
 
-    df = pd.DataFrame(MA_DL_timeseries)
-    df.to_csv(output_location, header=False, index=False)
+    data_dict = {
+        'T': T_mesh,
+        'M': MA_DL_timeseries
+    }
+
+    df = pd.DataFrame(data_dict)
+
+    df.to_csv(output_location, index=False)
     plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
                            "DL", "DL", data_filepath, save_png, show_plt)
     output_location_list.append(output_location)
@@ -52,8 +65,14 @@ def process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_
     filename = f"MA_AL.csv"
     output_location = os.path.join(data_filepath, filename)
 
-    df = pd.DataFrame(MA_AL_timeseries)
-    df.to_csv(output_location, header=False, index=False)
+    data_dict = {
+        'T': T_mesh,
+        'M': MA_AL_timeseries
+    }
+
+    df = pd.DataFrame(data_dict)
+
+    df.to_csv(output_location, index=False)
     plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
                            "AL", "AL", data_filepath, save_png, show_plt)
     output_location_list.append(output_location)
@@ -64,8 +83,14 @@ def process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_
     filename = f"MA_total.csv"
     output_location = os.path.join(data_filepath, filename)
 
-    df = pd.DataFrame(MA_TM_timeseries)
-    df.to_csv(output_location, header=False, index=False)
+    data_dict = {
+        'T': T_mesh,
+        'M': MA_TM_timeseries
+    }
+
+    df = pd.DataFrame(data_dict)
+
+    df.to_csv(output_location, index=False)
     plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
                            "Total", "Total", data_filepath, save_png, show_plt)
     output_location_list.append(output_location)
@@ -76,8 +101,14 @@ def process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_
     filename = f"MA_AL_running_total.csv"
     output_location = os.path.join(data_filepath, filename)
 
-    df = pd.DataFrame(MA_ALoT_timeseries)
-    df.to_csv(output_location, header=False, index=False)
+    data_dict = {
+        'T': T_mesh,
+        'M': MA_ALoT_timeseries
+    }
+
+    df = pd.DataFrame(data_dict)
+
+    df.to_csv(output_location, index=False)
     plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
                            "AL/running total", "Al_running_total", data_filepath, save_png, show_plt)
     output_location_list.append(output_location)
@@ -88,8 +119,14 @@ def process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_
     filename = f"MA_AL_initial_total.csv"
     output_location = os.path.join(data_filepath, filename)
 
-    df = pd.DataFrame(MA_ALoI_timeseries)
-    df.to_csv(output_location, header=False, index=False)
+    data_dict = {
+        'T': T_mesh,
+        'M': MA_ALoI_timeseries
+    }
+
+    df = pd.DataFrame(data_dict)
+
+    df.to_csv(output_location, index=False)
     plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
                            "AL/initial total", "AL_initial_total", data_filepath, save_png, show_plt)
     output_location_list.append(output_location)

@@ -110,7 +110,7 @@ def collect_mass_analysis(rg_param, ry_param, v_param, w_param, T_param, N_LIST,
 
     return pro.process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_ALoT_timeseries,
                                   MA_ALoI_timeseries,
-                                  v_param, w_param, N_LIST, T_param, rg_param, ry_param, save_png, show_plt)
+                                  v_param, w_param, N_LIST, T_param, rg_param, ry_param, save_png, show_plt, MA_collection_factor, domain_radius, D)
 
 
 # (****) (****)
@@ -379,7 +379,7 @@ def collect_density_rad_depend(rg_param, ry_param, N_LIST, v_param, w_param, T_p
 
 
 # (****) (****)
-def solve_mfpt_(rg_param, ry_param, N_LIST, v_param, w_param, T_param, domain_radius=1.0, D=1.0,
+def solve_mfpt_time_(rg_param, ry_param, N_LIST, v_param, w_param, T_param, domain_radius=1.0, D=1.0,
                 mass_checkpoint=10 ** 6,
                 d_tube=0.0):
     if len(N_LIST) > ry_param:
@@ -403,6 +403,30 @@ def solve_mfpt_(rg_param, ry_param, N_LIST, v_param, w_param, T_param, domain_ra
     MFPT = mfpt_comp.comp_mfpt_by_time(rg_param, ry_param, w_param, w_param, v_param, N_LIST,
                                        D_LAYER, A_LAYER, T_param, mass_checkpoint, domain_radius, D, d_tube)
     return MFPT
+
+
+def solve_mfpt_mass_(rg_param, ry_param, N_LIST, v_param, w_param, domain_radius=1.0, D=1.0, mass_checkpoint=10**6, mass_retention_threshold=0.01, d_tube=0.0):
+    if len(N_LIST) > ry_param:
+        raise IndexError(
+            f'Too many angular indices supplied for microtubule positions: {len(N_LIST)} > {ry_param} (number of angular positions in domain).'
+        )
+
+    for i in range(len(N_LIST)):
+        if N_LIST[i] < 0 or N_LIST[i] > ry_param:
+            raise IndexError(
+                f'Angular index: {N_LIST[i]} falls outside of the legal index range: [0,{ry_param - 1}) under ry_param={ry_param}')
+
+    N_LIST.sort()
+
+    d_tube_max = sup.solve_d_rect(domain_radius, rg_param, ry_param, sup.j_max_bef_overlap(ry_param, N_LIST), 0)
+
+    if d_tube < 0 or d_tube > d_tube_max:
+        raise ValueError(f"d_tube: {d_tube} is outside of the legal range: [0, {d_tube_max}")
+
+    D_LAYER, A_LAYER = sup.initialize_layers(rg_param, ry_param)
+    MFPT, sim_time = mfpt_comp.comp_mfpt_by_mass_loss_rect(rg_param, ry_param, w_param, w_param, v_param, N_LIST, D_LAYER, A_LAYER,
+                                                           mass_checkpoint, domain_radius, D, mass_retention_threshold, d_tube)
+    return MFPT, sim_time
 
 
 # (****) (****)

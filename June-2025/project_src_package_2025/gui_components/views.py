@@ -44,7 +44,10 @@ from PyQt5.QtCore import QTimer
 import sys
 from pathlib import Path
 
-from project_src_package_2025.gui_components.GUI_modular_plan.parameter_section import ParameterSection
+from project_src_package_2025.multiprocessing_tools.compute_worker import compute_and_send
+
+
+# from project_src_package_2025.gui_components.GUI_modular_plan.parameter_section import ParameterSection
 
 if getattr(sys, 'frozen', False):
     base_dir = Path(getattr(sys, '_MEIPASS', Path(sys.executable).parent))
@@ -408,13 +411,13 @@ class ControlPanel(QWidget):
         height = widget.height()
         return {"width:": width, "height": height}
 
-    @staticmethod
-    def compute_and_send(queue, computation_name, param_dict):
-        try:
-            result = controller.run_selected_computation(computation_name, param_dict)
-            queue.put({"status": "ok", "result": result})
-        except Exception as e:
-            queue.put({"status": "error", "message": str(e)})
+    # @staticmethod
+    # def compute_and_send(queue, computation_name, param_dict):
+    #     try:
+    #         result = controller.run_selected_computation(computation_name, param_dict)
+    #         queue.put({"status": "ok", "result": result})
+    #     except Exception as e:
+    #         queue.put({"status": "error", "message": str(e)})
 
     @staticmethod
     def produce_timestamp():
@@ -670,9 +673,9 @@ class ControlPanel(QWidget):
 
                 self.output_display.append(
                     f"Computation {computation_name} executed successfully.  [{self.produce_timestamp()}]")
-                self.process_result(response[ "result" ])
+                self.process_result(response["result"])
             else:
-                QMessageBox.critical(self, "Error", response[ "message" ])
+                QMessageBox.critical(self, "Error", response["message"])
                 self.output_display.append(f"Computation {computation_name} failed.     [{self.produce_timestamp()}]")
                 self.set_launch_color("error")
             self.launch_button.setEnabled(True)
@@ -699,7 +702,7 @@ class ControlPanel(QWidget):
                 f"Launching computation: {computation_name}...       [{self.produce_timestamp()}]")
 
             self.mp_queue = Queue()
-            self.mp_process = Process(target=self.compute_and_send, args=(self.mp_queue, computation_name, inputs))
+            self.mp_process = Process(target=compute_and_send, args=(self.mp_queue, computation_name, inputs))
             self.mp_process.start()
 
             # Start polling for results
@@ -729,8 +732,8 @@ class ControlPanel(QWidget):
             # self.duration_label.setText(f"Duration: {result['duration']:.6f}")
             # self.duration_label.show()
 
-        csv_paths = [ ]
-        png_paths = [ ]
+        csv_paths = []
+        png_paths = []
 
         if "output_dirs" in result:
             csv_paths, png_paths = aux_gui_funcs.extract_csv_and_png_paths(result[ "output_dirs" ])
@@ -1027,7 +1030,7 @@ class ControlPanel(QWidget):
         self.output_display.repaint()
 
         self.job_queue = Queue()
-        self.job_process = Process(target=self.compute_and_send, args=(self.job_queue, job.comp_type, job.params))
+        self.job_process = Process(target=compute_and_send, args=(self.job_queue, job.comp_type, job.params))
         self.job_process.start()
 
         self.job_timer = QTimer()

@@ -6,7 +6,7 @@ from . import views
 from . import fp
 
 from project_src_package_2025.gui_components.GUI_modular_plan.views_mod import ControlPanel
-
+from project_src_package_2025.gui_components import styles
 
 class GridOverlay(QWidget):
     def __init__(self, parent=None):
@@ -89,6 +89,13 @@ def run_app():
     style_data = resources.files('project_src_package_2025.gui_components.styles') \
         .joinpath('style.qss') \
         .read_text()
+
+    # style_data = resources.files(styles).joinpath('style.qss').read_text()
+
+    # from importlib.resources import read_text
+    # from project_src_package_2025.gui_components import styles
+    #
+    # style_data = read_text(styles, "style.qss")
 
     app.setStyleSheet(style_data)
 

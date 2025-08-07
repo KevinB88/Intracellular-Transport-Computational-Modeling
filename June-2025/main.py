@@ -1,23 +1,25 @@
-import sys
-import os
+import multiprocessing
 from gui_components import main_gui as gui
-
+from launch_functions import launch
+from computational_tools import numerical_tools as num
 
 def run_main():
-
-    rg_param = 16
-    ry_param = 16
-    v_param = 10.0
-    w_param = 100
-    N_LIST = [0, 4, 8, 12]
-    T_param = 2
-    T_points = [0.75, 0.5, 0.25]
-
     gui.run_app()
 
 
 if __name__ == "__main__":
+    multiprocessing.set_start_method("spawn", force=True)
+    # print(launch.solve_mfpt_mass_(16, 16, [0, 4, 8, 12], 1, 1))
     run_main()
+
+
+"""
+    Tasks:
+        1) Adjust the user visibility of the GUI.
+        2) Include submenu for determining an approach for certain methods:
+            Submenus for approach 1 and approach 2: 
+                phi-v-theta, phi/rho v radius, full-analysis, MFPT computation
+"""
 
 
 # today_str = datetime.now().strftime("%Y-%m-%d")

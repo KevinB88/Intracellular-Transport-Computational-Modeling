@@ -186,15 +186,15 @@ def plot_dense_v_rad(y_lab, data_filepath, v, w, N, rings, rays, fixed_angle, ch
 
 def plot_mass_analysis(data_filepath, v, w, N, T, rings, rays, mass_type, file_name_mass_type, file_path, save_png=True, show_plt=True):
 
-    data = pd.read_csv(data_filepath, header=None)
+    data = pd.read_csv(data_filepath)
 
     # Plot each row of data
     plt.figure(figsize=(10, 6))
 
-    y = data
-    discretization = len(data)
-    x = np.linspace(0, T, discretization)
-
+    x = data['T']
+    y = data['M']
+    # discretization = len(data)
+    # x = np.linspace(0, T, discretization)
     plt.plot(x, y)
 
     # Add labels, legend, and title
