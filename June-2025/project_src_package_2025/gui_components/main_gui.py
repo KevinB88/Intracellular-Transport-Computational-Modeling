@@ -1,5 +1,6 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QComboBox, QPushButton, QMessageBox
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
+                             QComboBox, QPushButton, QMessageBox, QStatusBar, QSizeGrip)
 from PyQt5.QtGui import QGuiApplication, QPainter, QColor, QPen
 from PyQt5.QtCore import Qt, QPoint
 from . import views
@@ -60,12 +61,22 @@ class MainWindow(QMainWindow):
         screen = QGuiApplication.primaryScreen()
         ag = screen.availableGeometry()
 
+        # (no change) choose a reasonable starting size
         self.resize(int(ag.width() * 0.7), int(ag.height() * 0.7))  # e.g., 70% of screen
+
         # center on screen
         frame = self.frameGeometry()
         frame.moveCenter(ag.center())
         self.move(frame.topLeft())
-        self.setWindowState(Qt.WindowNoState)  # ensure not maximized/fullscreen
+
+        # ensure not maximized/fullscreen
+        # self.setWindowState(Qt.WindowMaximized)  # <-- COMMENT OUT if you had this anywhere
+        self.setWindowState(Qt.WindowNoState)  # keep window freely movable/resizable
+
+        # self.setFixedSize(self.size())  # <-- COMMENT OUT if present anywhere
+        self.setMinimumSize(400, 300)  # sensible floor
+        # optional: no upper bound so corners can drag freely
+        # self.setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX)  # needs from PyQt5.QtCore import QWIDGETSIZE_MAX
 
         self.setWindowTitle("Biophysics Software (August-2025)")
         """ 
@@ -83,7 +94,6 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(16, 16, 16, 16)  # tweak to taste
         layout.setSpacing(12)
 
-        # If you also want padding around the *container* itself (rarely needed), you can:
         # container.setContentsMargins(16, 16, 16, 16)
 
         # Your control panel
@@ -91,6 +101,13 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.control_panel)
 
         self.setCentralWidget(container)
+
+        # --- ADD A VISIBLE RESIZE GRIP (bottom-right) ---
+        status = QStatusBar(self)
+        self.setStatusBar(status)
+        status.setSizeGripEnabled(False)  # use an explicit grip so it's always visible
+        grip = QSizeGrip(status)
+        status.addPermanentWidget(grip, 0)
 
         if debug_mode:
             self.grid_overlay = GridOverlay(self)

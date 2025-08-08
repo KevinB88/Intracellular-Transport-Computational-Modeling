@@ -4,7 +4,7 @@ from launch_functions import launch
 from computational_tools import numerical_tools as num
 
 """
-Version 2.0  (August 8 2025)
+Version 2.1  (August 8 2025)
 
 personal notes:
     - Include version information onto documentation
