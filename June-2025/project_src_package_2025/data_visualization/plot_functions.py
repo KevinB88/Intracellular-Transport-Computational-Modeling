@@ -77,56 +77,110 @@ def plot_mfpt_v_checkpoints(data_filepath, x_label, rg_param, ry_param, w_param,
         plt.show()
     plt.close()
 
+def _pi_frac_label_from_index(k: int, N: int, include_index=True):
+    """
+    Format theta = 2*pi*k/N as a reduced fraction of pi using mathtext.
+    Returns something like r"$0$", r"$\pi$", r"$\frac{2}{3}\pi$", plus " (k)".
+    """
+    num = 2 * k
+    den = N
+    g = math.gcd(num, den)
+    num //= g
+    den //= g
 
-def plot_phi_v_theta(data_filepath, v, w, N, approach, position, file_path, checkpoint_collect_container, save_png=True, show_plt=True):
-
-    data = pd.read_csv(data_filepath, header=None)
-
-    # Prepare the x-axis as column indices starting from 1
-    x = range(1, data.shape[1] + 1)
-
-    label_container = []
-
-    if approach == 1:
-        for i in range(len(checkpoint_collect_container)):
-            label_container.append(f"Mass ~ {checkpoint_collect_container[i]}")
-
-    elif approach == 2:
-        for i in range(len(checkpoint_collect_container)):
-            label_container.append(f"T ~ {checkpoint_collect_container[i]}")
+    if num == 0:
+        s = r"$0$"
+    elif den == 1:
+        # integer multiple of pi
+        if num == 1:
+            s = r"$\pi$"
+        else:
+            s = rf"${num}\pi$"
     else:
-        raise ValueError(f"Invalid approach: {approach}. Use approach 1 (mass-point collection) or approach 2 (time-point collection).")
+        # proper fraction
+        s = rf"$\frac{{{num}}}{{{den}}}\pi$"
 
-    # Plot each row of data
+    if include_index:
+        s = f"{s} ({k})"
+    return s
+
+
+def plot_phi_v_theta(data_filepath, v, w, N_LIST, approach, position, file_path, checkpoint_collect_container, save_png=True, show_plt=True):
+
+    data = pd.read_csv(data_filepath)
+
+    # Extract x-axis from Radians column
+    x = data["Radians"].values
+    disc_pos = data["Disc-Pos"].values
+
+    col_key = ""
+    # Build legend labels from time or mass points
+    label_container = []
+    if approach == 1:
+        for val in checkpoint_collect_container:
+            label_container.append(f"Mass ~ {val}")
+            col_key = "M="
+    elif approach == 2:
+        for val in checkpoint_collect_container:
+            label_container.append(f"T ~ {val}")
+            col_key = "T="
+    else:
+        raise ValueError(f"Invalid approach: {approach}. Use 1 (mass-point) or 2 (time-point).")
+
+    # Identify only the snapshot columns (those starting with 'T_')
+    snapshot_cols = [col for col in data.columns if col.startswith(col_key)]
+
+    # Plot each time snapshot as a separate curve
     plt.figure(figsize=(10, 6))
-    for i, row in data.iterrows():
-        plt.plot(x, row, label=label_container[i])
+    for col, label in zip(snapshot_cols, label_container):
+        plt.plot(x, data[col].values, label=label)
 
-    # Add labels, legend, and title
-    plt.xlabel("Theta")
-    plt.ylabel("Phi")
+    N = len(disc_pos)
+    print(N)
 
-    # if approach == 4:
-    #     title = f'Phi_versus_Theta_V={v}_W={w}_N={N}_Approach{approach}'
-    # else:
-    #     title = f'Phi_versus_Theta_V={v}_W={w}_N={N}_Approach{approach}_Position={position}'
+    # Choose a readable cap on tick labels (tweak if you like)
+    MAX_TICKS = 16
 
-    title = f" Phi(theta)  W={w:.2e}   V={v}   N={len(N)} Position={position}"
+    # Step so we get at most ~MAX_TICKS ticks (always include 0 and ~pi if available)
+    step = max(1, N // MAX_TICKS)
 
+    # Base tick indices
+    tick_idx = list(range(0, N, step))
+
+    # Ensure we include 0 and the middle (pi) when N even
+    if 0 not in tick_idx:
+        tick_idx.insert(0, 0)
+    mid = N // 2
+    if N % 2 == 0 and mid not in tick_idx:
+        tick_idx.append(mid)
+
+    # Sort & unique
+    tick_idx = sorted(set(tick_idx))
+
+    # Map indices -> x positions and labels
+    tick_positions = [x[i] for i in tick_idx ]
+    tick_labels = [_pi_frac_label_from_index(i, N, include_index=True) for i in tick_idx]
+
+    plt.xticks(ticks=tick_positions, labels=tick_labels, rotation=45)
+
+    # Labels and title
+    plt.xlabel("Theta (radians, with Disc-Pos index)")
+    # plt.yscale('log')
+    plt.ylabel(r"$\phi$")
+    title = r"$\phi$" + f"  W={w:.2e}   V={v}   N={len(N_LIST)}  Position={position}"
     plt.title(title)
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
 
+    # Save figure
     if save_png:
-        current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         if file_path:
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
-            # file = os.path.join(file_path, f'phi_v_theta_v={v}_w={w}_app={approach}_pos={position}_{current_time}.png')
             file = os.path.join(file_path, "phi_v_theta.png")
             plt.savefig(file, bbox_inches='tight')
-            print(f'Plot saved to {file_path}')
+            print(f'Plot saved to {file}')
 
     if show_plt:
         plt.show()
@@ -135,34 +189,50 @@ def plot_phi_v_theta(data_filepath, v, w, N, approach, position, file_path, chec
 
 def plot_dense_v_rad(y_lab, data_filepath, v, w, N, rings, rays, fixed_angle, checkpoint_collect_container, file_path, approach, save_png=True, show_plt=True):
 
-    data = pd.read_csv(data_filepath, header=None)
+    data = pd.read_csv(data_filepath)
 
-    if y_lab.lower() == "phi":
-        x = np.linspace(0, 1, rings+1)
-    elif y_lab.lower() == "rho":
-        x = np.linspace(1/rings, 1, rings)
+    x = data['Radius']
 
     label_container = []
 
-    title = f"{y_lab.lower()}(R) W={w:.2e}  V={v}   N={N}  fixed_angle={fixed_angle} Domain={rings}x{rays}"
+    col_key = ""
 
     if approach == 1:
         for i in range(len(checkpoint_collect_container)):
             label_container.append(f"Mass ~ {checkpoint_collect_container[i]}")
+            col_key = "M="
 
     elif approach == 2:
         for i in range(len(checkpoint_collect_container)):
             label_container.append(f"T ~ {checkpoint_collect_container[i]}")
+            col_key = "T="
     else:
         raise ValueError(f"Invalid approach: {approach}. Use approach 1 (mass-point collection) or approach 2 (time-point collection).")
     # Plot each row of data
+
     plt.figure(figsize=(10, 6))
-    for i, row in data.iterrows():
-        plt.plot(x, row, label=label_container[i])
+
+    # Identify only the snapshot columns (those starting with 'T_')
+    snapshot_cols = [col for col in data.columns if col.startswith(col_key)]
+
+    # Plot each time snapshot as a separate curve
+    plt.figure(figsize=(10, 6))
+    for col, label in zip(snapshot_cols, label_container):
+        plt.plot(x, data[col].values, label=label)
 
     # Add labels, legend, and title
-    plt.xlabel("(R) Radius")
-    plt.ylabel(y_lab)
+    plt.xlabel("(r) Radius")
+
+    title = ""
+
+    if y_lab.lower() == "phi":
+        print("Hello")
+        plt.ylabel(r"$\phi$")
+        title = r"$\phi$" + f"(r) W={w:.2e}  V={v}   N={N}  fixed_angle={fixed_angle} Domain={rings}x{rays}"
+    elif y_lab.lower() == "rho":
+        print("Hello")
+        plt.ylabel(r"$\rho$")
+        title = r"$\rho$" + f"(r) W={w:.2e}  V={v}   N={N}  fixed_angle={fixed_angle} Domain={rings}x{rays}"
 
     plt.title(title)
     plt.legend()
@@ -170,12 +240,11 @@ def plot_dense_v_rad(y_lab, data_filepath, v, w, N, rings, rays, fixed_angle, ch
     plt.tight_layout()
 
     if save_png:
-        current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         if file_path:
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
             # file = os.path.join(file_path, f'{y_lab}_v_theta_V={v}_W={w}_N={N}_Angle={fixed_angle}_{current_time}.png')
-            file = os.path.join(file_path, f'{y_lab.lower()}_v_radius.png')
+            file = os.path.join(file_path, f'{y_lab.lower()}_v_radius_@DiscAng={fixed_angle}.png')
             plt.savefig(file, bbox_inches='tight')
             print(f'Plot saved to {file_path}')
 

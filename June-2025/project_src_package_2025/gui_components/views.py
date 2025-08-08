@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton, QFormLayout,
     QLineEdit, QMessageBox, QCheckBox, QTextEdit, QGroupBox, QSpinBox, QDoubleSpinBox,
     QSizePolicy, QSlider, QStackedWidget, QTabWidget, QListWidget, QListWidgetItem, QDialogButtonBox,
-    QDialog, QSpacerItem
+    QDialog, QSpacerItem, QRadioButton, QButtonGroup
 )
 
 from project_src_package_2025.job_queuing_system import job_queue
@@ -183,8 +183,6 @@ class ControlPanel(QWidget):
         self.comp_select.addItems(params_config.PARAMETER_SCHEMAS.keys())
         self.comp_select.currentTextChanged.connect(self.update_parameter_fields)
         self.comp_select.currentTextChanged.connect(self.validate_computation)
-
-        # self.comp_select.currentTextChanged.connect(self.validate_computation)
 
         self.computation_block_layout = QVBoxLayout()
         self.computation_block_layout.setContentsMargins(0, 10, 0, 0)  # (L, T, R, B) — TUNE this

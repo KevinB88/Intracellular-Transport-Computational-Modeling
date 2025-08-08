@@ -9,7 +9,8 @@ import os
 import numpy as np
 
 
-def process_PvT_DL(PvT_DL_snapshots, v_param, w_param, N_LIST, T_fixed_ring_seg, save_png, show_plt, Timestamp_List, approach):
+def process_PvT_DL(PvT_DL_snapshots, v_param, w_param, N_LIST, T_fixed_ring_seg, save_png, show_plt, checkpoint_collect_container, approach,
+                   ry_param):
 
     output_location_list = []
 
@@ -18,12 +19,30 @@ def process_PvT_DL(PvT_DL_snapshots, v_param, w_param, N_LIST, T_fixed_ring_seg,
     filename = "PvT_Dl.csv"
     output_location = os.path.join(data_filepath, filename)
 
-    df = pd.DataFrame(PvT_DL_snapshots)
-    df.to_csv(output_location, header=False, index=False)
+    radians_mesh = [i * (2 * np.pi)/ry_param for i in range(ry_param)]
+    degrees_mesh = [ang * (180/np.pi) for ang in radians_mesh]
+
+    data_dict = {
+        'Disc-Pos': list(range(ry_param)),
+        'Radians': radians_mesh,
+        'Degrees': degrees_mesh,
+    }
+
+    for c_point, snapshot in zip(checkpoint_collect_container, PvT_DL_snapshots):
+        if int(approach) == 1:
+            col_name = f"M={c_point:.4}"
+        elif int(approach) == 2:
+            col_name = f"T={c_point:.4f}"
+        else:
+            raise ValueError(f"Approach: {approach} is invalid. Please use approach 1 or 2. (int)")
+        data_dict[col_name] = snapshot
+
+    df = pd.DataFrame(data_dict)
+    df.to_csv(output_location, index=False)
 
     time.sleep(1)
     plt.plot_phi_v_theta(output_location, v_param, w_param, N_LIST, approach, T_fixed_ring_seg,
-                         data_filepath, Timestamp_List, save_png=save_png, show_plt=show_plt)
+                         data_filepath, checkpoint_collect_container, save_png=save_png, show_plt=show_plt)
 
     output_location_list.append(output_location)
 
@@ -135,32 +154,64 @@ def process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_
 
 
 def process_DvR_results(PvR_DL_snapshots, RvR_AL_snapshots, v_param, w_param, N_LIST, rg_param,
-                        ry_param, R_fixed_angle, Timestamp_List, save_png, show_plt, approach):
+                        ry_param, R_fixed_angle, checkpoint_collect_container, save_png, show_plt, approach, domain_radius):
     # Processing results for Phi v. Radius & Rho v. Radius
 
     output_location_list = []
 
+    radial_mesh = [i * domain_radius * 1/rg_param for i in range(rg_param + 1)]
+
+    data_dict = {
+        'Disc-Pos': list(range(rg_param + 1)),
+        'Radius': radial_mesh
+    }
+
+    for c_point, snapshot in zip(checkpoint_collect_container, PvR_DL_snapshots):
+        if int(approach) == 1:
+            col_name = f"M={c_point:.4}"
+        elif int(approach) == 2:
+            col_name = f"T={c_point:.4f}"
+        else:
+            raise ValueError(f"Approach: {approach} is invalid. Please use approach 1 or 2. (int)")
+        data_dict[col_name] = snapshot
+
     timestamp = prints.return_timestamp()
     data_filepath = os.path.abspath(tb.create_directory(fp.radial_dependence_phi, timestamp))
-    filename = "PvR_DL_snapshots.csv"
+    filename = f"PvR_DL_snapshots_@DiscAng={R_fixed_angle}.csv"
     output_location = os.path.join(data_filepath, filename)
-    df = pd.DataFrame(PvR_DL_snapshots)
-    df.to_csv(output_location, header=False, index=False)
+    df = pd.DataFrame(data_dict)
+    # df = pd.DataFrame(PvR_DL_snapshots)
+    df.to_csv(output_location, index=False)
     plt.plot_dense_v_rad("Phi", output_location, v_param, w_param,
-                         len(N_LIST), rg_param, ry_param, R_fixed_angle, Timestamp_List,
+                         len(N_LIST), rg_param, ry_param, R_fixed_angle, checkpoint_collect_container,
                          data_filepath, approach, save_png=save_png, show_plt=show_plt)
     output_location_list.append(output_location)
 
-    # RvR_AL_snapshots = np.zeros((Timestamp_enum, rg_param), dtype=np.float64)
+    radial_mesh = [i * domain_radius * 1 / rg_param for i in range(1, rg_param+1)]
+
+    data_dict = {
+        'Disc-Pos': list(range(1, rg_param+1)),
+        'Radius': radial_mesh
+    }
+
+    for c_point, snapshot in zip(checkpoint_collect_container, RvR_AL_snapshots):
+        if int(approach) == 1:
+            col_name = f"M={c_point:.4}"
+        elif int(approach) == 2:
+            col_name = f"T={c_point:.4f}"
+        else:
+            raise ValueError(f"Approach: {approach} is invalid. Please use approach 1 or 2. (int)")
+        data_dict[col_name] = snapshot
 
     timestamp = prints.return_timestamp()
     data_filepath = os.path.abspath(tb.create_directory(fp.radial_dependence_rho, timestamp))
-    filename = "RvR_AL_snapshots.csv"
+    filename = f"RvR_AL_snapshots_@DiscAng={R_fixed_angle}.csv"
     output_location = os.path.join(data_filepath, filename)
-    df = pd.DataFrame(RvR_AL_snapshots)
-    df.to_csv(output_location, header=False, index=False)
+    # df = pd.DataFrame(RvR_AL_snapshots)
+    df = pd.DataFrame(data_dict)
+    df.to_csv(output_location, index=False)
     plt.plot_dense_v_rad("Rho", output_location, v_param, w_param,
-                         len(N_LIST), rg_param, ry_param, R_fixed_angle, Timestamp_List,
+                         len(N_LIST), rg_param, ry_param, R_fixed_angle, checkpoint_collect_container,
                          data_filepath, approach, save_png=save_png, show_plt=show_plt)
     output_location_list.append(output_location)
 

@@ -1,22 +1,6 @@
 
 PARAMETER_SCHEMAS = {
-    "Solve MFPT Time": {
-        "required": [
-            ("rg_param", ""),
-            ("ry_param", ""),
-            ("N_LIST", ""),
-            ("v_param", ""),
-            ("w_param", ""),
-            ("T_param", "")
-        ],
-        "default": [
-            ("domain_radius", 1.0),
-            ("D", 1.0),
-            ("mass_checkpoint", int(1e6)),
-            ("d_tube", 0)
-        ]
-    },
-    "Solve MFPT Mass": {
+    "Compute MFPT until mass %": {
             "required": [
                 ("rg_param", ""),
                 ("ry_param", ""),
@@ -30,8 +14,225 @@ PARAMETER_SCHEMAS = {
                 ("mass_checkpoint", int(1e6)),
                 ("mass_retention_threshold", 1e-2),
                 ("d_tube", 0)
-            ]
+            ],
+            "approach": ["mass-dependent"]
         },
+    "MFPT point collection (Mass % dep.)": {
+        "required": [
+            ("rg_param", ""),
+            ("ry_param", ""),
+            ("N_LIST", ""),
+            ("v_param", ""),
+            ("w_param", ""),
+            ("checkpoint_collect_container", "")
+        ],
+        "default": [
+            ("mass_retention_threshold", 1e-2),
+            ("domain_radius", 1.0),
+            ("D", 1.0),
+            ("mass_checkpoint", int(1e6)),
+            ("d_tube", 0.0),
+            ("save_png", True),
+            ("show_plt", False)
+        ],
+        "approach": ["mass-dependent"]
+    },
+    "Phi angular dependence (collection: Mass % dep.)": {
+        "required": [
+            ("rg_param", ""),
+            ("ry_param", ""),
+            ("v_param", ""),
+            ("w_param", ""),
+            ("N_LIST", ""),
+            ("checkpoint_collect_container", ""),
+        ],
+        "default": [
+            ("mass_retention_threshold", 0.01),
+            ("T_fixed_ring_seg", 0.5),
+            ("d_tube", 0.0),
+            ("domain_radius", 1.0),
+            ("D", 1.0),
+            ("mass_checkpoint", int(1e6)),
+            ("save_png", True),
+            ("show_plt", False)
+        ],
+        "approach": ["mass-dependent"]
+    },
+    "Phi/Rho radial dependence (collection: Mass % dep.)": {
+        "required": [
+            ("rg_param", ""),
+            ("ry_param", ""),
+            ("v_param", ""),
+            ("w_param", ""),
+            ("N_LIST", ""),
+            ("checkpoint_collect_container", ""),
+        ],
+        "default": [
+            ("R_fixed_angle", -1),
+            ("domain_radius", 1.0),
+            ("D", 1.0),
+            ("d_tube", 0.0),
+            ("mass_retention_threshold", 1e-2),
+            ("mass_checkpoint", int(1e6)),
+            ("save_png", True),
+            ("show_plt", False)
+        ],
+        "approach": ["mass-dependent"]
+    },
+    "Static Heatplot Analysis (collection: Mass % dep.)": {
+        "required": [
+            ("rg_param", ""),
+            ("ry_param", ""),
+            ("v_param", ""),
+            ("w_param", ""),
+            ("N_LIST", ""),
+            ("checkpoint_collect_container", ""),
+        ],
+        "default": [
+            ("mass_retention_threshold", 1e-2),
+            ("domain_radius", 1.0),
+            ("D", 1.0),
+            ("mass_checkpoint", int(1e6)),
+            ("d_tube", 0.0),
+            ("heatplot_border", False),
+            ("heatplot_colorscheme", 'viridis'),
+            ("save_png", True),
+            ("show_plt", False),
+            ("display_extraction", True)
+        ],
+        "approach": ["mass-dependent"]
+    },
+
+    "Full Analysis (time t dep.)": {
+        "required": [
+            ("rg_param", ""),
+            ("ry_param", ""),
+            ("v_param", ""),
+            ("w_param", ""),
+            ("T_param", ""),
+            ("N_LIST", "")
+        ],
+        "default": [
+            ("d_tube", 0.0),
+            ("Timestamp_List", None),
+            ("MA_collection_factor", int(5)),
+            ("MA_collection_factor_limit", int(1e3)),
+            ("D", 1.0),
+            ("domain_radius", 1.0),
+            ("mass_checkpoint", int(1e6)),
+            ("T_fixed_ring_seg", 0.5),
+            ("R_fixed_angle", int(-1)),
+            ("save_png", True),
+            ("show_plt", False),
+            ("heat_plot_border", False),
+            ("heatplot_colorscheme", 'viridis'),
+            ("display_extraction", True)
+        ],
+        "approach": ["time-dependent"]
+    },
+    "Compute MFPT until time T": {
+            "required": [
+                ("rg_param", ""),
+                ("ry_param", ""),
+                ("N_LIST", ""),
+                ("v_param", ""),
+                ("w_param", ""),
+                ("T_param", "")
+            ],
+            "default": [
+                ("domain_radius", 1.0),
+                ("D", 1.0),
+                ("mass_checkpoint", int(1e6)),
+                ("d_tube", 0.0)
+            ],
+            "approach": ["time-dependent"]
+        },
+    "MFPT point collection (time T dep.)": {
+        "required": [
+            ("rg_param", ""),
+            ("ry_param", ""),
+            ("N_LIST", ""),
+            ("v_param", ""),
+            ("w_param", ""),
+            ("T_param", ""),
+            ("checkpoint_collect_container", "")
+        ],
+        "default": [
+            ("domain_radius", 1.0),
+            ("D", 1.0),
+            ("mass_checkpoint", int(1e6)),
+            ("d_tube", 0.0),
+            ("save_png", True),
+            ("show_plt", False)
+        ],
+        "approach": ["time-dependent"]
+    },
+    "Phi angular dependence (collection: time T dep.)": {
+        "required": [
+            ("rg_param", ""),
+            ("ry_param", ""),
+            ("v_param", ""),
+            ("w_param", ""),
+            ("T_param", ""),
+            ("N_LIST", ""),
+            ("checkpoint_collect_container", ""),
+        ],
+        "default": [
+            ("T_fixed_ring_seg", 0.5),
+            ("d_tube", 0.0),
+            ("domain_radius", 1.0),
+            ("D", 1.0),
+            ("mass_checkpoint", int(1e6)),
+            ("save_png", True),
+            ("show_plt", False)
+        ],
+        "approach": ["time-dependent"]
+    },
+    "Phi/Rho radial dependence (collection: time T dep.)": {
+        "required": [
+            ("rg_param", ""),
+            ("ry_param", ""),
+            ("v_param", ""),
+            ("w_param", ""),
+            ("T_param", ""),
+            ("N_LIST", ""),
+            ("checkpoint_collect_container", ""),
+        ],
+        "default": [
+            ("R_fixed_angle", -1),
+            ("domain_radius", 1.0),
+            ("D", 1.0),
+            ("d_tube", 0.0),
+            ("mass_checkpoint", int(1e6)),
+            ("save_png", True),
+            ("show_plt", False)
+        ],
+        "approach": ["time-dependent"]
+    },
+    "Static Heatplot Analysis (collection: time T dep.)": {
+        "required": [
+            ("rg_param", ""),
+            ("ry_param", ""),
+            ("v_param", ""),
+            ("w_param", ""),
+            ("N_LIST", ""),
+            ("T_param", ""),
+            ("checkpoint_collect_container", ""),
+        ],
+        "default": [
+            ("domain_radius", 1.0),
+            ("D", 1.0),
+            ("mass_checkpoint", int(1e6)),
+            ("d_tube", 0.0),
+            ("heatplot_border", False),
+            ("heatplot_colorscheme", 'viridis'),
+            ("save_png", True),
+            ("show_plt", False),
+            ("display_extraction", True)
+        ],
+        "approach": ["time-dependent"]
+    },
+
     "Time Until Mass Depletion": {
         "required": [
             ("rg_param", ""),
@@ -45,50 +246,6 @@ PARAMETER_SCHEMAS = {
             ("D", 1.0),
             ("d_tube", 0),
             ("mass_threshold", 0.01)
-        ]
-    },
-    "Phi Angular Dependence": {
-        "required": [
-            ("rg_param", ""),
-            ("ry_param", ""),
-            ("v_param", ""),
-            ("w_param", ""),
-            ("T_param", ""),
-            ("N_LIST", ""),
-            ("checkpoint_collect_container", ""),
-        ],
-        "default": [
-            ("approach", 2),
-            ("T_fixed_ring_seg", 0.5),
-            ("d_tube", 0),
-            ("domain_radius", 1.0),
-            ("D", 1.0),
-            ("mass_retention_threshold", 1e-2),
-            ("mass_checkpoint", int(1e6)),
-            ("save_png", True),
-            ("show_plt", False)
-        ]
-    },
-    "Density Radial Dependence": {
-        "required": [
-            ("rg_param", ""),
-            ("ry_param", ""),
-            ("N_LIST", ""),
-            ("v_param", ""),
-            ("w_param", ""),
-            ("T_param", ""),
-            ("checkpoint_collect_container", ""),
-        ],
-        "default": [
-            ("R_fixed_angle", -1),
-            ("approach", 2),
-            ("domain_radius", 1.0),
-            ("D", 1.0),
-            ("d_tube", 0),
-            ("mass_retention_threshold", 1e-2),
-            ("mass_checkpoint", int(1e6)),
-            ("save_png", True),
-            ("show_plt", False)
         ]
     },
     "Mass Analysis": {
@@ -111,81 +268,6 @@ PARAMETER_SCHEMAS = {
             ("show_plt", False)
         ]
     },
-
-    "Full Analysis": {
-        "required": [
-            ("rg_param", ""),
-            ("ry_param", ""),
-            ("w_param", ""),
-            ("v_param", ""),
-            ("T_param", ""),
-            ("N_LIST", "")
-        ],
-        "default": [
-            ("d_tube", 0.0),
-            ("Timestamp_List", None),
-            ("MA_collection_factor", int(5)),
-            ("MA_collection_factor_limit", int(1e3)),
-            ("D", 1.0),
-            ("domain_radius", 1.0),
-            ("mass_checkpoint", int(1e6)),
-            ("T_fixed_ring_seg", 0.5),
-            ("R_fixed_angle", int(-1)),
-            ("save_png", True),
-            ("save_csv", True),
-            ("show_plt", False),
-            ("heat_plot_border", False),
-            ("heatplot_colorscheme", 'viridis'),
-            ("display_extraction", True)
-        ]
-    },
-
-    "MFPT Analysis": {
-            "required": [
-                ("rg_param", ""),
-                ("ry_param", ""),
-                ("N_LIST", ""),
-                ("v_param", ""),
-                ("w_param", ""),
-                ("T_param", ""),
-                ("approach", ""),
-                ("checkpoint_collect_container", "")
-            ],
-            "default": [
-                ("domain_radius", 1.0),
-                ("D", 1.0),
-                ("mass_checkpoint", int(1e6)),
-                ("d_tube", 0.0),
-                ("save_png", True),
-                ("show_plt", False)
-            ]
-        },
-
-    "Static Heatplot Analysis": {
-                "required": [
-                    ("rg_param", ""),
-                    ("ry_param", ""),
-                    ("N_LIST", ""),
-                    ("v_param", ""),
-                    ("w_param", ""),
-                    ("T_param", ""),
-                    ("checkpoint_collect_container", ""),
-                    ("approach", ""),
-                ],
-                "default": [
-                    ("domain_radius", 1.0),
-                    ("D", 1.0),
-                    ("mass_checkpoint", int(1e6)),
-                    ("d_tube", 0.0),
-                    ("mass_retention_threshold", 1e-2),
-                    ("heatplot_border", False),
-                    ("heatplot_colorscheme", 'viridis'),
-                    ("save_png", True),
-                    ("show_plt", False),
-                    ("display_extraction", True)
-                ]
-            },
-
 }
 
 PARAMETER_HINTS = {

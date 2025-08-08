@@ -10,77 +10,189 @@ ENABLE_CACHE = sys_config.ENABLE_NUMBA_CACHING
 # Methods used to collect numerical results (via PDE solver) to conduct analyses on, e.g, mass(t), Phi(theta), Phi(rad), Rho(rad), ect.
 # All methods below implement the space efficient two-step approach (in terms of how numerical data is stored across updates), i.e, [0][m][n] refers to the current (step k), and [1][m][n] refers to next (step k+1).
 
+# v======================================== Mass stamp dependent analysis tools ========================================v
 
 # (****) (****)
 @njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
-def comp_mass_analysis_respect_to_time(rg_param, ry_param, switch_param_a, switch_param_b, v_param, T_param,
-                                       N_LIST, D_LAYER, A_LAYER, MA_DL_timeseries, MA_AL_timeseries, MA_ALoI_timeseries,
-                                       MA_ALoT_timeseries, MA_TM_timeseries, MA_collection_factor,
-                                       relative_k, d_tube=0, domain_radius=1.0, D=1.0, mass_checkpoint=10 ** 6):
+def comp_diffusive_angle_snapshots_mass_dep(rg_param, ry_param, switch_param_a, switch_param_b, v_param, N_LIST, D_LAYER, A_LAYER, PvT_DL_snapshots,
+                                            checkpoint_collect_container, mass_retention_threshold=0.01, T_fixed_ring_seg=0.5, d_tube=0,
+                                            domain_radius=1.0, D=1.0, mass_checkpoint=10**6):
     if ENABLE_JIT:
         print("Running optimized version.")
 
-    # Initialize constants
-    dRad = num.compute_dRad(rg_param, domain_radius)
+    if len(N_LIST) > ry_param:
+        raise IndexError(
+            f'Too many angular indices supplied for microtubule positions: {len(N_LIST)} > {ry_param} (number of angular positions in domain).')
+
+    for i in range(len(N_LIST)):
+        if N_LIST[i] < 0 or N_LIST[i] > ry_param:
+            raise IndexError(
+                f'Angular index: {N_LIST[i]} falls outside of the legal index range: [0,{ry_param - 1}) under ry_param={ry_param}')
+
+    dRad = num.compute_dRad(ry_param, domain_radius)
     dThe = num.compute_dThe(ry_param)
     dT = num.compute_dT(rg_param, ry_param, domain_radius, D)
-    K = num.compute_K(rg_param, ry_param, T_param, domain_radius, D)
-    central_patch = num.compute_init_cond_cent(rg_param, domain_radius)
     v_param *= -1
 
-    # Initialize the ring position (m) dependent extraction range dictionary
+    central_patch = num.compute_init_cond_cent(rg_param, domain_radius)
+    mass_retained = 0
+
     d_list = struct_init.build_d_tube_mapping_no_overlap(rg_param, ry_param, N_LIST, d_tube, domain_radius)
 
-    # Initialize layer masses
-    dl_mass = 1
-    al_mass = 0
-
-    # Mass data collection iterator
-    MA_k_step = 0
+    checkpoint_iter = 0
 
     # **** - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     k = 0
 
-    while k < K:
+    while k == 0 or mass_retained > mass_retention_threshold:
 
-        num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST, dRad, dThe, dT, switch_param_a, switch_param_b, v_param, d_tube)
+        num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST, dRad, dThe, dT,
+                                 switch_param_a, switch_param_b, v_param, d_tube)
 
         if k > 0 and k % mass_checkpoint == 0:
-            print("Current timestep: ", k, "Current simulation time: ", k * dT, "Current DL mass: ", dl_mass,
-                  "Current AL mass: ", al_mass)
+            print("Current timestep: ", k, "Current simulation time: ", k * dT, "Current DL mass: ", mass_retained)
             print("Velocity (v): ", v_param, "Diffusive to Advective switch rate (a): ", switch_param_a,
                   "Advective to Diffusive switch rate (b): ", switch_param_b)
 
-        # Collect mass
-        if MA_k_step < relative_k and k % MA_collection_factor == 0:
-            MA_DL_timeseries[MA_k_step] = dl_mass
-            MA_AL_timeseries[MA_k_step] = al_mass
-            MA_TM_timeseries[MA_k_step] = dl_mass + al_mass
-            MA_ALoT_timeseries[MA_k_step] = al_mass / MA_TM_timeseries[MA_k_step]
-            MA_ALoI_timeseries[MA_k_step] = al_mass / D
-            MA_k_step += 1
+        if checkpoint_iter < len(checkpoint_collect_container):
+            curr_mass_stamp = checkpoint_collect_container[checkpoint_iter]
+            if curr_mass_stamp * 0.99 < mass_retained < curr_mass_stamp * 1.01:
+                PvT_DL_snapshots[checkpoint_iter] = D_LAYER[0][int(np.floor(rg_param * T_fixed_ring_seg))]
+                checkpoint_iter += 1
+        else:
+            return
 
-        # Update mass for the next step
-        dl_mass = num.calc_mass_diff(D_LAYER, 0, dRad, dThe, central_patch, rg_param, ry_param)
-        al_mass = num.calc_mass_adv(A_LAYER, 0, dRad, dThe, rg_param, N_LIST)
+        mass_retained = num.calc_mass(D_LAYER, A_LAYER, 0, dRad, dThe, central_patch, rg_param, ry_param, N_LIST)
         central_patch = num.u_center(D_LAYER, 0, dRad, dThe, dT, central_patch, A_LAYER, N_LIST, v_param)
-
         D_LAYER[0] = D_LAYER[1]
         A_LAYER[0] = A_LAYER[1]
         k += 1
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
 # (****) (****)
 @njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
-def comp_diffusive_angle_snapshots(rg_param, ry_param, switch_param_a, switch_param_b, T_param, v_param, N_LIST,
-                                   D_LAYER, A_LAYER,
-                                   PvT_DL_snapshots, checkpoint_collect_container, approach, T_fixed_ring_seg=0.5,
-                                   d_tube=0,
-                                   domain_radius=1.0, D=1.0, mass_retention_threshold=0.01, mass_checkpoint=10 ** 6):
+def comp_diffusive_rad_snapshots_mass_dep(rg_param, ry_param, switch_param_a, switch_param_b, v_param,
+                                          N_LIST, D_LAYER, A_LAYER, R_fixed_angle, PvR_DL_snapshots, RvR_AL_snapshots,
+                                          checkpoint_collect_container, mass_retention_threshold=0.01, domain_radius=1.0,
+                                          D=1.0, mass_checkpoint=10 ** 6, d_tube=0):
+    if ENABLE_JIT:
+        print("Running optimized version.")
+
+    R_fixed_angle = int(R_fixed_angle)
+
+    dRad = num.compute_dRad(rg_param, domain_radius)
+    dThe = num.compute_dThe(ry_param)
+    dT = num.compute_dT(rg_param, ry_param, domain_radius, D)
+    central_patch = num.compute_init_cond_cent(rg_param, domain_radius)
+
+    v_param *= -1
+
+    d_list = struct_init.build_d_tube_mapping_no_overlap(rg_param, ry_param, N_LIST, d_tube, domain_radius)
+
+    checkpoint_iter = 0
+
+    mass_retained = 0
+
+    k = 0
+    while k == 0 or mass_retained > mass_retention_threshold:
+
+        num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST, dRad, dThe, dT,
+                                 switch_param_a, switch_param_b, v_param, d_tube)
+
+        if k > 0 and k % mass_checkpoint == 0:
+            print("Velocity (V)= ", v_param, "Time step: ", k, "Simulation time: ", k * dT, "Current mass: ",
+                  mass_retained,
+                  "a=", switch_param_a, "b=", switch_param_b)
+
+        if checkpoint_iter < len(checkpoint_collect_container):
+            curr_mass_stamp = checkpoint_collect_container[checkpoint_iter]
+            if curr_mass_stamp * 0.99 < mass_retained < curr_mass_stamp * 1.01:
+                PvR_DL_snapshots[checkpoint_iter][0] = central_patch
+                for m in range(rg_param):
+                    PvR_DL_snapshots[checkpoint_iter][m + 1] = D_LAYER[0][m][R_fixed_angle]
+                    RvR_AL_snapshots[checkpoint_iter][m] = A_LAYER[0][m][R_fixed_angle]
+                checkpoint_iter += 1
+        else:
+            return
+
+        mass_retained = num.calc_mass(D_LAYER, A_LAYER, 0, dRad, dThe, central_patch, rg_param, ry_param,
+                                      N_LIST)
+        central_patch = num.u_center(D_LAYER, 0, dRad, dThe, dT, central_patch, A_LAYER,
+                                     N_LIST, v_param)
+        D_LAYER[0] = D_LAYER[1]
+        A_LAYER[0] = A_LAYER[1]
+        k += 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+# (****) (****)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+# Collecting DL, central-patch, and AL snapshots for static heat-plot visualization.
+def comp_diffusive_snapshots_mass_dep(rg_param, ry_param, switch_param_a, switch_param_b, v_param, N_LIST, D_LAYER, A_LAYER,
+                                      HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, checkpoint_collect_container,
+                                      domain_radius=1.0, D=1.0, mass_retention_threshold=0.01, mass_checkpoint=10 ** 6, d_tube=0.0):
+
+    if ENABLE_JIT:
+        print("Running optimized version.")
+
+    dRad = num.compute_dRad(rg_param, D)
+    dThe = num.compute_dThe(ry_param)
+    dT = num.compute_dT(rg_param, ry_param, domain_radius, D)
+    central_patch = num.compute_init_cond_cent(rg_param, domain_radius)
+    v_param *= -1
+
+    d_list = struct_init.build_d_tube_mapping_no_overlap(rg_param, ry_param, N_LIST, d_tube, domain_radius)
+
+    mass_retained = 0
+    MFPT = 0
+    checkpoint_iter = 0
+    k = 0
+
+    while k == 0 or mass_retained > mass_retention_threshold:
+
+        net_current_out = 0
+
+        net_current_out += num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST,
+                                                    dRad, dThe, dT, switch_param_a, switch_param_b, v_param, d_tube)
+        if k > 0 and k % mass_checkpoint == 0:
+            print("Velocity (V)= ", v_param, "Time step: ", k, "Simulation time: ", k * dT, "Current mass: ",
+                  mass_retained,
+                  "a=", switch_param_a, "b=", switch_param_b)
+
+        MFPT += net_current_out * k * dT ** 2
+
+        if checkpoint_iter < len(checkpoint_collect_container):
+            curr_mass_stamp = checkpoint_collect_container[checkpoint_iter]
+            if curr_mass_stamp * 0.99 < mass_retained < curr_mass_stamp * 1.01:
+                MFPT_snapshots[checkpoint_iter] = MFPT
+                HM_DL_snapshots[checkpoint_iter] = D_LAYER[0]
+                HM_C_snapshots[checkpoint_iter] = central_patch
+                checkpoint_iter += 1
+        else:
+            return
+
+        mass_retained = num.calc_mass(D_LAYER, A_LAYER, 0, dRad, dThe, central_patch, rg_param, ry_param,
+                                      N_LIST)
+        central_patch = num.u_center(D_LAYER, 0, dRad, dThe, dT, central_patch, A_LAYER, N_LIST, v_param)
+
+        D_LAYER[0] = D_LAYER[1]
+        A_LAYER[0] = A_LAYER[1]
+
+        k += 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# ^======================================== Mass stamp dependent analysis tools ========================================^
+
+
+# v======================================== Time stamp dependent analysis tools ========================================v
+
+
+# (****) (****)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+def comp_diffusive_angle_snapshots_time_dep(rg_param, ry_param, switch_param_a, switch_param_b, T_param, v_param,
+                                            N_LIST, D_LAYER, A_LAYER, PvT_DL_snapshots, checkpoint_collect_container,
+                                            T_fixed_ring_seg=0.5, d_tube=0.0, domain_radius=1.0, D=1.0, mass_checkpoint=10**6):
     if ENABLE_JIT:
         print("Running optimized version.")
 
@@ -109,7 +221,7 @@ def comp_diffusive_angle_snapshots(rg_param, ry_param, switch_param_a, switch_pa
     # **** - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     k = 0
 
-    while k == 0 or (k < K and mass_retained > mass_retention_threshold):
+    while k < K:
 
         num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST, dRad, dThe, dT,
                                  switch_param_a, switch_param_b, v_param, d_tube)
@@ -119,43 +231,27 @@ def comp_diffusive_angle_snapshots(rg_param, ry_param, switch_param_a, switch_pa
             print("Velocity (v): ", v_param, "Diffusive to Advective switch rate (a): ", switch_param_a,
                   "Advective to Diffusive switch rate (b): ", switch_param_b)
 
-        if int(approach) == 1:
-
-            if checkpoint_iter < len(checkpoint_collect_container):
-                curr_mass_stamp = checkpoint_collect_container[checkpoint_iter]
-                if curr_mass_stamp * 0.99 < mass_retained < curr_mass_stamp * 1.01:
-                    PvT_DL_snapshots[checkpoint_iter] = D_LAYER[0][int(np.floor(rg_param * T_fixed_ring_seg))]
-                    checkpoint_iter += 1
-            else:
-                return
-
-        elif int(approach) == 2:
-
-            if checkpoint_iter < len(checkpoint_collect_container):
-                curr_stamp = np.floor(checkpoint_collect_container[checkpoint_iter] / dT)
-                if k == curr_stamp:
-                    PvT_DL_snapshots[checkpoint_iter] = D_LAYER[0][int(np.floor(rg_param * T_fixed_ring_seg))]
-                    checkpoint_iter += 1
-            else:
-                return
+        if checkpoint_iter < len(checkpoint_collect_container):
+            curr_stamp = np.floor(checkpoint_collect_container[checkpoint_iter] / dT)
+            if k == curr_stamp:
+                PvT_DL_snapshots[checkpoint_iter] = D_LAYER[0][int(np.floor(rg_param * T_fixed_ring_seg))]
+                checkpoint_iter += 1
+        else:
+            return
 
         mass_retained = num.calc_mass(D_LAYER, A_LAYER, 0, dRad, dThe, central_patch, rg_param, ry_param, N_LIST)
         central_patch = num.u_center(D_LAYER, 0, dRad, dThe, dT, central_patch, A_LAYER, N_LIST, v_param)
         D_LAYER[0] = D_LAYER[1]
         A_LAYER[0] = A_LAYER[1]
         k += 1
-
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
 # (****) (****)
 @njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
-def comp_diffusive_rad_snapshots(rg_param, ry_param, switch_param_a, switch_param_b, v_param, T_param, N_LIST, D_LAYER,
-                                 A_LAYER,
-                                 R_fixed_angle, PvR_DL_snapshots, RvR_AL_snapshots, checkpoint_collect_container,
-                                 approach, domain_radius=1.0, D=1.0,
-                                 mass_retention_threshold=0.01, mass_checkpoint=10 ** 6, d_tube=0):
+def comp_diffusive_rad_snapshots_time_dep(rg_param, ry_param, switch_param_a, switch_param_b, v_param, T_param,
+                                          N_LIST, D_LAYER, A_LAYER, R_fixed_angle, PvR_DL_snapshots, RvR_AL_snapshots,
+                                          checkpoint_collect_container, domain_radius=1.0, D=1.0, mass_checkpoint=10**6, d_tube=0):
     if ENABLE_JIT:
         print("Running optimized version.")
 
@@ -176,7 +272,7 @@ def comp_diffusive_rad_snapshots(rg_param, ry_param, switch_param_a, switch_para
     mass_retained = 0
 
     k = 0
-    while k == 0 or (k < K and mass_retained > mass_retention_threshold):
+    while k < K:
 
         num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST, dRad, dThe, dT,
                                  switch_param_a, switch_param_b, v_param, d_tube)
@@ -186,32 +282,16 @@ def comp_diffusive_rad_snapshots(rg_param, ry_param, switch_param_a, switch_para
                   mass_retained,
                   "a=", switch_param_a, "b=", switch_param_b)
 
-        if int(approach) == 1:
-
-            if checkpoint_iter < len(checkpoint_collect_container):
-                curr_mass_stamp = checkpoint_collect_container[checkpoint_iter]
-                if curr_mass_stamp * 0.99 < mass_retained < curr_mass_stamp * 1.01:
-                    PvR_DL_snapshots[checkpoint_iter][0] = central_patch
-                    for m in range(rg_param):
-                        PvR_DL_snapshots[checkpoint_iter][m + 1] = D_LAYER[0][m][R_fixed_angle]
-                        RvR_AL_snapshots[checkpoint_iter][m] = A_LAYER[0][m][R_fixed_angle]
-                    checkpoint_iter += 1
-
-            else:
-                return
-
-        elif int(approach) == 2:
-
-            if checkpoint_iter < len(checkpoint_collect_container):
-                curr_stamp = np.floor(checkpoint_collect_container[checkpoint_iter] / dT)
-                if k == curr_stamp:
-                    PvR_DL_snapshots[checkpoint_iter][0] = central_patch
-                    for m in range(rg_param):
-                        PvR_DL_snapshots[checkpoint_iter][m + 1] = D_LAYER[0][m][R_fixed_angle]
-                        RvR_AL_snapshots[checkpoint_iter][m] = A_LAYER[0][m][R_fixed_angle]
-                    checkpoint_iter += 1
-            else:
-                return
+        if checkpoint_iter < len(checkpoint_collect_container):
+            curr_stamp = np.floor(checkpoint_collect_container[checkpoint_iter] / dT)
+            if k == curr_stamp:
+                PvR_DL_snapshots[checkpoint_iter][0] = central_patch
+                for m in range(rg_param):
+                    PvR_DL_snapshots[checkpoint_iter][m + 1] = D_LAYER[0][m][R_fixed_angle]
+                    RvR_AL_snapshots[checkpoint_iter][m] = A_LAYER[0][m][R_fixed_angle]
+                checkpoint_iter += 1
+        else:
+            return
 
         mass_retained = num.calc_mass(D_LAYER, A_LAYER, 0, dRad, dThe, central_patch, rg_param, ry_param,
                                       N_LIST)
@@ -221,54 +301,15 @@ def comp_diffusive_rad_snapshots(rg_param, ry_param, switch_param_a, switch_para
         A_LAYER[0] = A_LAYER[1]
         k += 1
 
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# (****) (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
-def comp_until_mass_depletion(rg_param, ry_param, switch_param_a, switch_param_b, v_param, N_LIST, D_LAYER, A_LAYER,
-                              domain_radius=1.0, D=1.0,
-                              mass_retention_threshold=0.01, d_tube=0.0):
-    if ENABLE_JIT:
-        print("Running optimized version.")
-
-    dRad = num.compute_dRad(rg_param, D)
-    dThe = num.compute_dThe(ry_param)
-    dT = num.compute_dT(rg_param, ry_param, domain_radius, D)
-    central_patch = num.compute_init_cond_cent(rg_param, domain_radius)
-    v_param *= -1
-
-    d_list = struct_init.build_d_tube_mapping_no_overlap(rg_param, ry_param, N_LIST, d_tube, domain_radius)
-
-    mass_retained = 0
-
-    k = 0
-
-    while k == 0 or mass_retained > mass_retention_threshold:
-        num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST, dRad, dThe, dT, switch_param_a, switch_param_b, v_param, d_tube)
-
-        mass_retained = num.calc_mass(D_LAYER, A_LAYER, 0, dRad, dThe, central_patch, rg_param, ry_param,
-                                      N_LIST)
-        central_patch = num.u_center(D_LAYER, 0, dRad, dThe, dT, central_patch, A_LAYER, N_LIST, v_param)
-
-        D_LAYER[0] = D_LAYER[1]
-        A_LAYER[0] = A_LAYER[1]
-
-        k += 1
-
-    return k * dT
-
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
 # (****) (****)
 @njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 # Collecting DL, central-patch, and AL snapshots for static heat-plot visualization.
-def comp_diffusive_snapshots(rg_param, ry_param, switch_param_a, switch_param_b, v_param, T_param, N_LIST, D_LAYER, A_LAYER,
-                             HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, approach, checkpoint_collect_container, domain_radius=1.0,
-                             D=1.0, mass_retention_threshold=0.01, mass_checkpoint=10 ** 6, d_tube=0.0):
-
+def comp_diffusive_snapshots_time_dep(rg_param, ry_param, switch_param_a, switch_param_b, v_param, T_param, N_LIST,
+                                      D_LAYER, A_LAYER, HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots,
+                                      checkpoint_collect_container, domain_radius=1.0, D=1.0, mass_checkpoint=10 ** 6, d_tube=0.0):
     if ENABLE_JIT:
         print("Running optimized version.")
 
@@ -286,7 +327,7 @@ def comp_diffusive_snapshots(rg_param, ry_param, switch_param_a, switch_param_b,
     checkpoint_iter = 0
     k = 0
 
-    while k == 0 or (k < K_param and mass_retained > mass_retention_threshold):
+    while k < K_param:
 
         net_current_out = 0
 
@@ -299,27 +340,15 @@ def comp_diffusive_snapshots(rg_param, ry_param, switch_param_a, switch_param_b,
 
         MFPT += net_current_out * k * dT ** 2
 
-        if int(approach) == 1:
-            if checkpoint_iter < len(checkpoint_collect_container):
-                curr_mass_stamp = checkpoint_collect_container[checkpoint_iter]
-                if curr_mass_stamp * 0.99 < mass_retained < curr_mass_stamp * 1.01:
-                    MFPT_snapshots[checkpoint_iter] = MFPT
-                    HM_DL_snapshots[checkpoint_iter] = D_LAYER[0]
-                    HM_C_snapshots[checkpoint_iter] = central_patch
-                    checkpoint_iter += 1
-        elif int(approach) == 2:
-            if checkpoint_iter < len(checkpoint_collect_container):
-                curr_stamp = np.floor(checkpoint_collect_container[checkpoint_iter] / dT)
-                if k == curr_stamp:
-                    MFPT_snapshots[checkpoint_iter] = MFPT
-                    HM_DL_snapshots[checkpoint_iter] = D_LAYER[0]
-                    HM_C_snapshots[checkpoint_iter] = central_patch
-                    checkpoint_iter += 1
-            else:
-                return
+        if checkpoint_iter < len(checkpoint_collect_container):
+            curr_stamp = np.floor(checkpoint_collect_container[checkpoint_iter] / dT)
+            if k == curr_stamp:
+                MFPT_snapshots[checkpoint_iter] = MFPT
+                HM_DL_snapshots[checkpoint_iter] = D_LAYER[0]
+                HM_C_snapshots[checkpoint_iter] = central_patch
+                checkpoint_iter += 1
         else:
-            raise ValueError(
-                f'{approach} is not a valid argument, use either collection approach "1" or "2" (must be an int)')
+            return
 
         mass_retained = num.calc_mass(D_LAYER, A_LAYER, 0, dRad, dThe, central_patch, rg_param, ry_param,
                                       N_LIST)
@@ -329,10 +358,6 @@ def comp_diffusive_snapshots(rg_param, ry_param, switch_param_a, switch_param_b,
         A_LAYER[0] = A_LAYER[1]
 
         k += 1
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
 # <***************************** Temporarily retired *****************************>
 # @njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 # def comp_mass_loss_glb_pk(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer, r=1.0, d=1.0,
@@ -472,3 +497,103 @@ def comp_diffusive_snapshots(rg_param, ry_param, switch_param_a, switch_param_b,
         #         n += 1
         #     m += 1
         # <<<< ------------- Updating DL and AL for the K+1-th step ------------- >>>>
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# ^======================================== Time stamp dependent analysis tools ========================================^
+
+
+# (****) (****)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+def comp_mass_analysis_respect_to_time(rg_param, ry_param, switch_param_a, switch_param_b, v_param, T_param,
+                                       N_LIST, D_LAYER, A_LAYER, MA_DL_timeseries, MA_AL_timeseries, MA_ALoI_timeseries,
+                                       MA_ALoT_timeseries, MA_TM_timeseries, MA_collection_factor,
+                                       relative_k, d_tube=0, domain_radius=1.0, D=1.0, mass_checkpoint=10**6):
+    if ENABLE_JIT:
+        print("Running optimized version.")
+
+    # Initialize constants
+    dRad = num.compute_dRad(rg_param, domain_radius)
+    dThe = num.compute_dThe(ry_param)
+    dT = num.compute_dT(rg_param, ry_param, domain_radius, D)
+    K = num.compute_K(rg_param, ry_param, T_param, domain_radius, D)
+    central_patch = num.compute_init_cond_cent(rg_param, domain_radius)
+    v_param *= -1
+
+    # Initialize the ring position (m) dependent extraction range dictionary
+    d_list = struct_init.build_d_tube_mapping_no_overlap(rg_param, ry_param, N_LIST, d_tube, domain_radius)
+
+    # Initialize layer masses
+    dl_mass = 1
+    al_mass = 0
+
+    # Mass data collection iterator
+    MA_k_step = 0
+
+    # **** - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    k = 0
+
+    while k < K:
+
+        num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST, dRad, dThe, dT, switch_param_a, switch_param_b, v_param, d_tube)
+
+        if k > 0 and k % mass_checkpoint == 0:
+            print("Current timestep: ", k, "Current simulation time: ", k * dT, "Current DL mass: ", dl_mass,
+                  "Current AL mass: ", al_mass)
+            print("Velocity (v): ", v_param, "Diffusive to Advective switch rate (a): ", switch_param_a,
+                  "Advective to Diffusive switch rate (b): ", switch_param_b)
+
+        # Collect mass
+        if MA_k_step < relative_k and k % MA_collection_factor == 0:
+            MA_DL_timeseries[MA_k_step] = dl_mass
+            MA_AL_timeseries[MA_k_step] = al_mass
+            MA_TM_timeseries[MA_k_step] = dl_mass + al_mass
+            MA_ALoT_timeseries[MA_k_step] = al_mass / MA_TM_timeseries[MA_k_step]
+            MA_ALoI_timeseries[MA_k_step] = al_mass / D
+            MA_k_step += 1
+
+        # Update mass for the next step
+        dl_mass = num.calc_mass_diff(D_LAYER, 0, dRad, dThe, central_patch, rg_param, ry_param)
+        al_mass = num.calc_mass_adv(A_LAYER, 0, dRad, dThe, rg_param, N_LIST)
+        central_patch = num.u_center(D_LAYER, 0, dRad, dThe, dT, central_patch, A_LAYER, N_LIST, v_param)
+
+        D_LAYER[0] = D_LAYER[1]
+        A_LAYER[0] = A_LAYER[1]
+        k += 1
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+# (****) (****)
+@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+def comp_until_mass_depletion(rg_param, ry_param, switch_param_a, switch_param_b, v_param, N_LIST, D_LAYER, A_LAYER,
+                              domain_radius=1.0, D=1.0,
+                              mass_retention_threshold=0.01, d_tube=0.0):
+    if ENABLE_JIT:
+        print("Running optimized version.")
+
+    dRad = num.compute_dRad(rg_param, D)
+    dThe = num.compute_dThe(ry_param)
+    dT = num.compute_dT(rg_param, ry_param, domain_radius, D)
+    central_patch = num.compute_init_cond_cent(rg_param, domain_radius)
+    v_param *= -1
+
+    d_list = struct_init.build_d_tube_mapping_no_overlap(rg_param, ry_param, N_LIST, d_tube, domain_radius)
+
+    mass_retained = 0
+
+    k = 0
+
+    while k == 0 or mass_retained > mass_retention_threshold:
+        num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST, dRad, dThe, dT, switch_param_a, switch_param_b, v_param, d_tube)
+
+        mass_retained = num.calc_mass(D_LAYER, A_LAYER, 0, dRad, dThe, central_patch, rg_param, ry_param,
+                                      N_LIST)
+        central_patch = num.u_center(D_LAYER, 0, dRad, dThe, dT, central_patch, A_LAYER, N_LIST, v_param)
+
+        D_LAYER[0] = D_LAYER[1]
+        A_LAYER[0] = A_LAYER[1]
+
+        k += 1
+
+    return k * dT
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

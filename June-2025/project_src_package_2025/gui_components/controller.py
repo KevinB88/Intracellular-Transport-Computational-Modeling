@@ -7,15 +7,21 @@ from . import launch
 
 
 COMPUTATION_FUNCTIONS = {
-    "Solve MFPT Time": launch.solve_mfpt_time_,
-    "Solve MFPT Mass": launch.solve_mfpt_mass_,
+    "Compute MFPT until mass %": launch.solve_mfpt_mass_,
+    "MFPT point collection (Mass % dep.)": launch.collect_MFPT_snapshots_mass_dep,
+    "Phi angular dependence (collection: Mass % dep.)": launch.collect_phi_ang_dep_mass_dep,
+    "Phi/Rho radial dependence (collection: Mass % dep.)": launch.collect_density_rad_depend_mass_dep,
+    "Static Heatplot Analysis (collection: Mass % dep.)": launch.heatmap_production_mass_dep,
+
+    "Compute MFPT until time T": launch.solve_mfpt_time_,
+    "MFPT point collection (time T dep.)": launch.collect_MFPT_snapshots_time_dep,
+    "Phi angular dependence (collection: time T dep.)": launch.collect_phi_ang_dep_time_dep,
+    "Phi/Rho radial dependence (collection: time T dep.)": launch.collect_density_rad_depend_time_dep,
+    "Static Heatplot Analysis (collection: time T dep.)": launch.heatmap_production_time_dep,
+    "Full Analysis (time t dep.)": launch.launch_super_comp_I,
+
     "Time Until Mass Depletion": launch.output_time_until_mass_depletion,
-    "Phi Angular Dependence": launch.collect_phi_ang_dep,
-    "Density Radial Dependence": launch.collect_density_rad_depend,
-    "Mass Analysis": launch.collect_mass_analysis,
-    "Full Analysis": launch.launch_super_comp_I,
-    "MFPT Analysis": launch.collect_MFPT_snapshots,
-    "Static Heatplot Analysis": launch.heatmap_production
+    "Mass Analysis": launch.collect_mass_analysis
 }
 # "Full Analysis": launch.launch_super_comp_I
 
@@ -51,7 +57,7 @@ def run_selected_computation(computation_name, param_dict):
     result = func(**parsed_inputs)
 
     # --- Case 1: Solve MFPT ---
-    if computation_name == "Solve MFPT Time":
+    if computation_name == "Compute MFPT until time T":
         output = {}
         if isinstance(result, tuple):
             output["MFPT"] = result[0]
@@ -64,7 +70,7 @@ def run_selected_computation(computation_name, param_dict):
             output["MFPT"] = result
         return output
 
-    if computation_name == "Solve MFPT Mass":
+    if computation_name == "Compute MFPT until mass %":
         output = {}
         if isinstance(result, tuple):
             output["MFPT"] = result[0]
@@ -73,23 +79,25 @@ def run_selected_computation(computation_name, param_dict):
             output["MFPT"] = result
         return output
 
-    # if computation_name == "Solve MFPT":
-    #     output = {}
-    #     output["MFPT"] = result
-    #     return output
-
     # --- Case 2: Time Until Mass Depletion ---
     if computation_name == "Time Until Mass Depletion":
         return {"duration": result}
 
     # --- Case 3: Plot-producing functions (return list of paths) ---
     if computation_name in {
-        "Mass Analysis",
-        "Density Radial Dependence",
-        "Phi Angular Dependence",
-        "Full Analysis",
-        "MFPT Analysis",
-        "Static Heatplot Analysis"
+        "MFPT point collection (time T dep.)",
+        "Phi angular dependence (collection: time T dep.)",
+        "Phi/Rho radial dependence (collection: time T dep.)",
+        "Static Heatplot Analysis (collection: time T dep.)",
+        "Full Analysis (time t dep.)",
+
+        "MFPT point collection (Mass % dep.)",
+        "Phi angular dependence (collection: Mass % dep.)",
+        "Phi/Rho radial dependence (collection: Mass % dep.)",
+        "Static Heatplot Analysis (collection: Mass % dep.)",
+
+        "Mass Analysis"
+
     }:
 
         if isinstance(result, list) and all(isinstance(p, str) for p in result):

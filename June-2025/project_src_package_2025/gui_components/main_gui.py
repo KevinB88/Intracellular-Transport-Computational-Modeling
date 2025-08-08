@@ -56,18 +56,40 @@ class MainWindow(QMainWindow):
 
         debug_mode = False
 
+        # --- SIZE & POSITION: use a normal window size, center it, and keep it movable ---
         screen = QGuiApplication.primaryScreen()
-        screen_geometry = screen.availableGeometry()
-        self.setGeometry(screen_geometry)
-        self.setWindowTitle("GUI version 1.2")
+        ag = screen.availableGeometry()
 
-        self.layout = QVBoxLayout()
+        self.resize(int(ag.width() * 0.7), int(ag.height() * 0.7))  # e.g., 70% of screen
+        # center on screen
+        frame = self.frameGeometry()
+        frame.moveCenter(ag.center())
+        self.move(frame.topLeft())
+        self.setWindowState(Qt.WindowNoState)  # ensure not maximized/fullscreen
+
+        self.setWindowTitle("Biophysics Software (August-2025)")
+        """ 
+            Potential names:
+                'Statistical computing software for intracellular transport dynamics under microtubule morphologies" 
+                'Discrete computational modeling of intracellular transport dynamics under microtubule morphologies"
+                'Computational Modeling of Intracellular Transport Software' 
+        """
+
+        # --- CENTRAL WIDGET + LAYOUT WITH MARGINS ---
+        container = QWidget(self)
+        layout = QVBoxLayout(container)
+
+        # Set nice inner margins (L, T, R, B) and spacing between widgets
+        layout.setContentsMargins(16, 16, 16, 16)  # tweak to taste
+        layout.setSpacing(12)
+
+        # If you also want padding around the *container* itself (rarely needed), you can:
+        # container.setContentsMargins(16, 16, 16, 16)
+
+        # Your control panel
         self.control_panel = views.ControlPanel(self)
-        # self.control_panel = ControlPanel(self)
-        #
-        container = QWidget()
-        container.setLayout(self.layout)
-        self.layout.addWidget(self.control_panel)
+        layout.addWidget(self.control_panel)
+
         self.setCentralWidget(container)
 
         if debug_mode:
