@@ -6,9 +6,13 @@ from computational_tools import numerical_tools as num
 """
 Version 2.1  (August 8 2025)
 
-personal notes:
+personal notes/tasks:
     - Include version information onto documentation
     - Read upon professional/software engineer version control tips/how to name or properly archive previous versions of the codebase
+    - Write a script to automatically delete all data contents [ def delete_ALL_output_() ]
+    - Write a script to save all data contents onto the cloud (Google Drive API), then call delete_ALL_output_ [ def upload_to_cloud_() ] 
+    - Incorporate delete_ALL_output_() and def upload_to_cloud_() onto GUI
+    - Include custom plot options onto GUI (first by selecting the appropriate data file [.csv] to analyze ) 
 @Kevin
 """
 
