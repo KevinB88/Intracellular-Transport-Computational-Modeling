@@ -50,9 +50,13 @@ def comp_diffusive_angle_snapshots_mass_dep(rg_param, ry_param, switch_param_a, 
                                  switch_param_a, switch_param_b, v_param, d_tube)
 
         if k > 0 and k % mass_checkpoint == 0:
+            print(
+                "********************************************************************************************************")
             print("Current timestep: ", k, "Current simulation time: ", k * dT, "Current DL mass: ", mass_retained)
             print("Velocity (v): ", v_param, "Diffusive to Advective switch rate (a): ", switch_param_a,
                   "Advective to Diffusive switch rate (b): ", switch_param_b)
+            print(
+                "********************************************************************************************************")
 
         if checkpoint_iter < len(checkpoint_collect_container):
             curr_mass_stamp = checkpoint_collect_container[checkpoint_iter]
@@ -100,10 +104,14 @@ def comp_diffusive_rad_snapshots_mass_dep(rg_param, ry_param, switch_param_a, sw
         num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST, dRad, dThe, dT,
                                  switch_param_a, switch_param_b, v_param, d_tube)
 
+        print(
+            "********************************************************************************************************")
         if k > 0 and k % mass_checkpoint == 0:
             print("Velocity (V)= ", v_param, "Time step: ", k, "Simulation time: ", k * dT, "Current mass: ",
                   mass_retained,
                   "a=", switch_param_a, "b=", switch_param_b)
+        print(
+            "********************************************************************************************************")
 
         if checkpoint_iter < len(checkpoint_collect_container):
             curr_mass_stamp = checkpoint_collect_container[checkpoint_iter]
@@ -155,10 +163,16 @@ def comp_diffusive_snapshots_mass_dep(rg_param, ry_param, switch_param_a, switch
 
         net_current_out += num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST,
                                                     dRad, dThe, dT, switch_param_a, switch_param_b, v_param, d_tube)
+
         if k > 0 and k % mass_checkpoint == 0:
+            print(
+                "********************************************************************************************************")
             print("Velocity (V)= ", v_param, "Time step: ", k, "Simulation time: ", k * dT, "Current mass: ",
                   mass_retained,
                   "a=", switch_param_a, "b=", switch_param_b)
+            print(
+                "********************************************************************************************************")
+
 
         MFPT += net_current_out * k * dT ** 2
 
@@ -227,9 +241,13 @@ def comp_diffusive_angle_snapshots_time_dep(rg_param, ry_param, switch_param_a, 
                                  switch_param_a, switch_param_b, v_param, d_tube)
 
         if k > 0 and k % mass_checkpoint == 0:
+            print(
+                "********************************************************************************************************")
             print("Current timestep: ", k, "Current simulation time: ", k * dT, "Current DL mass: ", mass_retained)
             print("Velocity (v): ", v_param, "Diffusive to Advective switch rate (a): ", switch_param_a,
                   "Advective to Diffusive switch rate (b): ", switch_param_b)
+            print(
+                "********************************************************************************************************")
 
         if checkpoint_iter < len(checkpoint_collect_container):
             curr_stamp = np.floor(checkpoint_collect_container[checkpoint_iter] / dT)
@@ -278,9 +296,13 @@ def comp_diffusive_rad_snapshots_time_dep(rg_param, ry_param, switch_param_a, sw
                                  switch_param_a, switch_param_b, v_param, d_tube)
 
         if k > 0 and k % mass_checkpoint == 0:
+            print(
+                "********************************************************************************************************")
             print("Velocity (V)= ", v_param, "Time step: ", k, "Simulation time: ", k * dT, "Current mass: ",
                   mass_retained,
                   "a=", switch_param_a, "b=", switch_param_b)
+            print(
+                "********************************************************************************************************")
 
         if checkpoint_iter < len(checkpoint_collect_container):
             curr_stamp = np.floor(checkpoint_collect_container[checkpoint_iter] / dT)
@@ -334,9 +356,13 @@ def comp_diffusive_snapshots_time_dep(rg_param, ry_param, switch_param_a, switch
         net_current_out += num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST,
                                                     dRad, dThe, dT, switch_param_a, switch_param_b, v_param, d_tube)
         if k > 0 and k % mass_checkpoint == 0:
+            print(
+                "********************************************************************************************************")
             print("Velocity (V)= ", v_param, "Time step: ", k, "Simulation time: ", k * dT, "Current mass: ",
                   mass_retained,
                   "a=", switch_param_a, "b=", switch_param_b)
+            print(
+                "********************************************************************************************************")
 
         MFPT += net_current_out * k * dT ** 2
 
@@ -537,10 +563,14 @@ def comp_mass_analysis_respect_to_time(rg_param, ry_param, switch_param_a, switc
         num.comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST, dRad, dThe, dT, switch_param_a, switch_param_b, v_param, d_tube)
 
         if k > 0 and k % mass_checkpoint == 0:
+            print(
+                "********************************************************************************************************")
             print("Current timestep: ", k, "Current simulation time: ", k * dT, "Current DL mass: ", dl_mass,
                   "Current AL mass: ", al_mass)
             print("Velocity (v): ", v_param, "Diffusive to Advective switch rate (a): ", switch_param_a,
                   "Advective to Diffusive switch rate (b): ", switch_param_b)
+            print(
+                "********************************************************************************************************")
 
         # Collect mass
         if MA_k_step < relative_k and k % MA_collection_factor == 0:

@@ -38,11 +38,12 @@ def process_PvT_DL(PvT_DL_snapshots, v_param, w_param, N_LIST, T_fixed_ring_seg,
         data_dict[col_name] = snapshot
 
     df = pd.DataFrame(data_dict)
-    df.to_csv(output_location, index=False)
+    df.to_csv(output_location, index=False)\
 
     time.sleep(1)
     plt.plot_phi_v_theta(output_location, v_param, w_param, N_LIST, approach, T_fixed_ring_seg,
                          data_filepath, checkpoint_collect_container, save_png=save_png, show_plt=show_plt)
+    print("\n")
 
     output_location_list.append(output_location)
 
@@ -76,6 +77,7 @@ def process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_
     df.to_csv(output_location, index=False)
     plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
                            "DL", "DL", data_filepath, save_png, show_plt)
+    print("\n")
     output_location_list.append(output_location)
 
     # Advective mass analysis
@@ -94,6 +96,7 @@ def process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_
     df.to_csv(output_location, index=False)
     plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
                            "AL", "AL", data_filepath, save_png, show_plt)
+    print("\n")
     output_location_list.append(output_location)
 
     # Total mass analysis
@@ -112,6 +115,7 @@ def process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_
     df.to_csv(output_location, index=False)
     plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
                            "Total", "Total", data_filepath, save_png, show_plt)
+    print("\n")
     output_location_list.append(output_location)
 
     # Advective/running total mass analysis
@@ -130,6 +134,7 @@ def process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_
     df.to_csv(output_location, index=False)
     plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
                            "AL/running total", "Al_running_total", data_filepath, save_png, show_plt)
+    print("\n")
     output_location_list.append(output_location)
 
     # Advective/initial total mass analysis
@@ -148,6 +153,7 @@ def process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_
     df.to_csv(output_location, index=False)
     plt.plot_mass_analysis(output_location, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
                            "AL/initial total", "AL_initial_total", data_filepath, save_png, show_plt)
+    print("\n")
     output_location_list.append(output_location)
 
     return output_location_list
@@ -185,6 +191,7 @@ def process_DvR_results(PvR_DL_snapshots, RvR_AL_snapshots, v_param, w_param, N_
     plt.plot_dense_v_rad("Phi", output_location, v_param, w_param,
                          len(N_LIST), rg_param, ry_param, R_fixed_angle, checkpoint_collect_container,
                          data_filepath, approach, save_png=save_png, show_plt=show_plt)
+    print("\n")
     output_location_list.append(output_location)
 
     radial_mesh = [i * domain_radius * 1 / rg_param for i in range(1, rg_param+1)]
@@ -213,6 +220,7 @@ def process_DvR_results(PvR_DL_snapshots, RvR_AL_snapshots, v_param, w_param, N_
     plt.plot_dense_v_rad("Rho", output_location, v_param, w_param,
                          len(N_LIST), rg_param, ry_param, R_fixed_angle, checkpoint_collect_container,
                          data_filepath, approach, save_png=save_png, show_plt=show_plt)
+    print("\n")
     output_location_list.append(output_location)
 
     return output_location_list
@@ -244,6 +252,7 @@ def process_static_HM_results(HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, c
         ani.produce_heatmap_tool_rect(curr_DL_snapshot, curr_C_snapshot, w_param, v_param, N_LIST_count,
                                       approach, t, data_filepath, MFPT, check_point, N_LIST, j_max_list, display_extraction,
                                       save_png, show_plt, transparent=False, toggle_border=heat_plot_border, color_scheme=heatplot_colorscheme)
+        print("\n")
         time.sleep(1)
 
     csv_filename = f"HM_C_snapshot.csv"
@@ -292,6 +301,7 @@ def process_MFPT_results(MFPT_snapshots, checkpoint_collect_container, approach,
     df.to_csv(output_csv_loc, index=False)
     plt.plot_mfpt_v_checkpoints(output_csv_loc, x_label, rg_param, ry_param, w_param, v_param, N_LIST, data_filepath,
                                 save_png, show_plt)
+    print("\n")
     output_location_list.append(output_csv_loc)
 
     return output_location_list

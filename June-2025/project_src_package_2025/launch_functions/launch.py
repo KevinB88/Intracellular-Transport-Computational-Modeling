@@ -29,6 +29,7 @@ def solve_mfpt_mass_(rg_param, ry_param, N_LIST, v_param, w_param, domain_radius
 
     D_LAYER, A_LAYER = sup.initialize_layers(rg_param, ry_param)
     MFPT, sim_time = mfpt_comp.comp_mfpt_by_mass_loss(rg_param, ry_param, w_param, w_param, v_param, N_LIST, D_LAYER, A_LAYER, mass_checkpoint, domain_radius, D, mass_retention_threshold, d_tube)
+    print("\n\n")
     return MFPT, sim_time
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -65,7 +66,7 @@ def collect_MFPT_snapshots_mass_dep(rg_param, ry_param, N_LIST, v_param, w_param
     mfpt_comp.comp_mfpt_by_time_points_mass_dep(rg_param, ry_param, w_param, w_param, v_param, N_LIST,
                                                 D_LAYER, A_LAYER, checkpoint_collect_container, MFPT_snapshots,
                                                 mass_retention_threshold, mass_checkpoint, domain_radius, D, d_tube)
-
+    print("\n\n")
     return pro.process_MFPT_results(MFPT_snapshots, checkpoint_collect_container, 1, rg_param, ry_param, w_param, v_param, N_LIST,
                                     save_png, show_plt)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -109,7 +110,7 @@ def collect_phi_ang_dep_mass_dep(rg_param, ry_param, v_param, w_param, N_LIST, c
     ant.comp_diffusive_angle_snapshots_mass_dep(rg_param, ry_param, w_param, w_param, v_param, N_LIST,
                                                 D_LAYER, A_LAYER, PvT_DL_snapshots, checkpoint_collect_container,
                                                 mass_retention_threshold, T_fixed_ring_seg, d_tube, domain_radius, D, mass_checkpoint)
-
+    print("\n\n")
     return pro.process_PvT_DL(PvT_DL_snapshots, v_param, w_param, N_LIST, T_fixed_ring_seg, save_png, show_plt,
                               checkpoint_collect_container, 1, ry_param)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -156,6 +157,7 @@ def collect_density_rad_depend_mass_dep(rg_param, ry_param, v_param, w_param,  N
                                               D_LAYER, A_LAYER, R_fixed_angle, PvR_DL_snapshots, RvR_AL_snapshots,
                                               checkpoint_collect_container, mass_retention_threshold, domain_radius, D, mass_checkpoint, d_tube)
 
+    print("\n\n")
     output_list = pro.process_DvR_results(PvR_DL_snapshots, RvR_AL_snapshots, v_param, w_param, N_LIST, rg_param,
                                           ry_param, R_fixed_angle,
                                           checkpoint_collect_container, save_png, show_plt, 1, domain_radius)
@@ -205,6 +207,7 @@ def heatmap_production_mass_dep(rg_param, ry_param, v_param, w_param, N_LIST, ch
                                           D_LAYER, A_LAYER, HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, checkpoint_collect_container,
                                           domain_radius, D, mass_retention_threshold, mass_checkpoint, d_tube)
 
+    print("\n\n")
     return pro.process_static_HM_results(HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, checkpoint_collect_container, heatplot_border, w_param, v_param,
                                          N_LIST, heatplot_colorscheme, save_png, show_plt, j_max_list, display_extraction, 1)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -236,6 +239,7 @@ def solve_mfpt_time_(rg_param, ry_param, N_LIST, v_param, w_param, T_param, doma
     D_LAYER, A_LAYER = sup.initialize_layers(rg_param, ry_param)
     MFPT = mfpt_comp.comp_mfpt_by_time(rg_param, ry_param, w_param, w_param, v_param, N_LIST,
                                        D_LAYER, A_LAYER, T_param, mass_checkpoint, domain_radius, D, d_tube)
+    print("\n\n")
     return MFPT
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -279,6 +283,7 @@ def collect_MFPT_snapshots_time_dep(rg_param, ry_param, N_LIST, v_param, w_param
     mfpt_comp.comp_mfpt_by_time_points_time_dep(rg_param, ry_param, w_param, w_param, v_param, N_LIST,
                                                 D_LAYER, A_LAYER, checkpoint_collect_container, MFPT_snapshots,
                                                 T_param, mass_checkpoint, domain_radius, D, d_tube)
+    print("\n\n")
 
     return pro.process_MFPT_results(MFPT_snapshots, checkpoint_collect_container, 2, rg_param, ry_param, w_param, v_param, N_LIST,
                                     save_png, show_plt)
@@ -328,6 +333,7 @@ def collect_phi_ang_dep_time_dep(rg_param, ry_param, v_param, w_param, T_param, 
     ant.comp_diffusive_angle_snapshots_time_dep(rg_param, ry_param, w_param, w_param, T_param, v_param, N_LIST,
                                                 D_LAYER, A_LAYER, PvT_DL_snapshots,
                                                 checkpoint_collect_container, T_fixed_ring_seg, d_tube, domain_radius, D, mass_checkpoint)
+    print("\n\n")
 
     return pro.process_PvT_DL(PvT_DL_snapshots, v_param, w_param, N_LIST, T_fixed_ring_seg, save_png, show_plt,
                               checkpoint_collect_container, 2, ry_param)
@@ -379,6 +385,7 @@ def collect_density_rad_depend_time_dep(rg_param, ry_param, v_param, w_param, T_
     ant.comp_diffusive_rad_snapshots_time_dep(rg_param, ry_param, w_param, w_param, v_param, T_param, N_LIST,
                                               D_LAYER, A_LAYER, R_fixed_angle, PvR_DL_snapshots, RvR_AL_snapshots,
                                               checkpoint_collect_container, domain_radius, D, mass_checkpoint, d_tube)
+    print("\n\n")
 
     output_list = pro.process_DvR_results(PvR_DL_snapshots, RvR_AL_snapshots, v_param, w_param, N_LIST, rg_param,
                                           ry_param, R_fixed_angle,
@@ -433,6 +440,7 @@ def heatmap_production_time_dep(rg_param, ry_param, v_param, w_param, N_LIST, T_
     ant.comp_diffusive_snapshots_time_dep(rg_param, ry_param, w_param, w_param, v_param, T_param, N_LIST,
                                           D_LAYER, A_LAYER, HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots,
                                           checkpoint_collect_container, domain_radius, D, mass_checkpoint, d_tube)
+    print("\n\n")
 
     return pro.process_static_HM_results(HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, checkpoint_collect_container, heatplot_border, w_param, v_param,
                                          N_LIST, heatplot_colorscheme, save_png, show_plt, j_max_list, display_extraction, 2)
@@ -538,6 +546,7 @@ def launch_super_comp_I(rg_param, ry_param, v_param, w_param, T_param, N_LIST, d
     # Processing MFPT results
 
     MFPT_results = pro.process_MFPT_results(MFPT_snapshots, Timestamp_List, 2, rg_param, ry_param, w_param, v_param, N_LIST, save_png, show_plt)
+    print("\n\n")
 
     # Processing results for Mass-Analysis
 
@@ -545,7 +554,7 @@ def launch_super_comp_I(rg_param, ry_param, v_param, w_param, T_param, N_LIST, d
     MA_results = pro.process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_ALoT_timeseries,
                                         MA_ALoI_timeseries, v_param, w_param, N_LIST, T_param, rg_param, ry_param,
                                         save_png, show_plt, MA_collection_factor, domain_radius, D)
-
+    print("\n\n")
     # Processing results for Phi v. Theta
 
     PvT_DL_results = pro.process_PvT_DL(PvT_DL_snapshots, v_param, w_param, N_LIST, T_fixed_ring_seg, save_png,
@@ -555,13 +564,13 @@ def launch_super_comp_I(rg_param, ry_param, v_param, w_param, T_param, N_LIST, d
 
     DvR_results = pro.process_DvR_results(PvR_DL_snapshots, RvR_AL_snapshots, v_param, w_param, N_LIST, rg_param,
                                           ry_param, R_fixed_angle, Timestamp_List, save_png, show_plt, 2, domain_radius)
-
+    print("\n\n")
     # Processing static heat-plots
 
     static_HM_results = pro.process_static_HM_results(HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, Timestamp_List,
                                                       heat_plot_border, w_param, v_param, N_LIST, heatplot_colorscheme,
                                                       save_png, show_plt, j_max_list, display_extraction, 2)
-
+    print("\n\n")
     print("Successfully completed super-function. View results in project_src_package_2025/data_output.")
 
     output_list = MFPT_results + MA_results + PvT_DL_results + DvR_results + static_HM_results
