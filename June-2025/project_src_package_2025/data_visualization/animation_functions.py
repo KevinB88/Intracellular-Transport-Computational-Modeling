@@ -110,14 +110,10 @@ def display_domain_grid(rings, rays, microtubules, d_tube, r=1, display_extract=
 
     j_max_list = []
 
-    j_max_lim = sup.j_max_bef_overlap(rings, microtubules)
+    j_max_lim = sup.j_max_bef_overlap(rays, microtubules)
     max_d_tube = sup.solve_d_rect(r, rings, rays, j_max_lim, 0)
 
     microtubules = list(np.unique(microtubules))
-
-    while d_tube < 0 or d_tube > max_d_tube:
-        d_tube = float(
-            input(f"Select d_tube within the range: [0, {max_d_tube}] to avoid DL extraction region overlap: "))
 
     d_radius = r / rings
     d_theta = ((2 * math.pi) / rays)

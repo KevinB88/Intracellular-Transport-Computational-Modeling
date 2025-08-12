@@ -48,6 +48,7 @@ def _launch_time_analysis_MFPT(RG, RY, V, W, T, N_List, dTUBE=0.0, SingleStep=Fa
                                  d_list, dTUBE=dTUBE, MassCheckpoint=MassCheckpoint)
         end = perf_counter()
         time_list.append((end - start) / (RY * RG))
+        # time_list.append((end - start))
 
     mean_time = np.mean(time_list)
     if unit_conversion:

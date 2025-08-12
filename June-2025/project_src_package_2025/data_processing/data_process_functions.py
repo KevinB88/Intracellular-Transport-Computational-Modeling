@@ -1,7 +1,7 @@
-from system_configuration import file_paths as fp
-from auxiliary_tools import prints, tabulate_functions as tb
-from data_visualization import plot_functions as plt, animation_functions as ani
-from computational_tools import numerical_tools as num
+from project_src_package_2025.system_configuration import file_paths as fp
+from project_src_package_2025.auxiliary_tools import prints, tabulate_functions as tb
+from project_src_package_2025.data_visualization import plot_functions as plt, animation_functions as ani
+from project_src_package_2025.computational_tools import numerical_tools as num
 
 import pandas as pd
 import time
@@ -10,13 +10,13 @@ import numpy as np
 
 
 def process_PvT_DL(PvT_DL_snapshots, v_param, w_param, N_LIST, T_fixed_ring_seg, save_png, show_plt, checkpoint_collect_container, approach,
-                   ry_param):
+                   ry_param, rg_param):
 
     output_location_list = []
 
     timestamp = prints.return_timestamp()
     data_filepath = os.path.abspath(tb.create_directory(fp.phi_v_theta_output, timestamp))
-    filename = "PvT_Dl.csv"
+    filename = f"PvT_Dl_v={v_param}_w={w_param}_N={len(N_LIST)}_Domain={rg_param}x{ry_param}.csv"
     output_location = os.path.join(data_filepath, filename)
 
     radians_mesh = [i * (2 * np.pi)/ry_param for i in range(ry_param)]
@@ -38,7 +38,7 @@ def process_PvT_DL(PvT_DL_snapshots, v_param, w_param, N_LIST, T_fixed_ring_seg,
         data_dict[col_name] = snapshot
 
     df = pd.DataFrame(data_dict)
-    df.to_csv(output_location, index=False)\
+    df.to_csv(output_location, index=False)
 
     time.sleep(1)
     plt.plot_phi_v_theta(output_location, v_param, w_param, N_LIST, approach, T_fixed_ring_seg,
@@ -64,7 +64,7 @@ def process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_
     timestamp = prints.return_timestamp()
     data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_diffusive, timestamp))
 
-    filename = f"MA_DL.csv"
+    filename = f"MA_DL_v={v_param}_w={w_param}_N={len(N_LIST)}_Domain={rg_param}x{ry_param}.csv"
     output_location = os.path.join(data_filepath, filename)
 
     data_dict = {
@@ -83,7 +83,7 @@ def process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_
     # Advective mass analysis
     timestamp = prints.return_timestamp()
     data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective, timestamp))
-    filename = f"MA_AL.csv"
+    filename = f"MA_AL_v={v_param}_w={w_param}_N={len(N_LIST)}_Domain={rg_param}x{ry_param}.csv"
     output_location = os.path.join(data_filepath, filename)
 
     data_dict = {
@@ -102,7 +102,7 @@ def process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_
     # Total mass analysis
     timestamp = prints.return_timestamp()
     data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_total, timestamp))
-    filename = f"MA_total.csv"
+    filename = f"MA_total_v={v_param}_w={w_param}_N={len(N_LIST)}_Domain={rg_param}x{ry_param}.csv"
     output_location = os.path.join(data_filepath, filename)
 
     data_dict = {
@@ -121,7 +121,7 @@ def process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_
     # Advective/running total mass analysis
     timestamp = prints.return_timestamp()
     data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective_over_total, timestamp))
-    filename = f"MA_AL_running_total.csv"
+    filename = f"MA_AL_running_total_v={v_param}_w={w_param}_N={len(N_LIST)}_Domain={rg_param}x{ry_param}.csv"
     output_location = os.path.join(data_filepath, filename)
 
     data_dict = {
@@ -140,7 +140,7 @@ def process_MA_results(MA_DL_timeseries, MA_AL_timeseries, MA_TM_timeseries, MA_
     # Advective/initial total mass analysis
     timestamp = prints.return_timestamp()
     data_filepath = os.path.abspath(tb.create_directory(fp.mass_analysis_advective_over_initial, timestamp))
-    filename = f"MA_AL_initial_total.csv"
+    filename = f"MA_AL_initial_total_v={v_param}_w={w_param}_N={len(N_LIST)}_Domain={rg_param}x{ry_param}.csv"
     output_location = os.path.join(data_filepath, filename)
 
     data_dict = {
@@ -183,7 +183,7 @@ def process_DvR_results(PvR_DL_snapshots, RvR_AL_snapshots, v_param, w_param, N_
 
     timestamp = prints.return_timestamp()
     data_filepath = os.path.abspath(tb.create_directory(fp.radial_dependence_phi, timestamp))
-    filename = f"PvR_DL_snapshots_@DiscAng={R_fixed_angle}.csv"
+    filename = f"PvR_DL_snapshots_@DiscAng={R_fixed_angle}_v={v_param}_w={w_param}_N={len(N_LIST)}_Domain={rg_param}x{ry_param}.csv"
     output_location = os.path.join(data_filepath, filename)
     df = pd.DataFrame(data_dict)
     # df = pd.DataFrame(PvR_DL_snapshots)
@@ -212,7 +212,7 @@ def process_DvR_results(PvR_DL_snapshots, RvR_AL_snapshots, v_param, w_param, N_
 
     timestamp = prints.return_timestamp()
     data_filepath = os.path.abspath(tb.create_directory(fp.radial_dependence_rho, timestamp))
-    filename = f"RvR_AL_snapshots_@DiscAng={R_fixed_angle}.csv"
+    filename = f"RvR_AL_snapshots_@DiscAng={R_fixed_angle}_v={v_param}_w={w_param}_N={len(N_LIST)}_Domain={rg_param}x{ry_param}.csv"
     output_location = os.path.join(data_filepath, filename)
     # df = pd.DataFrame(RvR_AL_snapshots)
     df = pd.DataFrame(data_dict)
@@ -228,7 +228,7 @@ def process_DvR_results(PvR_DL_snapshots, RvR_AL_snapshots, v_param, w_param, N_
 
 def process_static_HM_results(HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, checkpoint_collect_container,
                               heat_plot_border, w_param, v_param, N_LIST, heatplot_colorscheme,
-                              save_png, show_plt, j_max_list, display_extraction, approach):
+                              save_png, show_plt, j_max_list, display_extraction, approach, rg_param, ry_param):
 
     output_location_list = []
     timestamp = prints.return_timestamp()
@@ -243,7 +243,7 @@ def process_static_HM_results(HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, c
         curr_C_snapshot = HM_C_snapshots[t]
         check_point = checkpoint_collect_container[t]
 
-        csv_filename = f"HM_DL_snapshot_T={check_point}.csv"
+        csv_filename = f"HM_DL_snapshot_T={check_point}_v={v_param}_w={w_param}_N={len(N_LIST)}_Domain={rg_param}x{ry_param}.csv"
         output_csv_loc = os.path.join(data_filepath, csv_filename)
         # print(output_csv_loc)
         df = pd.DataFrame(curr_DL_snapshot)
@@ -255,7 +255,7 @@ def process_static_HM_results(HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, c
         print("\n")
         time.sleep(1)
 
-    csv_filename = f"HM_C_snapshot.csv"
+    csv_filename = f"HM_C_snapshot_v={v_param}_w={w_param}_N={len(N_LIST)}_Domain={rg_param}x{ry_param}.csv"
     column_labels = ['T', 'Phi(center)']
 
     data_dict = {
@@ -280,7 +280,7 @@ def process_MFPT_results(MFPT_snapshots, checkpoint_collect_container, approach,
     timestamp = prints.return_timestamp()
     data_filepath = tb.create_directory(fp.mfpt_results_output, timestamp)
 
-    csv_filename = f"MFPT_timestamp.csv"
+    csv_filename = f"MFPT_timestamp_v={v_param}_w={w_param}_N={len(N_LIST)}_Domain={rg_param}x{ry_param}.csv"
 
     if approach == 1:
         x_label = 'TM'

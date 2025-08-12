@@ -112,7 +112,7 @@ def collect_phi_ang_dep_mass_dep(rg_param, ry_param, v_param, w_param, N_LIST, c
                                                 mass_retention_threshold, T_fixed_ring_seg, d_tube, domain_radius, D, mass_checkpoint)
     print("\n\n")
     return pro.process_PvT_DL(PvT_DL_snapshots, v_param, w_param, N_LIST, T_fixed_ring_seg, save_png, show_plt,
-                              checkpoint_collect_container, 1, ry_param)
+                              checkpoint_collect_container, 1, ry_param, rg_param)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
@@ -209,7 +209,7 @@ def heatmap_production_mass_dep(rg_param, ry_param, v_param, w_param, N_LIST, ch
 
     print("\n\n")
     return pro.process_static_HM_results(HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, checkpoint_collect_container, heatplot_border, w_param, v_param,
-                                         N_LIST, heatplot_colorscheme, save_png, show_plt, j_max_list, display_extraction, 1)
+                                         N_LIST, heatplot_colorscheme, save_png, show_plt, j_max_list, display_extraction, 1, rg_param, ry_param)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # ^======================================== Mass dependent computations ========================================^
@@ -336,7 +336,7 @@ def collect_phi_ang_dep_time_dep(rg_param, ry_param, v_param, w_param, T_param, 
     print("\n\n")
 
     return pro.process_PvT_DL(PvT_DL_snapshots, v_param, w_param, N_LIST, T_fixed_ring_seg, save_png, show_plt,
-                              checkpoint_collect_container, 2, ry_param)
+                              checkpoint_collect_container, 2, ry_param, rg_param)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # (****) (****)
@@ -443,7 +443,7 @@ def heatmap_production_time_dep(rg_param, ry_param, v_param, w_param, N_LIST, T_
     print("\n\n")
 
     return pro.process_static_HM_results(HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, checkpoint_collect_container, heatplot_border, w_param, v_param,
-                                         N_LIST, heatplot_colorscheme, save_png, show_plt, j_max_list, display_extraction, 2)
+                                         N_LIST, heatplot_colorscheme, save_png, show_plt, j_max_list, display_extraction, 2, rg_param, ry_param)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # (****) (****)
@@ -531,7 +531,7 @@ def launch_super_comp_I(rg_param, ry_param, v_param, w_param, T_param, N_LIST, d
     D_LAYER, A_LAYER = sup.initialize_layers(rg_param, ry_param)
 
     # Release the Kraken.. (execute super_comp_type_I)
-    super.super_comp_type_I(rg_param, rg_param, w_param, w_param, T_param, v_param, N_LIST, D_LAYER, A_LAYER,
+    super.super_comp_type_I(rg_param, ry_param, w_param, w_param, T_param, v_param, N_LIST, D_LAYER, A_LAYER,
                             Timestamp_List,
                             HM_DL_snapshots, HM_C_snapshots, PvT_DL_snapshots, T_fixed_ring_seg, MA_DL_timeseries,
                             MA_AL_timeseries,
@@ -558,7 +558,7 @@ def launch_super_comp_I(rg_param, ry_param, v_param, w_param, T_param, N_LIST, d
     # Processing results for Phi v. Theta
 
     PvT_DL_results = pro.process_PvT_DL(PvT_DL_snapshots, v_param, w_param, N_LIST, T_fixed_ring_seg, save_png,
-                                        show_plt, Timestamp_List, 2, ry_param)
+                                        show_plt, Timestamp_List, 2, ry_param, rg_param)
 
     # Processing results for Phi v. Radius & Rho v. Radius
 
@@ -569,7 +569,7 @@ def launch_super_comp_I(rg_param, ry_param, v_param, w_param, T_param, N_LIST, d
 
     static_HM_results = pro.process_static_HM_results(HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, Timestamp_List,
                                                       heat_plot_border, w_param, v_param, N_LIST, heatplot_colorscheme,
-                                                      save_png, show_plt, j_max_list, display_extraction, 2)
+                                                      save_png, show_plt, j_max_list, display_extraction, 2, rg_param, ry_param)
     print("\n\n")
     print("Successfully completed super-function. View results in project_src_package_2025/data_output.")
 
