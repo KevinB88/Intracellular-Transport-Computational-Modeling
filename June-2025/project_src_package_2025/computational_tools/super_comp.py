@@ -70,13 +70,14 @@ def super_comp_type_I(rg_param, ry_param, switch_param_a, switch_param_b, T_para
     v_param *= -1
 
     d_list = struct_init.build_d_tube_mapping_no_overlap(rg_param, ry_param, N_LIST, d_tube, domain_radius)
+    print(d_list)
 
     # initialize variables
 
     dl_mass = 1
     al_mass = 0
     MFPT = 0
-    central_patch = 1 / (np.pi * (dRad ** 2))
+    central_patch = num.compute_init_cond_cent(rg_param, domain_radius)
 
     # initialize collection width values
     # relative_k = np.floor(K / MA_collection_factor)

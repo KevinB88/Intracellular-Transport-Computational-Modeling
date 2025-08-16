@@ -24,6 +24,7 @@ def comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_L
                     # if the iteration steps on an extraction region ray at ring m, then:
                     # int(d_list[m][n]) is the corresponding microtubule position of the extraction region ray (n) at ring (m)
                     corr_MT_pos = int(d_list[m][n])
+
                     D_LAYER[1][m][n] = u_density_rect(D_LAYER, 0, m, n,
                                                       dRad, dThe, dT, central_patch,
                                                       rg_param, A_LAYER, corr_MT_pos,
