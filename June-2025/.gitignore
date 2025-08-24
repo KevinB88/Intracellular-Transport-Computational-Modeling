@@ -115,6 +115,8 @@ project_src_package_2025/data_output
 !project_src_package/data_output/**/.gitkeep
 
 
+project_src_package_2025/progress-notes
+
 
 # IPython
 profile_default/
@@ -135,3 +137,5 @@ project_src_package_2025/gui_components/saved_state.json
 /send_push_email.py
 /push_summary.txt
 /saved_queue_jobs.json
+/TransparentApp.icns
+/TransparentApp.iconset

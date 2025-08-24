@@ -1,6 +1,6 @@
 import multiprocessing
 from  project_src_package_2025.gui_components import main_gui as gui
-# from project_src_package_2025.launch_functions import launch
+from project_src_package_2025.launch_functions import launch
 # from project_src_package_2025.computational_tools import numerical_tools as num
 # from project_src_package_2025.computational_tools import time_analysis as tim
 # from project_src_package_2025.computational_tools import supplements as sup
@@ -26,22 +26,8 @@ def run_main():
 
 if __name__ == "__main__":
     multiprocessing.set_start_method("spawn", force=True)
+
     run_main()
-
-    # tim._launch_time_analysis_MFPT(75, 256, 1, 10**4, 2, [0, 64, 128, 192], 0.01, SingleStep=True, unit_conversion=False, iters=10**4)
-    # tim._launch_time_analysis_MFPT(75, 128, 1, 10**4, 2, [0, 32, 64, 96], 0.01, SingleStep=True, unit_conversion=False, iters=10**4)
-
-    # d_tube_max = sup.solve_d_rect(1, 75, 256, sup.j_max_bef_overlap(256, [0, 64, 128, 192]), 0)
-    # d_tube_max = sup.solve_d_rect(1, 75, 128, sup.j_max_bef_overlap(128, [0, 32, 64, 96]), 0)
-    # print(d_tube_max)
-
-    # print(num.compute_K(75, 128, 2))
-    # print(unit_conversion_functions.convert_seconds(1.2132784053129344e-07 * 93377602 * 75 * 128))
-
-    # print(d_tube_max)
-
-    # ~ 1.25 days (computation #1)
-    # ~ 1.42 weeks (computation #2) 75, 256
 
 # today_str = datetime.now().strftime("%Y-%m-%d")
 #

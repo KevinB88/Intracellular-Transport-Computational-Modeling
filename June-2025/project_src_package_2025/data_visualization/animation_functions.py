@@ -10,6 +10,8 @@ def produce_heatmap_tool_rect(HM_DL_snapshot, HM_C_snapshot, w_param, v_param, N
 
     # Setting up the layers.
 
+    # transparent = True
+
     diffusive_layer_center = np.full((1, HM_DL_snapshot.shape[1]), HM_C_snapshot)
     full_diffusive_layer = np.vstack([diffusive_layer_center, HM_DL_snapshot])
     rg_param, ry_param = full_diffusive_layer.shape
@@ -23,6 +25,7 @@ def produce_heatmap_tool_rect(HM_DL_snapshot, HM_C_snapshot, w_param, v_param, N
 
     # Constructing the plot.
     plt.figure(figsize=(8, 10))
+    # plt.figure(figsize=(10.24, 10.24), dpi=100)
     cmap = cm.get_cmap(color_scheme, 512)
 
     # Normalize density across the DL between the min and max density value.

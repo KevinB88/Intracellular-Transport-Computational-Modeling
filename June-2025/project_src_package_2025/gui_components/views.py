@@ -46,7 +46,6 @@ from pathlib import Path
 
 from project_src_package_2025.multiprocessing_tools.compute_worker import compute_and_send
 
-
 # from project_src_package_2025.gui_components.GUI_modular_plan.parameter_section import ParameterSection
 
 if getattr(sys, 'frozen', False):
@@ -119,7 +118,7 @@ class ControlPanel(QWidget):
         # Advanced toggle
         self.advanced_toggle = QCheckBox("Show Advanced Parameters")
         self.advanced_toggle.stateChanged.connect(self.toggle_advanced_fields)
-        self.advanced_widgets = []
+        self.advanced_widgets = [ ]
 
         """
         1) Margins on the entire block : control the entire block's offset within the parent layout
@@ -203,7 +202,8 @@ class ControlPanel(QWidget):
         # button_row = QHBoxLayout()
         self.spinner_label = QLabel()
         self.spinner_label.setVisible(False)
-        self.spinner_movie = QMovie("N:\\QueensCollege2025\\research\\computational_biophysics\\remote-clone\\June-2025\\project_src_package_2025\\gui_components\\visual_materials\\spinner_100x100.gif")
+        self.spinner_movie = QMovie(
+            "N:\\QueensCollege2025\\research\\computational_biophysics\\remote-clone\\June-2025\\project_src_package_2025\\gui_components\\visual_materials\\spinner_100x100.gif")
         self.spinner_label.setMovie(self.spinner_movie)
 
         self.launch_button = QPushButton("Launch")
@@ -303,7 +303,7 @@ class ControlPanel(QWidget):
         viz_label = QLabel("Select Visualization: ")
         viz_label.setStyleSheet("font-weight: bold;")
         self.visualization_select = QComboBox()
-        self.visualization_select.addItems(["Show Domain", "Animate Diffusion"])
+        self.visualization_select.addItems([ "Show Domain", "Animate Diffusion" ])
         self.visualization_select.currentTextChanged.connect(self.handle_visualization_mode_change)
         viz_layout.addWidget(viz_label)
         viz_layout.addWidget(self.visualization_select)
@@ -343,9 +343,9 @@ class ControlPanel(QWidget):
         self.launch_animation_button.setStyleSheet("background-color : lightgray")
         self.anim_border_select_checkbox = QCheckBox("Display domain border")
         self.anim_border_select_checkbox.setChecked(False)
-        for key in ["rg_param", "ry_param", "w_param", "v_param", "N_LIST", "T_param"]:
+        for key in [ "rg_param", "ry_param", "w_param", "v_param", "N_LIST", "T_param" ]:
             if key in self.param_inputs:
-                self.param_inputs[key].textChanged.connect(self.validate_animation)
+                self.param_inputs[ key ].textChanged.connect(self.validate_animation)
 
         self.launch_animation_button.clicked.connect(self.handle_launch_animation)
 
@@ -429,14 +429,14 @@ class ControlPanel(QWidget):
     # 2 v------------------------------------------- Animation launch functions --------------------------------------------v
     def handle_launch_animation(self):
         try:
-            rg = int(self.param_inputs["rg_param"].text())
-            ry = int(self.param_inputs["ry_param"].text())
-            w = float(self.param_inputs["w_param"].text())
-            v = float(self.param_inputs["v_param"].text())
-            N_raw = self.param_inputs["N_LIST"].text()
+            rg = int(self.param_inputs[ "rg_param" ].text())
+            ry = int(self.param_inputs[ "ry_param" ].text())
+            w = float(self.param_inputs[ "w_param" ].text())
+            v = float(self.param_inputs[ "v_param" ].text())
+            N_raw = self.param_inputs[ "N_LIST" ].text()
             N = list(map(int, re.findall(r'\d+', N_raw))) if N_raw else [ ]
-            T = float(self.param_inputs["T_param"].text())
-            d_tube = float(self.param_inputs["d_tube"].text())
+            T = float(self.param_inputs[ "T_param" ].text())
+            d_tube = float(self.param_inputs[ "d_tube" ].text())
             border = self.anim_border_select_checkbox.isChecked()
 
             # steps_per_frame = self.steps_slider.value()
@@ -494,9 +494,9 @@ class ControlPanel(QWidget):
             self.current_canvas = None
 
     def validate_animation(self):
-        required_keys = ["rg_param", "ry_param", "w_param", "v_param", "N_LIST", "T_param", "d_tube"]
+        required_keys = [ "rg_param", "ry_param", "w_param", "v_param", "N_LIST", "T_param", "d_tube" ]
         inputs_filled = all(
-            key in self.param_inputs and self.param_inputs[key].text().strip() != ""
+            key in self.param_inputs and self.param_inputs[ key ].text().strip() != ""
             for key in required_keys
         )
         self._set_launch_animation_button_enabled(inputs_filled)
@@ -510,9 +510,9 @@ class ControlPanel(QWidget):
         self.validate_animation()
 
     def connect_QLINE_editfields(self):
-        for key in ["rg_param", "ry_param", "w_param", "v_param", "N_LIST", "T_param"]:
+        for key in [ "rg_param", "ry_param", "w_param", "v_param", "N_LIST", "T_param" ]:
             if key in self.param_inputs:
-                self.param_inputs[key].textChanged.connect(self.validate_animation)
+                self.param_inputs[ key ].textChanged.connect(self.validate_animation)
 
     # ^------------------------------------------- Animation launch functions --------------------------------------------^
 
@@ -538,7 +538,7 @@ class ControlPanel(QWidget):
                 microtubules = list(parsed) if isinstance(parsed, (list, tuple)) else [ int(parsed) ]
             except (ValueError, SyntaxError):
                 print("[Error] Invalid microtubule input. Please enter a list like [0,1,2] or comma-separated values.")
-                microtubules = []
+                microtubules = [ ]
 
             display_extract = self.display_extract_checkbox.isChecked()
             toggle_border = self.toggle_border_checkbox.isChecked()
@@ -615,11 +615,11 @@ class ControlPanel(QWidget):
 
                 if event.key() == Qt.Key_Up:
                     prev_idx = (idx - 1) % len(keys)
-                    keys[prev_idx].setFocus()
+                    keys[ prev_idx ].setFocus()
                     return True
                 elif event.key() == Qt.Key_Down:
                     next_idx = (idx + 1) % len(keys)
-                    keys[next_idx].setFocus()
+                    keys[ next_idx ].setFocus()
                     return True
         return super().eventFilter(source, event)
 
@@ -635,8 +635,8 @@ class ControlPanel(QWidget):
             return
 
         # Get expected fields (both required and default)
-        expected_fields = [param for param, _ in schema.get("default", [ ]) ] + \
-                          [param for param, _ in schema.get("required", [ ]) ]
+        expected_fields = [ param for param, _ in schema.get("default", [ ]) ] + \
+                          [ param for param, _ in schema.get("required", [ ]) ]
 
         # Check that all are filled
         inputs_filled = all(
@@ -652,28 +652,6 @@ class ControlPanel(QWidget):
 
         self._set_computation_controls_enabled(is_valid)
 
-    # def check_for_computation_results(self, computation_name):
-    #     if not self.mp_queue.empty():
-    #         response = self.mp_queue.get()
-    #         self.poll_timer.stop()
-    #         self.mp_process.join()
-    #
-    #         if response["status"] == "ok":
-    #
-    #             self.output_display.append(
-    #                 f"Computation {computation_name} executed successfully.  [{self.produce_timestamp()}]")
-    #             self.process_result(response["result"])
-    #         else:
-    #             QMessageBox.critical(self, "Error", response["message"])
-    #             self.output_display.append(f"Computation {computation_name} failed.     [{self.produce_timestamp()}]")
-    #             self.set_launch_color("error")
-    #         self.launch_button.setEnabled(True)
-    #         self.spinner_movie.stop()
-    #         self.spinner_label.setVisible(False)
-    #
-    #
-    #
-
     def check_for_computation_results(self, computation_name):
         import os
         import json
@@ -681,25 +659,33 @@ class ControlPanel(QWidget):
             return
         self.poll_timer.stop()
 
-        result_file = f"result_{computation_name}.json"
+        from system_configuration import file_paths as fp
+
+        # output_dir = fp.json_output
+        # result_file = os.path.join(output_dir, f"text.txt")
+        result_file = "/Users/kbedoya88/Desktop/QC25-Summer/Research/Computational-Biophysics/Comp-Bio-Summer/June-2025/project_src_package_2025/data_output/json_output/result.json"
 
         try:
             if not os.path.join(result_file) or os.path.getsize(result_file) == 0:
-                raise FileNotFoundError("Resul file missing or empty.")
+                raise FileNotFoundError("Result file missing or empty.")
+
+            # result_file = "/Users/kbedoya88/Desktop/QC25-Summer/Research/Computational-Biophysics/Comp-Bio-Summer/June-2025/project_src_package_2025/data_output/json_output/result.json"
 
             with open(result_file, "r") as f:
                 response = json.load(f)
             os.remove(result_file)
 
-            if response["status"] == "ok":
+            if response[ "status" ] == "ok":
                 self.output_display.append(
                     f"Computation {computation_name} executed successfully. [{self.produce_timestamp()}]"
                 )
-                self.process_result(response["result"])
+                self.process_result(response[ "result" ])
             else:
                 print("Computation failed:", response.get("message", "Unknown error"))
         except Exception as e:
-            print(f"Error reading result file after subprocess completed: {e}")
+            self.output_display.append(
+                f"{e} [{self.produce_timestamp()}]"
+            )
 
         self.launch_button.setEnabled(True)
         self.spinner_movie.stop()
@@ -723,12 +709,12 @@ class ControlPanel(QWidget):
                 f"Launching computation: {computation_name}...      [{self.produce_timestamp()}]"
             )
 
-            python_exec = "N:\\PROJECT\\PyCharm\\TensorFlow\\venv\\Scripts\\python.exe"
+            python_exec = "/usr/local/bin/python3.9"
 
             args = [
                 python_exec,
                 "-m",
-                "project_src_package_2025.multiprocessing_tools.subprocess_launcher",
+                "multiprocessing_tools.subprocess_launcher",
                 computation_name,
                 json.dumps(inputs)
             ]
@@ -749,55 +735,16 @@ class ControlPanel(QWidget):
             self.spinner_movie.stop()
             self.launch_button.setEnabled(True)
 
-    # def run_computation_mp(self):
-    #     self.set_launch_color("running")
-    #     self.launch_button.setEnabled(False)
-    #     self.spinner_label.setVisible(True)
-    #     self.spinner_movie.start()
-    #
-    #     try:
-    #         inputs = {param: field.text() for param, field in self.param_inputs.items()}
-    #         # print(inputs)
-    #         if not any(inputs.values()):
-    #             raise ValueError("No input parameters were provided.")
-    #
-    #         computation_name = self.comp_select.currentText()
-    #         if not computation_name:
-    #             raise ValueError("No computation type selected.")
-    #
-    #         self.output_display.append(
-    #             f"Launching computation: {computation_name}...       [{self.produce_timestamp()}]")
-    #
-    #         self.mp_queue = Queue()
-    #         self.mp_process = Process(target=compute_and_send, args=(self.mp_queue, computation_name, inputs))
-    #         self.mp_process.start()
-    #
-    #         # Start polling for results
-    #         self.poll_timer = QTimer()
-    #         self.poll_timer.timeout.connect(lambda: self.check_for_computation_results(computation_name))
-    #         self.poll_timer.start(100)
-    #     except Exception as e:
-    #
-    #         self.set_launch_color("error")
-    #         self.output_display.append(f"Computation {computation_name} failed.     [{self.produce_timestamp()}]")
-    #         QMessageBox.critical(self, "Input Error", str(e))
-    #         self.spinner_label.setVisible(False)
-    #         self.spinner_movie.stop()
-    #         self.launch_button.setEnabled(True)
-
     def process_result(self, result):
         self.set_launch_color("success")
 
         if "MFPT" in result:
-            # self.mfpt_label.setText(f"MFPT: {result['MFPT']:.6f}")
             self.output_display.append(
                 f"Computation returned MFPT = {result[ 'MFPT' ]:.6f}       [{self.produce_timestamp()}]")
 
         if "duration" in result:
             self.output_display.append(
                 f"Dimensionless time duration: {result[ 'duration' ]:.6f}      [{self.produce_timestamp()}]")
-            # self.duration_label.setText(f"Duration: {result['duration']:.6f}")
-            # self.duration_label.show()
 
         csv_paths = []
         png_paths = []
@@ -842,7 +789,7 @@ class ControlPanel(QWidget):
         self.param_inputs.clear()
         self.advanced_widgets.clear()
 
-        schema = params_config.PARAMETER_SCHEMAS[computation_name]
+        schema = params_config.PARAMETER_SCHEMAS[ computation_name ]
         hints = params_config.PARAMETER_HINTS  # <-- Hints dictionary
 
         # === Required parameters ===
@@ -851,12 +798,12 @@ class ControlPanel(QWidget):
             input_field.installEventFilter(self)
 
             label = QLabel(f"{param}:")
-            self.param_inputs[param] = input_field
+            self.param_inputs[ param ] = input_field
 
             # Set hover-based tooltip if hint is available
             if param in hints:
-                label.setToolTip(hints[param])
-                input_field.setToolTip(hints[param])
+                label.setToolTip(hints[ param ])
+                input_field.setToolTip(hints[ param ])
 
             self.param_form.addRow(label, input_field)
 
@@ -869,12 +816,12 @@ class ControlPanel(QWidget):
             label = QLabel(f"{param}:")
             label.setVisible(False)
 
-            self.param_inputs[param] = input_field
+            self.param_inputs[ param ] = input_field
 
             # Set hover-based tooltip if hint is available
             if param in hints:
-                label.setToolTip(hints[param])
-                input_field.setToolTip(hints[param])
+                label.setToolTip(hints[ param ])
+                input_field.setToolTip(hints[ param ])
 
             self.param_form.addRow(label, input_field)
             self.advanced_widgets.append((label, input_field))
@@ -1033,6 +980,7 @@ class ControlPanel(QWidget):
         self.run_next_job()
 
     def run_next_job(self):
+        import json
 
         if not self.pending_jobs:
             self.output_display.append(f"Job queue finished.     [{self.produce_timestamp()}]")
@@ -1048,28 +996,54 @@ class ControlPanel(QWidget):
 
         self.output_display.append(f"Running: {job.display_name()}      [{self.produce_timestamp()}]")
         self.set_launch_color("running")
-        # self.duration_label.hide()
-        # self.mfpt_label.setText("MFPT: ")
         self.output_display.repaint()
 
-        self.job_queue = Queue()
-        self.job_process = Process(target=compute_and_send, args=(self.job_queue, job.comp_type, job.params))
-        self.job_process.start()
+        python_exec = "/usr/local/bin/python3.9"
 
-        self.job_timer = QTimer()
-        self.job_timer.timeout.connect(self.check_job_result)
-        self.job_timer.start(100)
+        computation_name = job.comp_type
+        inputs = job.params
+
+        args = [
+            python_exec,
+            "-m",
+            "multiprocessing_tools.subprocess_launcher",
+            computation_name,
+            json.dumps(inputs)
+        ]
+
+        from project_src_package_2025.multiprocessing_tools import subprocess_launcher
+        self.process = subprocess_launcher.launch_subprocess(args)
+
+        self.poll_timer = QTimer()
+        self.poll_timer.timeout.connect(self.check_job_result)
+        self.poll_timer.start(100)
 
     def check_job_result(self):
-        if not self.job_queue.empty():
-            self.job_timer.stop()
-            response = self.job_queue.get()
-            self.job_process.join()
+        import os
+        import json
 
-            if response[ "status" ] == "ok":
-                self.handle_completed_job(response[ "result" ])
+        if self.process.poll() is None:
+            return
+        self.poll_timer.stop()
+
+        result_file = "/Users/kbedoya88/Desktop/QC25-Summer/Research/Computational-Biophysics/Comp-Bio-Summer/June-2025/project_src_package_2025/data_output/json_output/result.json"
+
+        try:
+            if not os.path.join(result_file) or os.path.getsize(result_file) == 0:
+                raise FileNotFoundError(f"Result: {result_file} file missing or empty")
+
+            with open(result_file, "r") as f:
+                response = json.load(f)
+            os.remove(result_file)
+
+            if response["status"] == "ok":
+                self.handle_completed_job(response["result"])
             else:
-                self.handle_failed_job(response[ "message" ])
+                self.handle_failed_job(response["message"])
+        except Exception as e:
+            self.output_display.append(
+                f"{e} [{self.produce_timestamp()}]"
+            )
 
     def handle_completed_job(self, result):
         job = self.current_job
@@ -1340,7 +1314,7 @@ class ControlPanel(QWidget):
         self._d_tube_validation_msg_index = document.blockCount() - 1
 
     def validate_d_tube_range(self):
-        required_keys = ["rg_param", "ry_param", "N_LIST", "d_tube"]
+        required_keys = [ "rg_param", "ry_param", "N_LIST", "d_tube" ]
         for key in required_keys:
             if key not in self.param_inputs:
                 return
@@ -1376,7 +1350,7 @@ class ControlPanel(QWidget):
         schema = params_config.PARAMETER_SCHEMAS.get(current_comp)
         if schema is None:
             return
-        default_params = dict(schema.get("default", []))
+        default_params = dict(schema.get("default", [ ]))
 
         # Estimate maximum legal d_tube
         try:
