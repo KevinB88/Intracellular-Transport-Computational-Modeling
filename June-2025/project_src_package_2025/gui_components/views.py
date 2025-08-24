@@ -93,7 +93,8 @@ class ControlPanel(QWidget):
         self.job_queue = None
         self.current_job = None
         self.pending_jobs = None
-        self.mp_process = None
+        # self.mp_process = None
+        self.process = None
         self.poll_timer = None
         self.mp_queue = None
         self.current_canvas = None
@@ -202,7 +203,7 @@ class ControlPanel(QWidget):
         # button_row = QHBoxLayout()
         self.spinner_label = QLabel()
         self.spinner_label.setVisible(False)
-        self.spinner_movie = QMovie("gui_components/visual_materials/gifs/spinner_100x100.gif")
+        self.spinner_movie = QMovie("N:\\QueensCollege2025\\research\\computational_biophysics\\remote-clone\\June-2025\\project_src_package_2025\\gui_components\\visual_materials\\spinner_100x100.gif")
         self.spinner_label.setMovie(self.spinner_movie)
 
         self.launch_button = QPushButton("Launch")
@@ -428,14 +429,14 @@ class ControlPanel(QWidget):
     # 2 v------------------------------------------- Animation launch functions --------------------------------------------v
     def handle_launch_animation(self):
         try:
-            rg = int(self.param_inputs[ "rg_param" ].text())
-            ry = int(self.param_inputs[ "ry_param" ].text())
-            w = float(self.param_inputs[ "w_param" ].text())
-            v = float(self.param_inputs[ "v_param" ].text())
-            N_raw = self.param_inputs[ "N_LIST" ].text()
+            rg = int(self.param_inputs["rg_param"].text())
+            ry = int(self.param_inputs["ry_param"].text())
+            w = float(self.param_inputs["w_param"].text())
+            v = float(self.param_inputs["v_param"].text())
+            N_raw = self.param_inputs["N_LIST"].text()
             N = list(map(int, re.findall(r'\d+', N_raw))) if N_raw else [ ]
-            T = float(self.param_inputs[ "T_param" ].text())
-            d_tube = float(self.param_inputs[ "d_tube" ].text())
+            T = float(self.param_inputs["T_param"].text())
+            d_tube = float(self.param_inputs["d_tube"].text())
             border = self.anim_border_select_checkbox.isChecked()
 
             # steps_per_frame = self.steps_slider.value()
@@ -569,16 +570,6 @@ class ControlPanel(QWidget):
         except Exception as e:
             print(f"[Error] Failed to display domain grid: {e}")
 
-    # def close_domain(self):
-    #     if hasattr(self, "plot_layout"):
-    #         for i in reversed(range(self.plot_layout.count())):
-    #             widget = self.plot_layout.itemAt(i).widget()
-    #             if widget is not None:
-    #                 widget.setParent(None)
-    #
-    #     self.close_domain_button.hide()
-    #     self.display_domain_button.setText("Display Domain")
-
     def close_domain(self):
         if hasattr(self, 'current_canvas') and self.current_canvas:
             self.visualization_area.removeWidget(self.current_canvas)
@@ -661,60 +652,138 @@ class ControlPanel(QWidget):
 
         self._set_computation_controls_enabled(is_valid)
 
+    # def check_for_computation_results(self, computation_name):
+    #     if not self.mp_queue.empty():
+    #         response = self.mp_queue.get()
+    #         self.poll_timer.stop()
+    #         self.mp_process.join()
+    #
+    #         if response["status"] == "ok":
+    #
+    #             self.output_display.append(
+    #                 f"Computation {computation_name} executed successfully.  [{self.produce_timestamp()}]")
+    #             self.process_result(response["result"])
+    #         else:
+    #             QMessageBox.critical(self, "Error", response["message"])
+    #             self.output_display.append(f"Computation {computation_name} failed.     [{self.produce_timestamp()}]")
+    #             self.set_launch_color("error")
+    #         self.launch_button.setEnabled(True)
+    #         self.spinner_movie.stop()
+    #         self.spinner_label.setVisible(False)
+    #
+    #
+    #
+
     def check_for_computation_results(self, computation_name):
-        if not self.mp_queue.empty():
-            response = self.mp_queue.get()
-            self.poll_timer.stop()
-            self.mp_process.join()
+        import os
+        import json
+        if self.process.poll() is None:
+            return
+        self.poll_timer.stop()
+
+        result_file = f"result_{computation_name}.json"
+
+        try:
+            if not os.path.join(result_file) or os.path.getsize(result_file) == 0:
+                raise FileNotFoundError("Resul file missing or empty.")
+
+            with open(result_file, "r") as f:
+                response = json.load(f)
+            os.remove(result_file)
 
             if response["status"] == "ok":
-
                 self.output_display.append(
-                    f"Computation {computation_name} executed successfully.  [{self.produce_timestamp()}]")
+                    f"Computation {computation_name} executed successfully. [{self.produce_timestamp()}]"
+                )
                 self.process_result(response["result"])
             else:
-                QMessageBox.critical(self, "Error", response["message"])
-                self.output_display.append(f"Computation {computation_name} failed.     [{self.produce_timestamp()}]")
-                self.set_launch_color("error")
-            self.launch_button.setEnabled(True)
-            self.spinner_movie.stop()
-            self.spinner_label.setVisible(False)
+                print("Computation failed:", response.get("message", "Unknown error"))
+        except Exception as e:
+            print(f"Error reading result file after subprocess completed: {e}")
+
+        self.launch_button.setEnabled(True)
+        self.spinner_movie.stop()
+        self.spinner_label.setVisible(True)
 
     def run_computation_mp(self):
-        self.set_launch_color("running")
+        import json
+
         self.launch_button.setEnabled(False)
         self.spinner_label.setVisible(True)
         self.spinner_movie.start()
 
         try:
             inputs = {param: field.text() for param, field in self.param_inputs.items()}
-            # print(inputs)
             if not any(inputs.values()):
                 raise ValueError("No input parameters were provided.")
-
             computation_name = self.comp_select.currentText()
             if not computation_name:
                 raise ValueError("No computation type selected.")
-
             self.output_display.append(
-                f"Launching computation: {computation_name}...       [{self.produce_timestamp()}]")
+                f"Launching computation: {computation_name}...      [{self.produce_timestamp()}]"
+            )
 
-            self.mp_queue = Queue()
-            self.mp_process = Process(target=compute_and_send, args=(self.mp_queue, computation_name, inputs))
-            self.mp_process.start()
+            python_exec = "N:\\PROJECT\\PyCharm\\TensorFlow\\venv\\Scripts\\python.exe"
 
-            # Start polling for results
+            args = [
+                python_exec,
+                "-m",
+                "project_src_package_2025.multiprocessing_tools.subprocess_launcher",
+                computation_name,
+                json.dumps(inputs)
+            ]
+
+            from project_src_package_2025.multiprocessing_tools import subprocess_launcher
+            self.process = subprocess_launcher.launch_subprocess(args)
+
+            from PyQt5.Qt import QTimer
             self.poll_timer = QTimer()
             self.poll_timer.timeout.connect(lambda: self.check_for_computation_results(computation_name))
             self.poll_timer.start(100)
-        except Exception as e:
 
+        except Exception as e:
             self.set_launch_color("error")
             self.output_display.append(f"Computation {computation_name} failed.     [{self.produce_timestamp()}]")
             QMessageBox.critical(self, "Input Error", str(e))
             self.spinner_label.setVisible(False)
             self.spinner_movie.stop()
             self.launch_button.setEnabled(True)
+
+    # def run_computation_mp(self):
+    #     self.set_launch_color("running")
+    #     self.launch_button.setEnabled(False)
+    #     self.spinner_label.setVisible(True)
+    #     self.spinner_movie.start()
+    #
+    #     try:
+    #         inputs = {param: field.text() for param, field in self.param_inputs.items()}
+    #         # print(inputs)
+    #         if not any(inputs.values()):
+    #             raise ValueError("No input parameters were provided.")
+    #
+    #         computation_name = self.comp_select.currentText()
+    #         if not computation_name:
+    #             raise ValueError("No computation type selected.")
+    #
+    #         self.output_display.append(
+    #             f"Launching computation: {computation_name}...       [{self.produce_timestamp()}]")
+    #
+    #         self.mp_queue = Queue()
+    #         self.mp_process = Process(target=compute_and_send, args=(self.mp_queue, computation_name, inputs))
+    #         self.mp_process.start()
+    #
+    #         # Start polling for results
+    #         self.poll_timer = QTimer()
+    #         self.poll_timer.timeout.connect(lambda: self.check_for_computation_results(computation_name))
+    #         self.poll_timer.start(100)
+    #     except Exception as e:
+    #
+    #         self.set_launch_color("error")
+    #         self.output_display.append(f"Computation {computation_name} failed.     [{self.produce_timestamp()}]")
+    #         QMessageBox.critical(self, "Input Error", str(e))
+    #         self.spinner_label.setVisible(False)
+    #         self.spinner_movie.stop()
+    #         self.launch_button.setEnabled(True)
 
     def process_result(self, result):
         self.set_launch_color("success")
@@ -814,50 +883,6 @@ class ControlPanel(QWidget):
 
         for field in self.param_inputs.values():
             field.textChanged.connect(self.validate_computation)
-
-    # def update_parameter_fields(self, computation_name):
-    #     # Clear previous inputs
-    #     for i in reversed(range(self.param_form.count())):
-    #         self.param_form.removeRow(i)
-    #
-    #     self.param_inputs.clear()
-    #     self.advanced_widgets.clear()
-    #
-    #     schema = parmas_config.PARAMETER_SCHEMAS[computation_name]
-    #
-    #     # Add required fields
-    #     for param, default in schema.get("required", [ ]):
-    #         input_field = QLineEdit()
-    #         input_field.installEventFilter(self)
-    #         self.param_form.addRow(f"{param}:", input_field)
-    #         self.param_inputs[param] = input_field
-    #
-    #     # Add default/advanced fields (initially hidden)
-    #     for param, value in schema.get("default", []):
-    #         input_field = QLineEdit(str(value))
-    #         input_field.installEventFilter(self)
-    #         self.param_inputs[param] = input_field
-    #         label = QLabel(f"{param}:")
-    #         label.setVisible(False)
-    #         input_field.setVisible(False)
-    #         self.param_form.addRow(label, input_field)
-    #         self.advanced_widgets.append((label, input_field))
-    #
-    #     self.setup_d_tube_live_check()
-    #     for field in self.param_inputs.values():
-    #         field.textChanged.connect(self.validate_computation)
-
-    """
-        ^^^^^^^^ 
-        To adhere to DRY:
-
-        def _install_field_events(self, field: QLineEdit):
-        field.installEventFilter(self)
-
-        call: 
-
-        self._install_field_events(input_field)
-    """
 
     def toggle_advanced_fields(self, state):
         show = state == Qt.Checked
@@ -1351,7 +1376,7 @@ class ControlPanel(QWidget):
         schema = params_config.PARAMETER_SCHEMAS.get(current_comp)
         if schema is None:
             return
-        default_params = dict(schema.get("default", [ ]))
+        default_params = dict(schema.get("default", []))
 
         # Estimate maximum legal d_tube
         try:

@@ -1,4 +1,5 @@
 from . import njit, math, numerical_tools as num, sys_config, supplements as sup, np
+from project_src_package_2025.auxiliary_tools import unit_conversion_functions
 # import time
 from project_src_package_2025.computational_tools import struct_init
 
@@ -7,6 +8,7 @@ from numba import int64
 
 ENABLE_JIT = sys_config.ENABLE_NJIT
 ENABLE_CACHE = sys_config.ENABLE_NUMBA_CACHING
+
 
 # (****) (****)
 @njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
@@ -51,6 +53,7 @@ def comp_mfpt_by_mass_loss(rg_param, ry_param, switch_param_a, switch_param_b, v
     sim_time_duration = dT * k
 
     return MFPT, sim_time_duration
+
 
 # (****) (****)
 @njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)

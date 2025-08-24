@@ -1,6 +1,8 @@
 from . import math
+from numba import njit
 
 
+@njit(nopython=True, cache=True)
 def convert_bytes(num_bytes):
     """
     Converts num_bytes to the largest possible unit conversion of bytes

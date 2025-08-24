@@ -134,3 +134,4 @@ project_src_package_2025/gui_components/saved_state.json
 /git_push_notify.sh
 /send_push_email.py
 /push_summary.txt
+/saved_queue_jobs.json

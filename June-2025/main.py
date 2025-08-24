@@ -19,6 +19,13 @@ personal notes/tasks:
 @Kevin
 """
 
+'''
+    Bugs: 8/23/25
+    
+    d_tube message continues to stack.
+
+'''
+
 
 def run_main():
     gui.run_app()
