@@ -1,8 +1,7 @@
-from . import mfpt_comp, sup, datetime, tb, fp, mp, config, partial, ant, np, os, plt, ani, num, super
+from . import mfpt_comp, sup, ant, np, num, super
 
-from project_src_package_2025.computational_tools import struct_init
-from project_src_package_2025.data_processing import data_process_functions as pro
-import pandas as pd
+from computational_tools import struct_init
+from data_processing import data_process_functions as pro
 
 
 # v======================================== Mass dependent computations ========================================v

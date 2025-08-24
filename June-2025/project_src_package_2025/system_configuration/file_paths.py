@@ -35,6 +35,6 @@ mass_analysis_advective_over_initial = general_output / "mass_analysis_results/a
 rect_logs = general_output / "output_logs"
 # styles_location = BASE_DIR / "gui_components/styles/style.qss"
 
-# Super function results
+json_output = general_output / "json_output"
 
 

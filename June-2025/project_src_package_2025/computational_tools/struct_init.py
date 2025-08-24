@@ -1,16 +1,14 @@
 from numba.typed import Dict, List
 from typing import List as PyList
 from numba.types import int64, ListType
-from . import sys_config, njit, np
+from . import njit, np
 import csv
 import os
-from project_src_package_2025.computational_tools import supplements as sup, numerical_tools as num
-
-ENABLE_JIT = sys_config.ENABLE_NJIT
+from computational_tools import supplements as sup, numerical_tools as num
 
 
 # (****) (****)
-@njit(nopython=ENABLE_JIT)
+@njit
 def build_d_tube_mapping_no_overlap(rg_param, ry_param, N_LIST, d_tube=0.0, domain_radius=1.0):
     d_list = List()
 
@@ -33,7 +31,7 @@ def build_d_tube_mapping_no_overlap(rg_param, ry_param, N_LIST, d_tube=0.0, doma
 
 
 # (****) (****)
-@njit(nopython=ENABLE_JIT)
+@njit
 def build_j_max_list(rg_param, ry_param, N_LIST, d_tube=0.0, domain_radius=1.0):
 
     j_max_list = []
@@ -54,7 +52,7 @@ def build_j_max_list(rg_param, ry_param, N_LIST, d_tube=0.0, domain_radius=1.0):
 
 
 # <***> <***>
-@njit(nopython=ENABLE_JIT)
+@njit
 def build_rect_config_dict(RINGS, RAYS, N, D_THE, D_RAD, D_TUBE):
     """
     Title: "Build rectangular-configuration dictionary"

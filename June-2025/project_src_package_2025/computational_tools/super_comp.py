@@ -1,12 +1,8 @@
-from . import njit, numerical_tools as num, sys_config, supplements as sup, np, struct_init as strc
-from numba.typed import List
-from project_src_package_2025.computational_tools import struct_init
-
-ENABLE_JIT = sys_config.ENABLE_NJIT
-ENABLE_CACHING = sys_config.ENABLE_NUMBA_CACHING
+from . import njit, numerical_tools as num, np
+from computational_tools import struct_init
 
 
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHING)
+@njit
 def super_comp_type_I(rg_param, ry_param, switch_param_a, switch_param_b, T_param,
                       v_param, N_LIST, D_LAYER, A_LAYER,
                       Timestamp_LIST,
@@ -59,8 +55,7 @@ def super_comp_type_I(rg_param, ry_param, switch_param_a, switch_param_b, T_para
 
     """
 
-    if ENABLE_JIT:
-        print("Running optimized version")
+    print("Running optimized version")
 
     # Compute constants
     dRad = num.compute_dRad(rg_param, domain_radius)

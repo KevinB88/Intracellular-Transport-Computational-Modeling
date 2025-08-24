@@ -1,4 +1,4 @@
-from . import plt, os, pd, datetime, Fraction, math, np
+from . import plt, os, pd, datetime, math
 
 
 def plot_general(file_list, labels, xlab, ylab, title, filepath, xlog=False, ylog=False, ylims=None,

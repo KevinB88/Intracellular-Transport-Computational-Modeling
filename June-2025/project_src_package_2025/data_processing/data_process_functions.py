@@ -1,7 +1,7 @@
-from project_src_package_2025.system_configuration import file_paths as fp
-from project_src_package_2025.auxiliary_tools import prints, tabulate_functions as tb
-from project_src_package_2025.data_visualization import plot_functions as plt, animation_functions as ani
-from project_src_package_2025.computational_tools import numerical_tools as num
+from system_configuration import file_paths as fp
+from auxiliary_tools import prints, tabulate_functions as tb
+from data_visualization import plot_functions as plt, animation_functions as ani
+from computational_tools import numerical_tools as num
 
 import pandas as pd
 import time

@@ -1,6 +1,6 @@
 import ast
 import os
-from project_src_package_2025.launch_functions import launch
+from launch_functions import launch
 
 
 COMPUTATION_FUNCTIONS = {

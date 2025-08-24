@@ -1,10 +1,5 @@
-from . import math, njit, numerical_tools as num, sys_config, supplements as sup, np, struct_init as strc
-from numba.typed import List
-from numba import int64
-from project_src_package_2025.computational_tools import struct_init
-
-ENABLE_JIT = sys_config.ENABLE_NJIT
-ENABLE_CACHE = sys_config.ENABLE_NUMBA_CACHING
+from . import njit, numerical_tools as num, np
+from computational_tools import struct_init
 
 
 # Methods used to collect numerical results (via PDE solver) to conduct analyses on, e.g, mass(t), Phi(theta), Phi(rad), Rho(rad), ect.
@@ -12,13 +7,13 @@ ENABLE_CACHE = sys_config.ENABLE_NUMBA_CACHING
 
 # v======================================== Mass stamp dependent analysis tools ========================================v
 
+@njit
 # (****) (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 def comp_diffusive_angle_snapshots_mass_dep(rg_param, ry_param, switch_param_a, switch_param_b, v_param, N_LIST, D_LAYER, A_LAYER, PvT_DL_snapshots,
                                             checkpoint_collect_container, mass_retention_threshold=0.01, T_fixed_ring_seg=0.5, d_tube=0,
                                             domain_radius=1.0, D=1.0, mass_checkpoint=10**6):
-    if ENABLE_JIT:
-        print("Running optimized version.")
+
+    print("Running optimized version.")
 
     if len(N_LIST) > ry_param:
         raise IndexError(
@@ -75,13 +70,13 @@ def comp_diffusive_angle_snapshots_mass_dep(rg_param, ry_param, switch_param_a, 
 
 
 # (****) (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def comp_diffusive_rad_snapshots_mass_dep(rg_param, ry_param, switch_param_a, switch_param_b, v_param,
                                           N_LIST, D_LAYER, A_LAYER, R_fixed_angle, PvR_DL_snapshots, RvR_AL_snapshots,
                                           checkpoint_collect_container, mass_retention_threshold=0.01, domain_radius=1.0,
                                           D=1.0, mass_checkpoint=10 ** 6, d_tube=0):
-    if ENABLE_JIT:
-        print("Running optimized version.")
+
+    print("Running optimized version.")
 
     R_fixed_angle = int(R_fixed_angle)
 
@@ -135,14 +130,13 @@ def comp_diffusive_rad_snapshots_mass_dep(rg_param, ry_param, switch_param_a, sw
 
 
 # (****) (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 # Collecting DL, central-patch, and AL snapshots for static heat-plot visualization.
 def comp_diffusive_snapshots_mass_dep(rg_param, ry_param, switch_param_a, switch_param_b, v_param, N_LIST, D_LAYER, A_LAYER,
                                       HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots, checkpoint_collect_container,
                                       domain_radius=1.0, D=1.0, mass_retention_threshold=0.01, mass_checkpoint=10 ** 6, d_tube=0.0):
 
-    if ENABLE_JIT:
-        print("Running optimized version.")
+    print("Running optimized version.")
 
     dRad = num.compute_dRad(rg_param, D)
     dThe = num.compute_dThe(ry_param)
@@ -203,12 +197,11 @@ def comp_diffusive_snapshots_mass_dep(rg_param, ry_param, switch_param_a, switch
 
 
 # (****) (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def comp_diffusive_angle_snapshots_time_dep(rg_param, ry_param, switch_param_a, switch_param_b, T_param, v_param,
                                             N_LIST, D_LAYER, A_LAYER, PvT_DL_snapshots, checkpoint_collect_container,
                                             T_fixed_ring_seg=0.5, d_tube=0.0, domain_radius=1.0, D=1.0, mass_checkpoint=10**6):
-    if ENABLE_JIT:
-        print("Running optimized version.")
+    print("Running optimized version.")
 
     if len(N_LIST) > ry_param:
         raise IndexError(
@@ -266,12 +259,12 @@ def comp_diffusive_angle_snapshots_time_dep(rg_param, ry_param, switch_param_a, 
 
 
 # (****) (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def comp_diffusive_rad_snapshots_time_dep(rg_param, ry_param, switch_param_a, switch_param_b, v_param, T_param,
                                           N_LIST, D_LAYER, A_LAYER, R_fixed_angle, PvR_DL_snapshots, RvR_AL_snapshots,
                                           checkpoint_collect_container, domain_radius=1.0, D=1.0, mass_checkpoint=10**6, d_tube=0):
-    if ENABLE_JIT:
-        print("Running optimized version.")
+
+    print("Running optimized version.")
 
     R_fixed_angle = int(R_fixed_angle)
 
@@ -327,13 +320,13 @@ def comp_diffusive_rad_snapshots_time_dep(rg_param, ry_param, switch_param_a, sw
 
 
 # (****) (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 # Collecting DL, central-patch, and AL snapshots for static heat-plot visualization.
 def comp_diffusive_snapshots_time_dep(rg_param, ry_param, switch_param_a, switch_param_b, v_param, T_param, N_LIST,
                                       D_LAYER, A_LAYER, HM_DL_snapshots, HM_C_snapshots, MFPT_snapshots,
                                       checkpoint_collect_container, domain_radius=1.0, D=1.0, mass_checkpoint=10 ** 6, d_tube=0.0):
-    if ENABLE_JIT:
-        print("Running optimized version.")
+
+    print("Running optimized version.")
 
     dRad = num.compute_dRad(rg_param, D)
     dThe = num.compute_dThe(ry_param)
@@ -384,6 +377,7 @@ def comp_diffusive_snapshots_time_dep(rg_param, ry_param, switch_param_a, switch
         A_LAYER[0] = A_LAYER[1]
 
         k += 1
+
 # <***************************** Temporarily retired *****************************>
 # @njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
 # def comp_mass_loss_glb_pk(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer, r=1.0, d=1.0,
@@ -529,13 +523,13 @@ def comp_diffusive_snapshots_time_dep(rg_param, ry_param, switch_param_a, switch
 
 
 # (****) (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def comp_mass_analysis_respect_to_time(rg_param, ry_param, switch_param_a, switch_param_b, v_param, T_param,
                                        N_LIST, D_LAYER, A_LAYER, MA_DL_timeseries, MA_AL_timeseries, MA_ALoI_timeseries,
                                        MA_ALoT_timeseries, MA_TM_timeseries, MA_collection_factor,
                                        relative_k, d_tube=0, domain_radius=1.0, D=1.0, mass_checkpoint=10**6):
-    if ENABLE_JIT:
-        print("Running optimized version.")
+
+    print("Running optimized version.")
 
     # Initialize constants
     dRad = num.compute_dRad(rg_param, domain_radius)
@@ -594,12 +588,12 @@ def comp_mass_analysis_respect_to_time(rg_param, ry_param, switch_param_a, switc
 
 
 # (****) (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def comp_until_mass_depletion(rg_param, ry_param, switch_param_a, switch_param_b, v_param, N_LIST, D_LAYER, A_LAYER,
                               domain_radius=1.0, D=1.0,
                               mass_retention_threshold=0.01, d_tube=0.0):
-    if ENABLE_JIT:
-        print("Running optimized version.")
+
+    print("Running optimized version.")
 
     dRad = num.compute_dRad(rg_param, D)
     dThe = num.compute_dThe(ry_param)

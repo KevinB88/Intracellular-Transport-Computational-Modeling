@@ -1,9 +1,5 @@
-import pandas as pd
-
-from . import plt, os, np, datetime, cm, BoundaryNorm, Normalize, fp, ant, sup, tb, exc
+from . import plt, os, np, cm, Normalize, sup, exc
 from matplotlib.patches import Polygon
-from matplotlib.collections import LineCollection
-import time
 import math
 
 

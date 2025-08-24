@@ -4,7 +4,7 @@ import subprocess
 
 def launch_subprocess(args):
 
-    project_root = "N:\\QueensCollege2025\\research\\computational_biophysics\\remote-clone\\June-2025"
+    project_root = "/Users/kbedoya88/Desktop/QC25-Summer/Research/Computational-Biophysics/Comp-Bio-Summer/June-2025"
     env = os.environ.copy()
 
     return subprocess.Popen(
@@ -15,7 +15,7 @@ def launch_subprocess(args):
 
 
 if __name__ == "__main__":
-    from project_src_package_2025.multiprocessing_tools.compute_worker import compute_and_send
+    from multiprocessing_tools.compute_worker import compute_and_send
     import sys
     import json
 

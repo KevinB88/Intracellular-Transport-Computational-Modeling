@@ -1,10 +1,8 @@
-from . import njit, sys_config, np
+from . import njit, np
 
-ENABLE_JIT = sys_config.ENABLE_NJIT
-ENABLE_CACHE = sys_config.ENABLE_NUMBA_CACHING
 
 # (****) Main numerical PDE solver implemented under the 2-step (time-step) method (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_LAYER, N_LIST,
                          dRad, dThe, dT, switch_param_a, switch_param_b, v_param, d_tube):
     m = 0
@@ -52,7 +50,7 @@ def comp_DL_AL_kp1_2step(ry_param, rg_param, d_list, D_LAYER, central_patch, A_L
 
 
 # (****) Update density (phi) at a position (m,n) for timestep k+1 on DL. [non-d-tube update] (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def u_density(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, mt_pos, a, b, tube_placements):
     """
 
@@ -97,7 +95,7 @@ def u_density(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, mt_p
 
 
 # (****) Update density (phi) at a position (m,n) for timestep k+1 on DL. [d_tube update] (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def u_density_rect(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho, mt_pos, a, b, d_tube):
     """
 
@@ -141,7 +139,7 @@ def u_density_rect(phi, k, m, n, d_radius, d_theta, d_time, central, rings, rho,
 
 
 # (****)  (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def u_center(phi, k, d_radius, d_theta, d_time, curr_central, rho, tube_placements, v):
     """
     Calculates the particle density in the central patch.
@@ -176,7 +174,7 @@ def u_center(phi, k, d_radius, d_theta, d_time, curr_central, rho, tube_placemen
 
 
 # (****)  (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def u_tube(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta):
     """
 
@@ -213,7 +211,7 @@ def u_tube(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta):
 
 
 # (****)  (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def u_tube_rect(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, d_tube):
     """
 
@@ -257,7 +255,7 @@ def u_tube_rect(rho, phi, k, m, n, a, b, v, d_time, d_radius, d_theta, d_tube):
 
 
 # (****)  (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def calc_mass_diff(phi, k, d_radius, d_theta, curr_central, rings, rays):
     diffusive_mass = 0
     for m in range(rings):
@@ -268,7 +266,7 @@ def calc_mass_diff(phi, k, d_radius, d_theta, curr_central, rings, rays):
 
 
 # (****)  (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def calc_mass_adv(rho, k, d_radius, d_theta, rings, tube_placements):
     advective_mass = 0
     for i in range(len(tube_placements)):
@@ -280,7 +278,7 @@ def calc_mass_adv(rho, k, d_radius, d_theta, rings, tube_placements):
 
 
 # (****)  (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def calc_mass(phi, rho, k, d_radius, d_theta, curr_central, rings, rays, tube_placements):
     """
     Calculates mass across the whole domain.
@@ -316,13 +314,13 @@ def calc_mass(phi, rho, k, d_radius, d_theta, curr_central, rings, rays, tube_pl
 
 
 # (****) Compute the initial condition of the central patch (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def compute_init_cond_cent(rg_param, domain_radius=1.0):
     return 1 / (np.pi * compute_dRad(rg_param, domain_radius) ** 2)
 
 
 # (****)  (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def j_r_r(phi, k, m, n, d_radius, rings):
     """
 
@@ -348,7 +346,7 @@ def j_r_r(phi, k, m, n, d_radius, rings):
 
 
 # (****)  (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def j_l_r(phi, k, m, n, d_radius, central):
     """
 
@@ -374,7 +372,7 @@ def j_l_r(phi, k, m, n, d_radius, central):
 
 
 # (****)  (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def j_r_t(phi, k, m, n, d_radius, d_theta):
     """
     Calculates the rightwards angular current
@@ -395,7 +393,7 @@ def j_r_t(phi, k, m, n, d_radius, d_theta):
 
 
 # (****)  (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def j_l_t(phi, k, m, n, d_radius, d_theta):
     """
        Calculates the leftwards angular current
@@ -416,19 +414,19 @@ def j_l_t(phi, k, m, n, d_radius, d_theta):
 
 
 # (****) Compute delta radius (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def compute_dRad(rg_param, domain_radius=1.0):
     return domain_radius / rg_param
 
 
 # (****) Compute delta theta (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def compute_dThe(ry_param):
     return (2 * np.pi) / ry_param
 
 
 # (****) Compute delta time (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def compute_dT(rg_param, ry_param, domain_radius=1.0, D=1.0):
     dRad = compute_dRad(rg_param, domain_radius)
     dThe = compute_dThe(ry_param)
@@ -437,19 +435,19 @@ def compute_dT(rg_param, ry_param, domain_radius=1.0, D=1.0):
 
 
 # (****) Compute K; the number of discrete time-steps corresponding to T_param (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def compute_K(rg_param, ry_param, T_param, domain_radius=1.0, D=1.0):
     return int(np.floor(T_param / compute_dT(rg_param, ry_param, domain_radius, D)))
 
 
 # (****) (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def convert_K_to_T(rg_param, ry_param, K_param, domain_radius=1.0, D=1.0):
     return K_param * compute_dT(rg_param, ry_param, domain_radius, D)
 
 
 # (****)  (****)
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def calc_loss_mass_j_r_r(phi, k, d_radius, d_theta, rings, rays):
     """
     Calculates the amount of mass exiting the last ring of patches in the domain using radial currents.
@@ -474,7 +472,7 @@ def calc_loss_mass_j_r_r(phi, k, d_radius, d_theta, rings, rays):
 
 
 # <****> In_place transfer from k+1 th frame to the kth (in PDE solver for DL & AL) <****>
-@njit(nopython=ENABLE_JIT, cache=ENABLE_CACHE)
+@njit
 def update_layer_inplace(layer_target, layer_source, N, M):
     for i in range(M):
         for j in range(N):

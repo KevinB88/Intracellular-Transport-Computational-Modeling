@@ -1,5 +1,3 @@
-import matplotlib
-
 from . import np
 from . import sup
 from . import num
@@ -7,17 +5,8 @@ from . import plt
 from . import njit
 from matplotlib.animation import FuncAnimation
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.patches import Circle
 from matplotlib import cm
 from matplotlib.colors import Normalize
-from . import sys
-from time import perf_counter
-# import tkinter as tk
-from multiprocessing import Queue
-from PyQt5.QtCore import QTimer
-from collections import deque
-
-ENABLE_JIT = sys.ENABLE_NJIT
 
 GLOBAL_ani = None
 GLOBAL_fig = None
@@ -91,7 +80,7 @@ def compute_batches_in_background(rg, ry, w, v, N, K_param, T, d_tube, result_qu
 
 
 # Implement the following into analysis tools
-@njit(nopython=ENABLE_JIT)
+@njit
 def collect_stamps_for_animation(rings, rays, a, b, v, tube_placements, diffusive_layer, advective_layer, center, K,
                                  r=1.0, d=1.0, d_tube=-1):
     d_radius = r / rings
