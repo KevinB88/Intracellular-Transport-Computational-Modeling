@@ -661,9 +661,9 @@ class ControlPanel(QWidget):
 
         from system_configuration import file_paths as fp
 
-        # output_dir = fp.json_output
-        # result_file = os.path.join(output_dir, f"text.txt")
-        result_file = "/Users/kbedoya88/Desktop/QC25-Summer/Research/Computational-Biophysics/Comp-Bio-Summer/June-2025/project_src_package_2025/data_output/json_output/result.json"
+        output_dir = fp.json_output
+        result_file = os.path.join(output_dir, f"result.json")
+        # result_file = "/Users/kbedoya88/Desktop/QC25-Summer/Research/Computational-Biophysics/Comp-Bio-Summer/June-2025/project_src_package_2025/data_output/json_output/result.json"
 
         try:
             if not os.path.join(result_file) or os.path.getsize(result_file) == 0:
