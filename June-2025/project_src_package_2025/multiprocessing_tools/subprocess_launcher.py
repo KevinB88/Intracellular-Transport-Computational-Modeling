@@ -1,10 +1,14 @@
 import os
 import subprocess
+from pathlib import Path
 
 
 def launch_subprocess(args):
 
-    project_root = "/Users/kbedoya88/Desktop/QC25-Summer/Research/Computational-Biophysics/Comp-Bio-Summer/June-2025"
+    # project_root = "/Users/kbedoya88/Desktop/QC25-Summer/Research/Computational-Biophysics/Comp-Bio-Summer/June-2025"
+    # project_root = "/Users/kbedoya88"
+    # project_root = ""
+    project_root = Path(__file__).resolve().parents[2]
     env = os.environ.copy()
 
     return subprocess.Popen(
