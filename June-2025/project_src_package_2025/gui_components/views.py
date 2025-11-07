@@ -709,7 +709,8 @@ class ControlPanel(QWidget):
                 f"Launching computation: {computation_name}...      [{self.produce_timestamp()}]"
             )
 
-            python_exec = "/usr/local/bin/python3.9"
+            # python_exec = "/usr/local/bin/python3.9"
+            python_exec = sys.executable
 
             args = [
                 python_exec,
@@ -998,7 +999,8 @@ class ControlPanel(QWidget):
         self.set_launch_color("running")
         self.output_display.repaint()
 
-        python_exec = "/usr/local/bin/python3.9"
+        # python_exec = "/usr/local/bin/python3.9"
+        python_exec = sys.executable
 
         computation_name = job.comp_type
         inputs = job.params
