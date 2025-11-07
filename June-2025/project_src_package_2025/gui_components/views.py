@@ -750,7 +750,7 @@ class ControlPanel(QWidget):
         png_paths = []
 
         if "output_dirs" in result:
-            csv_paths, png_paths = aux_gui_funcs.extract_csv_and_png_paths(result[ "output_dirs" ])
+            csv_paths, png_paths = aux_gui_funcs.extract_csv_and_png_paths(result["output_dirs"])
             if csv_paths or png_paths:
                 self.output_files_widget.update_display(csv_paths, png_paths)
                 self.output_files_widget.show()
@@ -1026,7 +1026,10 @@ class ControlPanel(QWidget):
             return
         self.poll_timer.stop()
 
-        result_file = "/Users/kbedoya88/Desktop/QC25-Summer/Research/Computational-Biophysics/Comp-Bio-Summer/June-2025/project_src_package_2025/data_output/json_output/result.json"
+        from system_configuration import file_paths as fp
+        output_dir = fp.json_output
+        result_file = os.path.join(output_dir, f"result.json")
+        # result_file = "/Users/kbedoya88/Desktop/QC25-Summer/Research/Computational-Biophysics/Comp-Bio-Summer/June-2025/project_src_package_2025/data_output/json_output/result.json"
 
         try:
             if not os.path.join(result_file) or os.path.getsize(result_file) == 0:
